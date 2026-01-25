@@ -1,0 +1,275 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|vue|svelte)$ ]]; then echo \"Running ESLint on $file...\"; npx eslint --fix \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-fix JavaScript/TypeScript files with ESLint after editing"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|css|scss|json|md|html|vue|svelte)$ ]]; then echo \"Formatting $file with Prettier...\"; npx prettier --write \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format web files with Prettier after editing"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(dart)$ ]]; then echo \"Formatting Flutter file...\"; dart format \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Flutter/Dart files for mobile development"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(swift)$ ]]; then echo \"Formatting Swift file...\"; swiftformat \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Swift files for iOS development"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(kt|kts)$ ]]; then echo \"Formatting Kotlin file...\"; ktlint -F \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Kotlin files for Android development"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(cs)$ ]] && [[ $file =~ Unity ]]; then echo \"Unity C# file modified: $file\"; fi'",
+            "description": "Detect Unity C# file changes for game development"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(gd)$ ]]; then echo \"Godot GDScript file modified: $file\"; gdformat \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Godot game scripts"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(glsl|shader|shadergraph)$ ]]; then echo \"Shader file modified: $file - Consider regenerating shader variants\"; fi'",
+            "description": "Track shader modifications for game development"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ npm\\ install|yarn\\ add|pnpm\\ add ]]; then echo \"Dependencies updated. Consider running build...\"; fi'",
+            "description": "Notify when dependencies are installed"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ git\\ commit ]]; then echo \"Commit created. Remember to push changes.\"; fi'",
+            "description": "Reminder after git commits"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] User prompt submitted\" >> ~/.claude/session-log.txt",
+            "description": "Log all user prompts with timestamp"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if command -v osascript &> /dev/null; then osascript -e \"display notification \\\"Claude Code task completed\\\" with title \\\"Claude Code\\\"\"; elif command -v notify-send &> /dev/null; then notify-send \"Claude Code\" \"Task completed\"; fi'",
+            "description": "Desktop notification when Claude finishes (macOS/Linux)"
+          },
+          {
+            "type": "command",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Task completed\" >> ~/.claude/session-log.txt",
+            "description": "Log task completion"
+          },
+          {
+            "type": "prompt",
+            "prompt": "Check if verification is needed: Were code files (tsx, ts, sql, glsl) modified during this task? If yes, consider invoking post-task-verifier agent to validate changes. If task was just research/questions, no verification needed.",
+            "description": "Prompt to trigger verification after implementation tasks"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review subagent results: Did the subagent complete successfully? Were there any errors or issues that need follow-up? Should another specialized verifier be invoked?",
+            "description": "Evaluate subagent completion and chain verification if needed"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"========================================\" >> ~/.claude/session-log.txt && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] New session started\" >> ~/.claude/session-log.txt && echo \"Working directory: $(pwd)\" >> ~/.claude/session-log.txt'",
+            "description": "Log session start with context"
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'if [ -f package.json ]; then echo \"📦 Node.js project detected\"; elif [ -f pubspec.yaml ]; then echo \"📱 Flutter project detected\"; elif [ -f Cargo.toml ]; then echo \"🦀 Rust project detected\"; elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then echo \"🐍 Python project detected\"; elif [ -d Assets ] && [ -f ProjectSettings/ProjectVersion.txt ]; then echo \"🎮 Unity project detected\"; elif [ -f project.godot ]; then echo \"🎮 Godot project detected\"; fi'",
+            "description": "Auto-detect project type and notify"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ rm\\ -rf\\ / ]] || [[ $cmd =~ sudo\\ rm ]] || [[ $cmd =~ mkfs ]]; then echo \"⚠️  DANGER: Potentially destructive command blocked\" && exit 1; fi'",
+            "description": "Block dangerous destructive commands"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'file=\"{{file_path}}\"; if [ -f \"$file\" ]; then mkdir -p ~/.claude/backups/$(dirname \"$file\") && cp \"$file\" ~/.claude/backups/\"$file\".$(date +%s).bak 2>/dev/null || true; fi'",
+            "description": "Auto-backup files before editing (safety net)"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Notification: {{message}}\" >> ~/.claude/notifications.log",
+            "description": "Log all Claude Code notifications"
+          }
+        ]
+      }
+    ]
+  },
+  "defaultModel": "opus",
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Bash",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "WebFetch(domain:*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Task(*)",
+      "mcp__supabase__*",
+      "mcp__sequential-thinking__*",
+      "mcp__browsermcp__*",
+      "mcp__memory__*",
+      "mcp__git__*",
+      "mcp__filesystem__*",
+      "mcp__github__*",
+      "mcp__vercel__*",
+      "mcp__stripe__*",
+      "Bash(pnpm run build:*)"
+    ]
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/.nuxt/**",
+    "**/out/**",
+    "**/.cache/**",
+    "**/.vscode/**",
+    "**/.idea/**",
+    "**/coverage/**",
+    "**/*.log",
+    "**/.DS_Store",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+    "**/.git/**"
+  ],
+  "preferences": {
+    "enableHooksGlobally": true,
+    "autoFormatOnSave": true,
+    "logSessions": true
+  },
+  "development": {
+    "web": {
+      "frameworks": [
+        "react",
+        "vue",
+        "svelte",
+        "next.js",
+        "nuxt",
+        "astro"
+      ],
+      "tooling": [
+        "vite",
+        "webpack",
+        "typescript",
+        "eslint",
+        "prettier"
+      ]
+    },
+    "mobile": {
+      "frameworks": [
+        "flutter",
+        "react-native",
+        "swift",
+        "kotlin"
+      ],
+      "tooling": [
+        "xcode",
+        "android-studio",
+        "dart",
+        "gradle"
+      ]
+    },
+    "game": {
+      "engines": [
+        "unity",
+        "godot",
+        "unreal"
+      ],
+      "assetTools": [
+        "blender",
+        "stable-diffusion",
+        "comfyui"
+      ],
+      "languages": [
+        "c#",
+        "gdscript",
+        "c++",
+        "glsl"
+      ]
+    },
+    "ai": {
+      "local": [
+        "stable-diffusion",
+        "comfyui",
+        "ollama",
+        "lm-studio"
+      ],
+      "assetGeneration": [
+        "texture",
+        "sprite",
+        "3d-model",
+        "audio"
+      ]
+    }
+  }
+}
