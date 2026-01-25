@@ -1,0 +1,87 @@
+{
+    // === File & Search Exclusions (Performance) ===
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/.next": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/coverage": true,
+        "**/.nuxt": true,
+        "**/out": true,
+        "**/.cache": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/.git": true,
+        "**/dist": true,
+        "**/*.lock": true,
+        "**/pnpm-lock.yaml": true,
+        "**/package-lock.json": true
+    },
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/dist/**": true,
+        "**/.next/**": true
+    },
+
+    // === Editor Performance ===
+    "editor.largeFileOptimizations": true,
+    "editor.maxTokenizationLineLength": 10000,
+    "extensions.autoCheckUpdates": false,
+    "extensions.autoUpdate": false,
+
+    // === Claude Code Settings ===
+    "claudeCode.allowDangerouslySkipPermissions": true,
+    "claudeCode.initialPermissionMode": "bypassPermissions",
+    "claudeCode.preferredLocation": "panel",
+    "claudeCode.environmentVariables": [],
+
+    // === GitHub Copilot ===
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.chat.anthropic.tools.websearch.enabled": true,
+    "github.copilot.chat.anthropic.tools.websearch.maxUses": 20,
+
+    // === Git Settings ===
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+
+    // === C# / .NET (Unity/Game Dev) ===
+    "dotnet.server.useOmnisharp": false,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "csharp.maxProjectFileCountForDiagnosticAnalysis": 5000,
+    "csharp.debug.enableHotReload": false,
+    "csharp.semanticHighlighting.enabled": false,
+    "csharp.suppressHiddenDiagnostics": false,
+    "csharp.suppressBuildAssetsNotification": false,
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
+    "csdevkit.dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
+    "csdevkit.dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
+
+    // === Parallels Desktop ===
+    "parallels-desktop.extension.path": "/Users/username/.parallels-desktop-vscode",
+    "parallels-desktop.hashicorp.packer.path": "/opt/homebrew/bin/packer",
+    "parallels-desktop.prlctl.path": "/usr/local/bin/prlctl",
+    "parallels-desktop.git.path": "/opt/homebrew/bin/git",
+    "parallels-desktop.brew.path": "/opt/homebrew/bin/brew",
+    "parallels-desktop.devops-service.path": "/Users/username/.parallels-desktop-vscode/tools/prldevops",
+
+    // === YAML Schemas ===
+    "yaml.schemas": {
+        "file:///Users/username/.vscode/extensions/continue.continue-1.2.10-darwin-arm64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ]
+    },
+
+    // === MCP & Chat ===
+    "chat.mcp.gallery.enabled": true,
+
+    // === Security & Telemetry ===
+    "security.workspace.trust.untrustedFiles": "open",
+    "redhat.telemetry.enabled": false
+}

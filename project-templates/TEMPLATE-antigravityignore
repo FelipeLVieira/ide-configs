@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.expo/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.vercel/
+.nuxt/
+
+# Native (mobile)
+ios/
+android/
+ios/Pods/
+
+# Database
+*.db
+*.sqlite
+
+# Logs and temp
+logs/
+*.log
+tmp/
+temp/
+
+# Test outputs
+coverage/
+test-results/
+.playwright/
+.jest/
+
+# IDE caches
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large assets
+*.mp4
+*.mov
+*.zip
+*.tar.gz
+
+# Git
+.git/
