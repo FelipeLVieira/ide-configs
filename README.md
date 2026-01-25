@@ -2,6 +2,115 @@
 
 Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, and Clawd autonomous orchestration.
 
+## Prerequisites Installation
+
+### Claude Code
+
+Official docs: https://code.claude.com/docs
+
+**macOS / Linux:**
+```bash
+# Recommended
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Or via Homebrew
+brew install --cask claude-code
+```
+
+**Windows:**
+```powershell
+# PowerShell (Recommended)
+irm https://claude.ai/install.ps1 | iex
+
+# Or via WinGet
+winget install Anthropic.ClaudeCode
+
+# Or CMD
+curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
+Requires a [Claude subscription](https://claude.com/pricing) (Pro, Max, Teams, or Enterprise).
+
+---
+
+### Gemini CLI (Antigravity)
+
+Official docs: https://geminicli.com/docs
+
+**macOS:**
+```bash
+# Homebrew (Recommended)
+brew install gemini-cli
+
+# Or via npm
+npm install -g @google/gemini-cli
+
+# Or run instantly without install
+npx @google/gemini-cli
+```
+
+**Windows / Linux:**
+```bash
+# Requires Node.js 20+
+npm install -g @google/gemini-cli
+
+# Or run instantly
+npx @google/gemini-cli
+```
+
+Free tier: 60 requests/min, 1,000 requests/day with Google account.
+
+---
+
+### VSCode
+
+Official docs: https://code.visualstudio.com/docs/setup
+
+**macOS:**
+1. Download from https://code.visualstudio.com/download
+2. Drag to Applications folder
+3. Add to PATH: Cmd+Shift+P → "Shell Command: Install 'code' command"
+
+**Windows:**
+1. Download from https://code.visualstudio.com/download
+2. Run installer (User or System)
+3. Check "Add to PATH" during install
+
+**Linux:**
+```bash
+# Debian/Ubuntu
+sudo apt install code
+
+# Or via Snap
+sudo snap install code --classic
+```
+
+---
+
+### Clawdbot
+
+Official docs: https://docs.clawd.bot
+
+**macOS / Linux:**
+```bash
+npm install -g clawdbot
+
+# Start gateway
+clawdbot gateway start
+```
+
+**Windows:**
+```powershell
+npm install -g clawdbot
+
+# Start gateway
+clawdbot gateway start
+```
+
+Requires Node.js 18+ and a Claude subscription.
+
+---
+
 ## Structure
 
 ```
