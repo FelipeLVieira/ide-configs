@@ -1,6 +1,6 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, and Clawd autonomous orchestration.
+Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Telegram bot integration.
 
 ## Prerequisites Installation
 
@@ -131,6 +131,10 @@ ide-configs/
 ├── scripts/
 │   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
 │   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
+├── telegram-bot/
+│   ├── README.md                  # Telegram bot setup guide
+│   ├── .env.example               # Example configuration
+│   └── install-windows.ps1        # Windows installer script
 ├── project-templates/
 │   ├── TEMPLATE-CLAUDE.md           # Generic project instructions template
 │   ├── TEMPLATE-antigravityignore   # Antigravity ignore template
