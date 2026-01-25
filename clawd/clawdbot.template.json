@@ -1,0 +1,57 @@
+{
+  "_comment": "Clawdbot Gateway Config Template - Copy to ~/.clawdbot/clawdbot.json",
+  "_rateLimitNote": "maxConcurrent values are LOW to prevent HTTP 429 rate limit errors from Anthropic API",
+  "agents": {
+    "defaults": {
+      "workspace": "~/clawd",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 2,
+      "subagents": {
+        "maxConcurrent": 2
+      }
+    },
+    "list": [
+      {
+        "id": "main"
+      }
+    ]
+  },
+  "messages": {
+    "ackReactionScope": "all"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "channels": {
+    "telegram": {
+      "_comment": "Get bot token from @BotFather on Telegram",
+      "dmPolicy": "pairing",
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      },
+      "groupPolicy": "allowlist",
+      "streamMode": "partial",
+      "reactionNotifications": "own",
+      "reactionLevel": "minimal"
+    }
+  },
+  "gateway": {
+    "mode": "local"
+  },
+  "plugins": {
+    "entries": {
+      "google-antigravity-auth": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      }
+    }
+  }
+}

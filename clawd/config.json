@@ -7,6 +7,15 @@
   "verbose": false,
   "logLevel": "info",
   "outputDir": "~/.clawd/output",
+  "rateLimits": {
+    "_comment": "Prevent HTTP 429 errors from Anthropic API",
+    "maxConcurrent": 2,
+    "subagents": {
+      "maxConcurrent": 2
+    },
+    "retryOnRateLimit": true,
+    "retryDelayMs": 5000
+  },
   "projects": {
     "aphos": {
       "path": "~/repos/aphos",
