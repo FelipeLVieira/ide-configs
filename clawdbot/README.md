@@ -216,12 +216,21 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 |-----|-------------|--------|
 | `agents.defaults.workspace` | Default workspace directory | Path |
 | `agents.defaults.maxConcurrent` | Max concurrent agents | Number |
+| `agents.list[].id` | Agent identifier | String (e.g., `main`) |
+| `agents.list[].identity.name` | Bot display name | String |
+| `agents.list[].identity.emoji` | Bot emoji | Emoji |
+| `agents.list[].identity.theme` | Bot description | String |
+| `messages.ackReaction` | Processing indicator emoji | Emoji (e.g., `👀`) |
+| `messages.ackReactionScope` | When to show ack | `dm`, `group`, `all`, `group-mentions` |
 | `channels.telegram.enabled` | Enable Telegram channel | `true` / `false` |
 | `channels.telegram.botToken` | Bot token from BotFather | String |
 | `channels.telegram.dmPolicy` | How to handle DMs | `pairing`, `open`, `allowlist` |
 | `channels.telegram.groupPolicy` | How to handle groups | `allowlist`, `open` |
 | `channels.telegram.streamMode` | Response streaming | `partial`, `full`, `none` |
+| `channels.telegram.reactionLevel` | Bot reaction frequency | `minimal`, `extensive` |
+| `channels.telegram.reactionNotifications` | Reaction notifications | `all`, `none` |
 | `gateway.mode` | Gateway operation mode | `local`, `cloud` |
+| `plugins.entries.telegram.enabled` | Enable Telegram plugin | `true` / `false` |
 
 ### DM Policies
 
@@ -271,14 +280,21 @@ Show an emoji while bot is processing your message:
 
 ### Bot Identity
 
-Set bot name and emoji for mentions:
+Set bot name and emoji (defined per-agent in `agents.list`):
 
 ```json
 {
-  "identity": {
-    "name": "Clawdbot Master",
-    "emoji": "🖥️",
-    "theme": "Windows automation assistant"
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "identity": {
+          "name": "Clawdbot Master",
+          "emoji": "🖥️",
+          "theme": "Windows automation assistant"
+        }
+      }
+    ]
   }
 }
 ```
@@ -305,9 +321,24 @@ Add commands to Telegram's menu:
 
 ```json
 {
-  "identity": {
-    "name": "Clawdbot Master",
-    "emoji": "🖥️"
+  "agents": {
+    "defaults": {
+      "workspace": "~/clawd",
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "identity": {
+          "name": "Clawdbot Master",
+          "emoji": "🖥️",
+          "theme": "Your automation assistant"
+        }
+      }
+    ]
   },
   "messages": {
     "ackReaction": "👀",
@@ -320,11 +351,19 @@ Add commands to Telegram's menu:
       "dmPolicy": "pairing",
       "groupPolicy": "allowlist",
       "streamMode": "partial",
-      "reactionLevel": "minimal"
+      "reactionLevel": "minimal",
+      "reactionNotifications": "all"
     }
   },
   "gateway": {
     "mode": "local"
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
   }
 }
 ```
