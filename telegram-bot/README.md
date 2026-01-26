@@ -151,6 +151,46 @@ Register-ScheduledTask -TaskName "ClaudeCodeTelegram" -Action $action -Trigger $
   CLAUDE_BINARY_PATH=C:\Users\YourName\AppData\Roaming\npm\claude.cmd
   ```
 
+**"No result message received from Claude Code":**
+- This can occur when Claude returns text-only responses
+- The bot may need a patch to handle non-JSON output from Claude CLI
+- Check that you're using a compatible version of the bot
+
+**Model showing wrong (e.g., Sonnet instead of Opus):**
+- Use the full model ID in CLAUDE_MODEL:
+  ```env
+  CLAUDE_MODEL=claude-opus-4-5-20251101
+  ```
+- Short names like "opus" may not work correctly
+
+**Validation errors on startup (ALLOWED_USERS, CLAUDE_ALLOWED_TOOLS):**
+- ALLOWED_USERS accepts comma-separated IDs or a single integer
+- CLAUDE_ALLOWED_TOOLS must be comma-separated (no spaces after commas)
+
+## Advanced Configuration
+
+### Full Shell Access (Personal Use Only)
+
+For personal/trusted setups where you want Claude to have full shell access:
+
+```env
+# DANGER: Only enable on personal/trusted setups
+# Allows shell operators (>, |, &, ;, etc.)
+DISABLE_COMMAND_VALIDATION=true
+```
+
+### Broader Directory Access
+
+To give the bot access to your entire user directory (not just projects):
+
+```env
+# Windows
+APPROVED_DIRECTORY=C:\Users\YourName
+
+# macOS/Linux
+APPROVED_DIRECTORY=/home/yourname
+```
+
 ## Credits
 
 Based on [claude-code-telegram](https://github.com/RichardAtCT/claude-code-telegram) by RichardAtCT.
