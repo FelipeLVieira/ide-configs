@@ -127,9 +127,31 @@ You should see:
 [gateway] listening on ws://127.0.0.1:18789
 ```
 
-### 7. Test It
+### 7. Pair Your Telegram Account
 
-Message your bot on Telegram with `/start`
+Message your bot on Telegram with `/start`. You'll see:
+
+```
+Clawdbot: access not configured.
+
+Your Telegram user id: 123456789
+Pairing code: ABC123XY
+
+Ask the bot owner to approve with:
+clawdbot pairing approve telegram <code>
+```
+
+On your machine, approve the pairing:
+
+```bash
+clawdbot pairing approve telegram ABC123XY
+```
+
+You should see: `Approved telegram sender 123456789.`
+
+### 8. Test It
+
+Message your bot again - it should now respond
 
 ## Configuration Reference
 
@@ -364,6 +386,7 @@ kill $(lsof -t -i :18789)
 | `clawdbot status` | Check gateway status |
 | `clawdbot sessions list` | List all active sessions |
 | `clawdbot sessions send LABEL MSG` | Send message to agent |
+| `clawdbot pairing approve telegram CODE` | Approve Telegram pairing |
 
 ## Security Notes
 
