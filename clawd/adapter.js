@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
@@ -7,22 +7,27 @@ import os from "node:os";
  * Multi-Account Claude Code Adapter
  *
  * Wraps the default Claude Code CLI adapter with automatic account switching
- * when rate limits are detected. Uses CLAUDE_CONFIG_DIR to isolate auth
- * between accounts.
+ * when rate limits are detected. Uses CLAUDE_CODE_OAUTH_TOKEN env var to
+ * authenticate secondary accounts via long-lived OAuth tokens.
  *
- * Accounts are configured in ~/.clawd/config.json under "accounts".
+ * Primary account: uses default Claude Code auth (browser session)
+ * Secondary accounts: use OAuth tokens stored at <configDir>/oauth-token
+ *
+ * Setup per account:
+ *   CLAUDE_CONFIG_DIR=~/.claude-<name> claude setup-token
+ *   # Save the displayed token to ~/.claude-<name>/oauth-token
  */
 
 const ACCOUNTS = [
 	{
 		name: "felipe",
 		email: "felipe.lv.90@gmail.com",
-		configDir: null, // null = default ~/.claude
+		tokenFile: null, // null = use default auth (no token override)
 	},
 	{
 		name: "wisedigital",
 		email: "wisedigitalinc@gmail.com",
-		configDir: path.join(os.homedir(), ".claude-wisedigital"),
+		tokenFile: path.join(os.homedir(), ".claude-wisedigital", "oauth-token"),
 	},
 ];
 
@@ -34,10 +39,35 @@ const RATE_LIMIT_PATTERNS = [
 	/quota exceeded/i,
 	/usage limit/i,
 	/capacity/i,
+	/exceed.*account.*rate/i,
+	/overloaded/i,
 ];
 
 // Track which account is currently rate-limited and when it resets
 const rateLimitState = new Map();
+
+// Cache loaded tokens
+const tokenCache = new Map();
+
+/**
+ * Load OAuth token from file (cached)
+ */
+function loadToken(tokenFile) {
+	if (!tokenFile) return null;
+
+	if (tokenCache.has(tokenFile)) {
+		return tokenCache.get(tokenFile);
+	}
+
+	try {
+		const token = readFileSync(tokenFile, "utf-8").trim();
+		tokenCache.set(tokenFile, token);
+		return token;
+	} catch (err) {
+		log(`WARNING: Could not read token from ${tokenFile}: ${err.message}`);
+		return null;
+	}
+}
 
 /**
  * Detect if output indicates a rate limit
@@ -85,11 +115,17 @@ function getAvailableAccount() {
 	for (const account of ACCOUNTS) {
 		const limitInfo = rateLimitState.get(account.name);
 		if (!limitInfo || limitInfo.resetTime <= now) {
-			// Clear expired rate limit
 			if (limitInfo) {
 				rateLimitState.delete(account.name);
 				log(`Account "${account.name}" (${account.email}) rate limit expired, now available`);
 			}
+
+			// Skip accounts with missing tokens
+			if (account.tokenFile && !loadToken(account.tokenFile)) {
+				log(`Skipping "${account.name}" - token file not found`);
+				continue;
+			}
+
 			return account;
 		}
 	}
@@ -126,19 +162,22 @@ function log(msg) {
 }
 
 /**
- * Spawn Claude CLI with the given account's config
+ * Spawn Claude CLI with the given account's auth
  */
 function spawnClaude(account, args, stdioConfig) {
 	const env = { ...process.env };
 
-	if (account.configDir) {
-		env.CLAUDE_CONFIG_DIR = account.configDir;
+	if (account.tokenFile) {
+		const token = loadToken(account.tokenFile);
+		if (token) {
+			env.CLAUDE_CODE_OAUTH_TOKEN = token;
+		}
 	} else {
-		// Use default - remove any override
-		delete env.CLAUDE_CONFIG_DIR;
+		// Primary account - remove any token override to use default auth
+		delete env.CLAUDE_CODE_OAUTH_TOKEN;
 	}
 
-	log(`Using account: "${account.name}" (${account.email})${account.configDir ? ` [config: ${account.configDir}]` : " [default config]"}`);
+	log(`Using account: "${account.name}" (${account.email})${account.tokenFile ? " [oauth-token]" : " [default auth]"}`);
 
 	return spawn("claude", args, {
 		stdio: stdioConfig,
@@ -162,7 +201,6 @@ class MultiAccountAdapter {
 			try {
 				const result = await this._executeWithAccount(account, prompt);
 
-				// Check for rate limit in successful output too
 				if (isRateLimited(result)) {
 					markRateLimited(account, result);
 					log(`Rate limit detected in output, trying next account...`);
@@ -182,8 +220,6 @@ class MultiAccountAdapter {
 			}
 		}
 
-		// All accounts exhausted - throw the last error so Clawd's built-in
-		// rate limit handler can do the waiting
 		throw lastError || new Error("All accounts rate-limited");
 	}
 
@@ -216,7 +252,6 @@ class MultiAccountAdapter {
 				const combinedOutput = `${output}\n${errorOutput}`.trim();
 
 				if (code !== 0) {
-					// Check if it's a rate limit before rejecting
 					if (isRateLimited(combinedOutput)) {
 						reject(
 							new Error(
@@ -251,7 +286,6 @@ class MultiAccountAdapter {
 				tui,
 			);
 
-			// Check for rate limit
 			const combinedOutput = result.output || "";
 			if (result.exitCode !== 0 && isRateLimited(combinedOutput)) {
 				markRateLimited(account, combinedOutput);
@@ -266,7 +300,6 @@ class MultiAccountAdapter {
 			return result;
 		}
 
-		// All accounts exhausted - return failure so Clawd's rate limit handler takes over
 		const allLimitedMsg = "All accounts rate-limited. Clawd will wait and retry.";
 		log(allLimitedMsg);
 		if (tui) tui.log(allLimitedMsg, "warn");
