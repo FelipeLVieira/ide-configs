@@ -134,6 +134,44 @@ Clawdbot doesn't automatically resume tasks after a sudden shutdown. The auto-re
 
 Copy these files to your Clawdbot workspace (`~/clawd/` or similar).
 
+## Multi-Machine Setup (MacBook + Mac Mini)
+
+When running clawdbot on multiple machines:
+
+| Machine | Role | Telegram |
+|---------|------|----------|
+| MacBook | Controller | Enabled |
+| Mac Mini | Worker | **Disabled** |
+
+**Important**: Only ONE gateway should have Telegram enabled. If both poll the same bot token, you'll see "Telegram getUpdates conflict" errors.
+
+### MacBook Config (Controller)
+```json
+{
+  "gateway": { "mode": "local" },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": true }
+    }
+  }
+}
+```
+
+### Mac Mini Config (Worker)
+```json
+{
+  "gateway": { "mode": "local" },
+  "channels": {},
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": false }
+    }
+  }
+}
+```
+
+For Mac Mini details, see [mac-mini/README.md](../mac-mini/README.md).
+
 ## Troubleshooting
 
 ### HTTP 429 Rate Limit Errors
@@ -160,6 +198,24 @@ tail -100 ~/.clawdbot/logs/gateway.log | grep telegram
 
 # Verify bot token
 clawdbot doctor
+```
+
+### Telegram getUpdates Conflict
+**Symptom**: Logs show "Telegram getUpdates conflict; retrying"
+
+**Cause**: Multiple gateways polling the same Telegram bot token.
+
+**Fix**: Disable Telegram on all gateways except one:
+```bash
+# On the worker machine, set in clawdbot.json:
+"plugins": {
+  "entries": {
+    "telegram": { "enabled": false }
+  }
+}
+
+# Then restart
+clawdbot gateway restart
 ```
 
 ## Security Notes

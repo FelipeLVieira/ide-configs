@@ -18,6 +18,15 @@ This document describes the setup for the Mac Mini as a dedicated server for run
 ssh felipemacmini@felipes-mac-mini.local
 ```
 
+## Architecture
+
+| Machine | Role | Telegram |
+|---------|------|----------|
+| **MacBook** | Controller (gateway + Telegram) | Enabled |
+| **Mac Mini** | Worker (task execution) | Disabled |
+
+The MacBook handles all Telegram communication (screenshots, interactive control). Mac Mini executes tasks via SSH from MacBook.
+
 ## Installed Tools
 
 | Tool | Version | Path |
@@ -30,6 +39,18 @@ ssh felipemacmini@felipes-mac-mini.local
 | gh | latest | /opt/homebrew/bin/gh |
 | Claude Code | 2.1.19 | /opt/homebrew/bin/claude |
 | Clawdbot | 2026.1.24-3 | /opt/homebrew/bin/clawdbot |
+| tmux | 3.6a | /opt/homebrew/bin/tmux |
+| mas | 5.0.2 | /opt/homebrew/bin/mas |
+
+## Installed Applications
+
+| App | Purpose |
+|-----|---------|
+| Visual Studio Code | Code editing |
+| Google Chrome | Web testing |
+| CleanMyMac 5 | System maintenance |
+| Xcode 26.2 | iOS/macOS development |
+| Antigravity | Gemini CLI IDE |
 
 ## Configuration
 
@@ -50,6 +71,8 @@ sudo pmset -a displaysleep 0 sleep 0 disksleep 0 womp 1 autorestart 1
 ### Clawdbot Config
 Location: `~/.clawdbot/clawdbot.json`
 
+**Important**: Telegram is DISABLED on Mac Mini to avoid conflicts with MacBook gateway.
+
 ```json
 {
   "agents": {
@@ -63,10 +86,13 @@ Location: `~/.clawdbot/clawdbot.json`
       { "id": "aphos", "workspace": "/Users/felipemacmini/repos/aphos" }
     ]
   },
-  "channels": {
-    "telegram": {
-      "botToken": "YOUR_TOKEN",
-      "dmPolicy": "pairing"
+  "channels": {},
+  "gateway": {
+    "mode": "local"
+  },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": false }
     }
   }
 }
@@ -126,6 +152,23 @@ Attach to session:
 ssh -t felipemacmini@felipes-mac-mini.local 'tmux attach -t clawdbot'
 ```
 
+## Running Tasks on Mac Mini
+
+From MacBook, run commands on Mac Mini via SSH:
+
+```bash
+# Run npm test on a project
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
+
+# Run build
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm build'
+
+# Check process
+ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep node'
+```
+
+When using clawdbot on MacBook, ask it to SSH to Mac Mini for task execution.
+
 ## Syncing from MacBook
 
 ### Sync Repos
@@ -164,10 +207,48 @@ ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellen
 ### Gateway Not Starting
 ```bash
 # Check for port conflicts
-ssh felipemacmini@felipes-mac-mini.local 'lsof -i :3000'
+ssh felipemacmini@felipes-mac-mini.local 'lsof -i :18789'
 
 # Check logs
 ssh felipemacmini@felipes-mac-mini.local 'cat ~/.clawdbot/logs/gateway.err.log'
+
+# Check gateway status
+ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway status'
+```
+
+### Telegram Conflict (HTTP 429 / getUpdates conflict)
+**Symptom**: "Telegram getUpdates conflict; retrying" in logs
+
+**Cause**: Both MacBook and Mac Mini gateways are polling the same Telegram bot token.
+
+**Fix**: Only ONE gateway should have Telegram enabled. Recommended setup:
+- MacBook: Telegram enabled (controller)
+- Mac Mini: Telegram disabled (worker)
+
+```bash
+# On Mac Mini - disable Telegram in config
+# Set "plugins.entries.telegram.enabled": false
+ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart'
+```
+
+### Gateway LAN Binding
+If you need MacBook to connect to Mac Mini gateway (advanced):
+
+1. Add auth token to gateway config:
+```json
+"gateway": {
+  "mode": "local",
+  "bind": "lan",
+  "auth": { "token": "your-secret-token" }
+}
+```
+
+2. LAN binding requires an auth token for security.
+
+### Clawdbot Doctor
+Run diagnostics:
+```bash
+ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot doctor'
 ```
 
 ## Initial Setup (Reference)
