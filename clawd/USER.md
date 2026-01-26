@@ -1,16 +1,29 @@
 # USER.md - About Your Human
 
-*Learn about the person you're helping. Update this as you go.*
+- **Name:** Felipe Vieira
+- **What to call them:** Felipe
+- **Pronouns:** he/him
+- **Timezone:** America/New_York (EST)
+- **Telegram:** @felipelv1
 
-- **Name:** 
-- **What to call them:** 
-- **Pronouns:** *(optional)*
-- **Timezone:** 
-- **Notes:** 
+## Preferences
+
+- **Cloud Storage:** MEGA (NOT Google Drive)
+- **Development:** Prefers bots to work autonomously, report progress
+- **Communication:** Telegram primary
+
+## Current Projects
+
+- **Aphos** - MMORPG game (Real Earth + fantasy setting)
+- **LinkLounge** - Linktree competitor
+- **iOS Apps** - bmi-calculator, bills-tracker, screen-translator
+- **clawd-monitor** - Bot monitoring dashboard
 
 ## Context
 
-*(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)*
+- Getting Mac Mini for dedicated bot server
+- Uses Grok on X for research (save Claude credits)
+- Wants bots to self-manage (Ralph Wiggum pattern)
 
 ---
 

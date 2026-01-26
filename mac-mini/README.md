@@ -1,6 +1,6 @@
 # Mac Mini Server Setup
 
-This document describes the setup for the Mac Mini as a dedicated server for running clawdbot agents 24/7.
+Dedicated always-on server for running all bots 24/7 with automatic failover from MacBook.
 
 ## Server Details
 
@@ -8,9 +8,41 @@ This document describes the setup for the Mac Mini as a dedicated server for run
 |----------|-------|
 | Hostname | `felipes-mac-mini.local` |
 | Username | `felipemacmini` |
+| IP (LAN) | `10.144.238.249` (DHCP, may change) |
 | macOS | Tahoe 26.2 |
+| Chip | Apple M4, 16GB RAM |
+| Disk | 460GB (335GB free) |
 | SSH | Key-based (passwordless) |
 | Sudo | Passwordless enabled |
+
+## Architecture
+
+```
+MacBook (PRIMARY)                Mac Mini (STANDBY)
+┌────────────────────┐          ┌────────────────────┐
+│ Clawdbot Gateway   │◄─health──│ Failover Watchdog  │
+│ Telegram Bot ✅    │  check   │ (every 30s)        │
+│ All bots running   │  (TCP)   │                    │
+│                    │          │ Clawdbot Gateway   │
+│                    │          │ Telegram Bot ❌    │
+│                    │          │ All bots running   │
+└────────────────────┘          └────────────────────┘
+        │                              │
+        │  MacBook goes down           │
+        └──────────────────────────────┘
+                                       │
+                                ┌──────▼─────────────┐
+                                │ Clawdbot Gateway   │
+                                │ Telegram Bot ✅    │
+                                │ All bots ACTIVE    │
+                                └────────────────────┘
+```
+
+| Machine | Role | Telegram | When Active |
+|---------|------|----------|-------------|
+| **MacBook** | Primary (gateway + Telegram) | Enabled | Default |
+| **Mac Mini** | Standby (all bots running, no Telegram) | Disabled | Default |
+| **Mac Mini** | Failover Primary | Enabled | When MacBook offline (auto) |
 
 ## Quick SSH Access
 
@@ -18,340 +50,249 @@ This document describes the setup for the Mac Mini as a dedicated server for run
 ssh felipemacmini@felipes-mac-mini.local
 ```
 
-## Architecture
+## Automatic Failover System
 
-| Machine | Role | Telegram | When Active |
-|---------|------|----------|-------------|
-| **MacBook** | Controller (gateway + Telegram) | Enabled | Default |
-| **Mac Mini** | Worker (task execution) | Disabled | Default |
-| **Mac Mini** | Failover Controller | Enabled | When MacBook offline |
+The Mac Mini runs a watchdog that monitors the MacBook's Clawdbot gateway via TCP health checks.
 
-### Normal Mode
-The MacBook handles all Telegram communication (screenshots, interactive control). Mac Mini executes tasks via SSH from MacBook.
+### How it works:
+1. Watchdog checks MacBook port 18789 every 30 seconds
+2. After **3 consecutive failures** (90s): Mac Mini enables Telegram, restarts gateway
+3. After **5 consecutive recoveries** (150s): Mac Mini disables Telegram, yields back
+4. Workspace synced via git before activation
 
-### Failover Mode
-When MacBook is offline (sleeping, traveling, crashed), Mac Mini can take over Telegram:
+### Failover script: `~/.clawdbot/scripts/failover.sh`
+### LaunchAgent: `com.clawdbot.failover`
 
-1. **Manual Failover** - Enable Telegram on Mac Mini:
-   ```bash
-   ssh felipemacmini@felipes-mac-mini.local
-   # Edit ~/.clawdbot/clawdbot.json: set plugins.entries.telegram.enabled = true
-   eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart
-   ```
-
-2. **Manual Failback** - When MacBook returns:
-   ```bash
-   ssh felipemacmini@felipes-mac-mini.local
-   # Edit ~/.clawdbot/clawdbot.json: set plugins.entries.telegram.enabled = false
-   eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart
-   ```
-
-**Important**: Only ONE machine should have Telegram enabled at a time to avoid polling conflicts.
-
-## Connecting Clawdbot to Mac Mini
-
-When using clawdbot on MacBook (via Telegram or terminal), instruct it to run tasks on Mac Mini using SSH:
-
-```
-Run this command on Mac Mini: cd ~/repos/aphos && pnpm test
-```
-
-Clawdbot will execute:
+### Manual failover (if needed):
 ```bash
-ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
+# Enable Telegram on Mac Mini
+ssh felipemacmini@felipes-mac-mini.local 'python3 -c "
+import json
+with open(\"/Users/felipemacmini/.clawdbot/clawdbot.json\") as f:
+    c = json.load(f)
+c[\"plugins\"][\"entries\"][\"telegram\"][\"enabled\"] = True
+with open(\"/Users/felipemacmini/.clawdbot/clawdbot.json\", \"w\") as f:
+    json.dump(c, f, indent=2)
+" && eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart'
+
+# Disable Telegram (yield back)
+ssh felipemacmini@felipes-mac-mini.local 'python3 -c "
+import json
+with open(\"/Users/felipemacmini/.clawdbot/clawdbot.json\") as f:
+    c = json.load(f)
+c[\"plugins\"][\"entries\"][\"telegram\"][\"enabled\"] = False
+with open(\"/Users/felipemacmini/.clawdbot/clawdbot.json\", \"w\") as f:
+    json.dump(c, f, indent=2)
+" && eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart'
 ```
 
-### SSH Connection Details
-| Property | Value |
-|----------|-------|
-| Host | `felipes-mac-mini.local` |
-| User | `felipemacmini` |
-| Auth | SSH key (no password) |
-| PATH | Requires `eval "$(/opt/homebrew/bin/brew shellenv)"` |
+**Important**: Only ONE machine should have Telegram enabled at a time.
 
-### Example Commands for Clawdbot
+## LaunchAgents (Auto-Start on Boot)
+
+All services run as LaunchAgents — they auto-start on boot and auto-restart on crash.
+
+| LaunchAgent | Service | Status |
+|-------------|---------|--------|
+| `com.clawdbot.gateway` | Clawdbot Gateway (port 18789) | Always running |
+| `com.clawdbot.aphos` | Aphos game servers (2567, 2568, 4000, 4001) | Always running |
+| `com.clawdbot.shitcoin-bot` | Polymarket trading bot | Always running |
+| `com.clawdbot.failover` | MacBook health monitor | Always running |
+| `com.clawdbot.node` | Clawdbot node (connects to MacBook gateway) | Always running |
+
+### Managing LaunchAgents:
 ```bash
-# Run tests
-ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
+# Stop a service
+launchctl unload ~/Library/LaunchAgents/com.clawdbot.aphos.plist
 
-# Run build
-ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/shitcoin-bot && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm build'
+# Start a service
+launchctl load ~/Library/LaunchAgents/com.clawdbot.aphos.plist
 
-# Start a dev server (in tmux for persistence)
-ssh felipemacmini@felipes-mac-mini.local 'tmux new -d -s aphos-dev "cd ~/repos/aphos && eval \"\$(/opt/homebrew/bin/brew shellenv)\" && pnpm dev"'
-
-# Check running processes
-ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep -E "node|pnpm"'
+# Check status
+launchctl list | grep clawdbot
 ```
 
-## Installed Tools
+### Startup scripts: `~/.clawdbot/scripts/`
+- `start-aphos.sh` — starts game servers + web frontends
+- `start-shitcoin-bot.sh` — starts Polymarket bot with uv
+- `failover.sh` — MacBook health monitor + auto-failover
 
-| Tool | Version | Path |
-|------|---------|------|
-| Homebrew | 4.3.0+ | /opt/homebrew/bin/brew |
-| Node.js | v25.4.0 | /opt/homebrew/bin/node |
-| npm | 11.7.0 | /opt/homebrew/bin/npm |
-| pnpm | latest | /opt/homebrew/bin/pnpm |
-| Git | 2.52.0 | /opt/homebrew/bin/git |
-| gh | latest | /opt/homebrew/bin/gh |
-| Claude Code | 2.1.19 | /opt/homebrew/bin/claude |
-| Clawdbot | 2026.1.24-3 | /opt/homebrew/bin/clawdbot |
-| tmux | 3.6a | /opt/homebrew/bin/tmux |
-| mas | 5.0.2 | /opt/homebrew/bin/mas |
+### Log locations:
+- Gateway: `/tmp/clawdbot/clawdbot-YYYY-MM-DD.log`
+- Aphos: `/tmp/clawdbot/aphos-stdout.log`, `/tmp/clawdbot/aphos-stderr.log`
+- Shitcoin bot: `/tmp/clawdbot/shitcoin-bot-stdout.log`
+- Failover: `/tmp/clawdbot/failover.log`
+- Node: `~/.clawdbot/logs/node.log`, `~/.clawdbot/logs/node.err.log`
 
-## Installed Applications
+## Node Pairing (Remote Command Execution)
 
-| App | Purpose |
-|-----|---------|
-| Visual Studio Code | Code editing |
-| Google Chrome | Web testing |
-| CleanMyMac 5 | System maintenance |
-| Xcode 26.2 | iOS/macOS development |
-| Antigravity | Gemini CLI IDE |
+The Mac Mini is paired as a Clawdbot node, allowing the MacBook gateway to execute commands on it remotely.
 
-## Configuration
+### Status:
+- Node ID: `mac-mini`
+- Connected: Yes (WebSocket to MacBook gateway)
+- Exec approvals: `full` (no restrictions)
+- Capabilities: `browser`, `system` (system.run, system.which)
 
-### Energy Settings (Always-On)
+### Execute commands remotely:
+```bash
+# From MacBook terminal
+clawdbot nodes invoke --node mac-mini --command system.run --params '{"command":["hostname"]}'
+
+# Or from Clawdbot agent (using exec tool with host=node)
+exec host=node node=mac-mini command="ls ~/repos"
+```
+
+### Re-pair if needed:
+```bash
+# On MacBook
+clawdbot devices list        # Check pending
+clawdbot devices approve <requestId>
+```
+
+## Workspace Sync (Git)
+
+The `~/clawd` workspace is synced between both Macs via GitHub.
+
+- **Repo**: `github.com/FelipeLVieira/clawd-workspace` (private)
+- **MacBook**: Auto-pushes every 15 minutes (cron)
+- **Mac Mini**: Pulls on failover activation
+
+### Manual sync:
+```bash
+# Push from MacBook
+cd ~/clawd && git add -A && git commit -m "sync" && git push origin master
+
+# Pull on Mac Mini
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/clawd && git pull origin master'
+```
+
+## Installed Software
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Homebrew | latest | Package manager |
+| Node.js | v25.4.0 | Aphos, Clawdbot |
+| npm | 11.7.0 | Package management |
+| pnpm | 10.28.1 | Aphos monorepo |
+| Python | 3.14.2 | Shitcoin bot |
+| uv | 0.9.26 | Python venv manager |
+| Git | 2.52.0 | Version control |
+| gh | latest | GitHub CLI |
+| Clawdbot | 2026.1.24-3 | AI orchestrator |
+| Claude Code | latest | AI coding |
+| tmux | latest | Terminal multiplexer |
+| ffmpeg | latest | Media processing |
+| jq | latest | JSON processing |
+| htop | latest | Process monitoring |
+| dotenv-cli | latest | Env file loading |
+| cross-env | latest | Cross-platform env |
+| cairo, pango, etc. | latest | Canvas native deps |
+
+## Running Services & Ports
+
+| Service | Port | Protocol |
+|---------|------|----------|
+| Aphos Game Server (prod) | 2567 | WebSocket |
+| Aphos Game Server (dev) | 2568 | WebSocket |
+| Aphos Web Frontend (prod) | 4000 | HTTP |
+| Aphos Web Frontend (dev) | 4001 | HTTP |
+| Clawdbot Gateway | 18789 | HTTP/WS |
+| Shitcoin Bot | — | Background |
+| Failover Watchdog | — | Background |
+
+## Shitcoin Bot (Polymarket)
+
+- Uses NordVPN SOCKS5 proxy (Netherlands) for geo-bypass
+- Proxy credentials in `~/repos/shitcoin-bot/.env`
+- Split tunneling: only Polymarket API goes through proxy
+- All other traffic (Claude API, web) uses direct connection
+
+## Energy Settings (Always-On)
+
 ```bash
 sudo pmset -a displaysleep 0 sleep 0 disksleep 0 womp 1 autorestart 1
 ```
-- Display sleep: Disabled
-- System sleep: Disabled
-- Disk sleep: Disabled
-- Wake on network: Enabled
-- Auto-restart after power failure: Enabled
 
-### SSH Keys
-- MacBook Pro → Mac Mini: `~/.ssh/id_ed25519` (passwordless SSH)
-- Mac Mini → GitHub: `~/.ssh/id_ed25519` (added to GitHub account)
+| Setting | Value |
+|---------|-------|
+| Display sleep | Disabled |
+| System sleep | Disabled |
+| Disk sleep | Disabled |
+| Wake on network | Enabled |
+| Auto-restart after power failure | Enabled |
 
-### Clawdbot Config
+## SSH Keys
+
+| From → To | Key | Purpose |
+|-----------|-----|---------|
+| MacBook → Mac Mini | `~/.ssh/id_ed25519` | SSH access |
+| Mac Mini → GitHub | `~/.ssh/id_ed25519` | Git push/pull |
+| Mac Mini → MacBook | `~/.ssh/id_ed25519` | (not working yet - uses TCP health check instead) |
+
+## Clawdbot Config
+
 Location: `~/.clawdbot/clawdbot.json`
 
-**Important**: Telegram is DISABLED on Mac Mini to avoid conflicts with MacBook gateway.
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "maxConcurrent": 2,
-      "subagents": { "maxConcurrent": 2 }
-    },
-    "list": [
-      { "id": "main" },
-      { "id": "shitcoin-bot", "workspace": "/Users/felipemacmini/repos/shitcoin-bot" },
-      { "id": "aphos", "workspace": "/Users/felipemacmini/repos/aphos" }
-    ]
-  },
-  "channels": {},
-  "gateway": {
-    "mode": "local"
-  },
-  "plugins": {
-    "entries": {
-      "telegram": { "enabled": false }
-    }
-  }
-}
-```
-
-## Directory Structure
-
-```
-/Users/felipemacmini/
-├── repos/                    # All project repositories
-│   ├── aphos/
-│   ├── shitcoin-bot/
-│   ├── linklounge/
-│   ├── ez-crm/
-│   └── ...
-├── clawd/                    # Clawdbot workspace
-├── .clawdbot/
-│   ├── clawdbot.json        # Main config
-│   ├── agents/              # Agent sessions
-│   ├── subagents/           # Subagent data
-│   ├── logs/                # Gateway logs
-│   └── scripts/             # Auto-resume scripts
-├── .claude/                  # Claude Code config
-├── .gemini/                  # Gemini/Antigravity config
-└── Library/LaunchAgents/     # Auto-start services
-```
-
-## Managing Clawdbot
-
-### Start Gateway
-```bash
-ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway start'
-```
-
-### Stop Gateway
-```bash
-ssh felipemacmini@felipes-mac-mini.local 'pkill -f clawdbot-gateway'
-```
-
-### Check Status
-```bash
-ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep clawdbot-gateway'
-```
-
-### View Logs
-```bash
-ssh felipemacmini@felipes-mac-mini.local 'tail -f ~/.clawdbot/logs/gateway.log'
-```
-
-### Run in tmux (Persistent Session)
-```bash
-ssh felipemacmini@felipes-mac-mini.local 'tmux new -d -s clawdbot "eval \"\$(/opt/homebrew/bin/brew shellenv)\" && clawdbot gateway start"'
-```
-
-Attach to session:
-```bash
-ssh -t felipemacmini@felipes-mac-mini.local 'tmux attach -t clawdbot'
-```
-
-## Running Tasks on Mac Mini
-
-From MacBook, run commands on Mac Mini via SSH:
-
-```bash
-# Run npm test on a project
-ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
-
-# Run build
-ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm build'
-
-# Check process
-ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep node'
-```
-
-When using clawdbot on MacBook, ask it to SSH to Mac Mini for task execution.
-
-## Syncing from MacBook
-
-### What Needs to be Synced
-
-| Data | Location | Sync Frequency | Purpose |
-|------|----------|----------------|---------|
-| Repos | `~/repos/` | Before major tasks | Source code |
-| Clawdbot agents | `~/.clawdbot/agents/` | Periodically | Conversation history |
-| Clawdbot subagents | `~/.clawdbot/subagents/` | Periodically | Subagent data |
-| Clawd workspace | `~/clawd/` | Daily | Memory, identity, tools |
-| Claude config | `~/.claude/` | On change | Global instructions |
-| Gemini config | `~/.gemini/` | On change | Antigravity instructions |
-
-### Quick Sync All (Use sync-to-mini.sh)
-```bash
-cd ~/repos/ide-configs && ./mac-mini/sync-to-mini.sh
-```
-
-### Manual Sync Commands
-
-#### Sync Repos
-```bash
-rsync -avz --exclude 'node_modules' --exclude '.next' --exclude 'dist' ~/repos/ felipemacmini@felipes-mac-mini.local:~/repos/
-```
-
-#### Sync Clawdbot State
-```bash
-rsync -avz ~/.clawdbot/agents/ felipemacmini@felipes-mac-mini.local:~/.clawdbot/agents/
-rsync -avz ~/.clawdbot/subagents/ felipemacmini@felipes-mac-mini.local:~/.clawdbot/subagents/
-```
-
-#### Sync Clawd Workspace (Memory & Identity)
-```bash
-rsync -avz ~/clawd/ felipemacmini@felipes-mac-mini.local:~/clawd/
-```
-
-#### Sync Claude & Gemini Configs
-```bash
-rsync -avz ~/.claude/ felipemacmini@felipes-mac-mini.local:~/.claude/
-rsync -avz ~/.gemini/ felipemacmini@felipes-mac-mini.local:~/.gemini/
-```
-
-#### Sync Clawdbot Config (Careful - different Telegram settings!)
-```bash
-# Don't blindly copy - Mac Mini has Telegram disabled
-# Instead, manually update specific settings if needed
-```
+Key differences from MacBook config:
+- `plugins.entries.telegram.enabled`: **false** (standby mode)
+- `gateway.bind`: **lan** (accessible from MacBook)
+- Same bot token as MacBook (for failover)
+- Same agents list (main, shitcoin-bot, aphos)
 
 ## Troubleshooting
 
 ### SSH Connection Failed
 ```bash
-# Check if Mac Mini is awake
 ping felipes-mac-mini.local
-
-# If on Thunderbolt, check bridge
-ifconfig bridge0
+# If unreachable, check if Mini is awake/on same network
 ```
 
-### Tools Not Found
+### Services Not Running
 ```bash
-# Ensure brew is in PATH
-ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && node --version'
-```
-
-### Gateway Not Starting
-```bash
-# Check for port conflicts
-ssh felipemacmini@felipes-mac-mini.local 'lsof -i :18789'
-
-# Check logs
-ssh felipemacmini@felipes-mac-mini.local 'cat ~/.clawdbot/logs/gateway.err.log'
-
-# Check gateway status
-ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway status'
+ssh felipemacmini@felipes-mac-mini.local 'launchctl list | grep clawdbot'
+# Restart a service:
+ssh felipemacmini@felipes-mac-mini.local 'launchctl unload ~/Library/LaunchAgents/com.clawdbot.SERVICE.plist; launchctl load ~/Library/LaunchAgents/com.clawdbot.SERVICE.plist'
 ```
 
 ### Telegram Conflict (HTTP 429 / getUpdates conflict)
-**Symptom**: "Telegram getUpdates conflict; retrying" in logs
-
-**Cause**: Both MacBook and Mac Mini gateways are polling the same Telegram bot token.
-
-**Fix**: Only ONE gateway should have Telegram enabled. Recommended setup:
-- MacBook: Telegram enabled (controller)
-- Mac Mini: Telegram disabled (worker)
-
+Only ONE gateway should have Telegram enabled. Check both machines:
 ```bash
-# On Mac Mini - disable Telegram in config
-# Set "plugins.entries.telegram.enabled": false
-ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart'
+# MacBook
+cat ~/.clawdbot/clawdbot.json | python3 -c "import json,sys; c=json.load(sys.stdin); print('MacBook Telegram:', c['plugins']['entries']['telegram']['enabled'])"
+
+# Mac Mini
+ssh felipemacmini@felipes-mac-mini.local 'cat ~/.clawdbot/clawdbot.json | python3 -c "import json,sys; c=json.load(sys.stdin); print(\"Mac Mini Telegram:\", c[\"plugins\"][\"entries\"][\"telegram\"][\"enabled\"])"'
 ```
 
-### Gateway LAN Binding
-If you need MacBook to connect to Mac Mini gateway (advanced):
-
-1. Add auth token to gateway config:
-```json
-"gateway": {
-  "mode": "local",
-  "bind": "lan",
-  "auth": { "token": "your-secret-token" }
-}
-```
-
-2. LAN binding requires an auth token for security.
-
-### Clawdbot Doctor
-Run diagnostics:
+### Node Not Connected
 ```bash
-ssh felipemacmini@felipes-mac-mini.local 'eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot doctor'
+# Check node status from MacBook
+clawdbot nodes status
+
+# Check node logs on Mac Mini
+ssh felipemacmini@felipes-mac-mini.local 'tail -10 ~/.clawdbot/logs/node.err.log'
+
+# Re-pair if needed
+clawdbot devices list
+clawdbot devices approve <requestId>
 ```
 
-## Initial Setup (Reference)
-
-If setting up a new Mac Mini, run:
+### Failover Not Working
 ```bash
-# From MacBook Pro
-scp /tmp/mac-mini-setup.sh felipemacmini@NEW_MAC_MINI:~/
-ssh felipemacmini@NEW_MAC_MINI 'chmod +x ~/mac-mini-setup.sh && ~/mac-mini-setup.sh'
+# Check watchdog log
+ssh felipemacmini@felipes-mac-mini.local 'tail -20 /tmp/clawdbot/failover.log'
+
+# Check if watchdog is running
+ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep failover | grep -v grep'
+
+# Manual test: stop MacBook gateway and watch failover log
 ```
 
-Or follow the steps in the main `clawd/README.md`.
-
-## Security Notes
-
-- Passwordless sudo is enabled for convenience - consider restricting for production
-- SSH key is the only authentication method (password disabled for SSH)
-- Telegram bot token is stored in clawdbot.json - don't commit to public repos
-- Mac Mini password: Stored in `~/repos/.env` on MacBook (MAC_MINI_PW)
+### MacBook IP Changed (DHCP)
+Update the failover script:
+```bash
+ssh felipemacmini@felipes-mac-mini.local 'sed -i "" "s/MACBOOK_IP=\".*\"/MACBOOK_IP=\"NEW_IP_HERE\"/" ~/.clawdbot/scripts/failover.sh'
+# Restart watchdog
+ssh felipemacmini@felipes-mac-mini.local 'launchctl unload ~/Library/LaunchAgents/com.clawdbot.failover.plist; launchctl load ~/Library/LaunchAgents/com.clawdbot.failover.plist'
+```
