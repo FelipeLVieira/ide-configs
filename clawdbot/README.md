@@ -644,8 +644,13 @@ clawdbot doctor --fix
 
 If you see "expiring (Xh)" in doctor output:
 ```bash
+# Refresh the Claude CLI token
 claude setup-token
 ```
+
+The Claude CLI token expires periodically and needs to be refreshed. If the gateway stops responding or shows authentication errors, this is often the cause.
+
+**Tip**: Set up a reminder to check `clawdbot doctor` periodically to catch expiring tokens before they cause issues.
 
 ### Telegram not connecting
 
@@ -656,7 +661,14 @@ claude setup-token
 ### Check gateway status
 
 ```bash
+# Quick status check
 clawdbot status
+
+# Detailed status with channel probes
+clawdbot status --deep
+
+# Follow live logs
+clawdbot logs --follow
 ```
 
 ### View logs
@@ -710,8 +722,16 @@ If you see errors like `The token '&&' is not a valid statement separator`:
 If gateway crashes with `AbortError: This operation was aborted`:
 - This happens when config is updated while gateway is reloading
 - The gateway tries to hot-reload on config changes but can fail
+- Common triggers:
+  - Bot uses `gateway` tool to modify `clawdbot.json`
+  - Manual config file edits while gateway is running
+  - `clawdbot config set` commands
 - **Solution**: Use the watchdog script for auto-recovery
 - **Alternative**: Manually restart with `clawdbot gateway`
+
+**Why this happens**: The bot can modify its own config via the `gateway` tool (e.g., updating `tools.elevated.allowFrom`). When `clawdbot.json` changes, the gateway detects `meta.lastTouchedAt` changed and sends itself `SIGUSR1` to restart. During restart, pending API requests get aborted, causing the crash.
+
+**Recommended setup**: Always use the watchdog script or scheduled task with restart settings to ensure automatic recovery.
 
 ### Gateway crashes with "fetch failed"
 
@@ -740,9 +760,13 @@ If you see `Can't reach the clawd browser control server`:
 | `clawdbot config set KEY VALUE` | Set configuration value |
 | `clawdbot config get KEY` | Get configuration value |
 | `clawdbot status` | Check gateway status |
+| `clawdbot status --deep` | Detailed status with probes |
+| `clawdbot logs --follow` | Follow live gateway logs |
 | `clawdbot sessions list` | List all active sessions |
 | `clawdbot sessions send LABEL MSG` | Send message to agent |
 | `clawdbot pairing approve telegram CODE` | Approve Telegram pairing |
+| `clawdbot security audit` | Run security audit |
+| `clawdbot security audit --deep` | Deep security audit |
 
 ## Additional MCP Servers
 
