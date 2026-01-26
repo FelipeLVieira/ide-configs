@@ -910,6 +910,43 @@ clawdbot config get agents.defaults.compaction.mode
 # Should return: safeguard
 ```
 
+**Solution 6: Check for bootstrapping agents** (CRITICAL)
+
+Bootstrapping agents prevent automatic compaction even with "safeguard" mode enabled:
+
+```bash
+# Check for bootstrapping agents
+clawdbot status | grep "bootstrap"
+
+# Should see: "no bootstraps"
+# If you see "X bootstrapping", you need to fix the agent config
+```
+
+**Fix bootstrapping agents:**
+
+```bash
+# Check current agent list
+clawdbot config get agents.list
+
+# If you see old agents (from renamed projects, etc.), remove them
+clawdbot config set agents.list '[{"id":"main"}]'
+
+# Verify
+clawdbot status | grep "Agents"
+# Should show: "1 · no bootstraps"
+```
+
+**Why bootstrapping agents cause overflow:**
+- Agents stuck in bootstrap mode can't process messages properly
+- They accumulate sessions but don't compact them
+- Even with Telegram disabled, they consume resources
+- Safeguard mode is bypassed when agents are bootstrapping
+
+**Common causes:**
+- Renamed projects in config (old names still in `agents.list`)
+- Missing workspace directories for agents
+- Deleted IDENTITY.md or other required workspace files
+
 ## Multi-Machine Setup
 
 When running clawdbot on multiple machines (e.g., primary + backup), only ONE instance should respond to Telegram messages.
