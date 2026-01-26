@@ -2,7 +2,23 @@
 
 ## Overview
 
-Bots run 24/7 as persistent tmux sessions instead of one-shot cron jobs. This ensures continuous work without interruption.
+Bots run 24/7 as persistent tmux sessions. Each bot is a **SPECIALIST** focused on ONE project only.
+
+## Specialist Bots
+
+| Bot | Project | Specialization |
+|-----|---------|----------------|
+| **ez-crm** | ~/repos/ez-crm | Next.js CRM, Supabase, Legal/Law |
+| **linklounge** | ~/repos/linklounge | Link-in-bio platform |
+| **aphos** | ~/repos/aphos | MMORPG, Colyseus, Phaser.js |
+| **ios-appstore** | ~/repos/bmi-calculator + 2 more | iOS apps, LOCAL builds only |
+| **clawd-monitor** | ~/repos/clawd-monitor | Bot monitoring dashboard |
+
+### Key Rule: SPECIALIZATION
+Each bot works ONLY on its assigned project. They do not touch other repos. This ensures:
+- Deep expertise in their domain
+- No conflicts between bots
+- Focused, high-quality improvements
 
 ## Architecture
 
@@ -11,18 +27,16 @@ Bots run 24/7 as persistent tmux sessions instead of one-shot cron jobs. This en
 │                    MAC MINI (Bot Server)                    │
 ├─────────────────────────────────────────────────────────────┤
 │  Clawdbot Gateway (always running)                          │
-│  └── Persistent Bot Sessions (tmux):                        │
-│      ├── bot-ez-crm          → ~/repos/ez-crm               │
-│      ├── bot-linklounge      → ~/repos/linklounge           │
-│      ├── bot-aphos           → ~/repos/aphos                │
-│      ├── bot-ios-appstore    → ~/repos/bmi-calculator       │
-│      ├── bot-clawd-monitor   → ~/repos/clawd-monitor        │
-│      └── run_bots.py         → ~/repos/shitcoin-bot         │
+│  └── Specialist Bot Sessions (tmux):                        │
+│      ├── bot-ez-crm          → Next.js/Supabase expert      │
+│      ├── bot-linklounge      → Link-in-bio expert           │
+│      ├── bot-aphos           → Game dev expert              │
+│      ├── bot-ios-appstore    → iOS/Xcode expert             │
+│      ├── bot-clawd-monitor   → Dashboard expert             │
+│      └── run_bots.py         → Crypto trading (Python)      │
 │                                                             │
-│  Cron Jobs (health checks only):                            │
-│      └── Every 30 min: restart any crashed bots             │
-│                                                             │
-│  Auto-start on reboot: @reboot startup-bots.sh              │
+│  Health Check: Every 30 min, restart crashed bots           │
+│  Auto-start: @reboot startup-bots.sh                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -46,69 +60,40 @@ Bots run 24/7 as persistent tmux sessions instead of one-shot cron jobs. This en
 
 # View specific bot logs
 tmux attach -t bot-ez-crm
-tmux attach -t bot-linklounge
-# etc.
-
-# Detach from tmux: Ctrl+B, then D
+# Detach: Ctrl+B, then D
 ```
 
-## Bot Configuration
+## Critical Rules (All Bots)
 
-Bots are defined in `~/clawd/scripts/manage-bots.sh`:
+1. **STAY FOCUSED** - Only work on assigned project
+2. **MEGA not Google Drive** - Never access Google Drive
+3. **iOS builds: LOCAL ONLY** - xcodebuild, NEVER eas build
+4. **Browser lock** - `acquire_browser_lock` before browser use
+5. **Save state** - ~/clawd/memory/bot-states/<name>.json
+6. **Use Grok** - x.com/i/grok for research (saves credits)
 
-```bash
-BOTS=(
-    "ez-crm|/Users/felipemacmini/repos/ez-crm"
-    "linklounge|/Users/felipemacmini/repos/linklounge"
-    "aphos|/Users/felipemacmini/repos/aphos"
-    "ios-appstore|/Users/felipemacmini/repos/bmi-calculator"
-    "clawd-monitor|/Users/felipemacmini/repos/clawd-monitor"
-)
-```
+## Adding a New Specialist Bot
 
-## Adding a New Bot
+1. Add to BOTS array in `manage-bots.sh`:
+   ```bash
+   "new-bot|/path/to/workspace"
+   ```
 
-1. Add to the BOTS array in `manage-bots.sh`
-2. Add bot-specific prompt in `run-persistent-bot.sh` case statement
-3. Run `manage-bots.sh start`
+2. Add specialized prompt in `run-persistent-bot.sh`:
+   ```bash
+   new-bot)
+       PROMPT="You are the **NewBot Specialist**.
+       YOUR ONLY PROJECT: ~/repos/new-project
+       Your expertise: [specific skills]
+       Your cycle: [specific workflow]"
+       ;;
+   ```
 
-## Critical Rules (Enforced in Bot Prompts)
-
-1. **MEGA not Google Drive** - Never access Google Drive
-2. **iOS builds: LOCAL ONLY** - Use xcodebuild, NEVER eas build
-3. **Browser lock** - Use `acquire_browser_lock` before browser access
-4. **Save state** - Store progress in `~/clawd/memory/bot-states/`
-5. **Use Grok** - x.com/i/grok for research (saves API credits)
-
-## Troubleshooting
-
-### Bot not running
-```bash
-~/clawd/scripts/manage-bots.sh health
-```
-
-### Bot stuck/frozen
-```bash
-tmux kill-session -t bot-<name>
-~/clawd/scripts/run-persistent-bot.sh <name> <workspace>
-```
-
-### Check bot logs
-```bash
-tmux attach -t bot-<name>
-# Or check /tmp/bot-loop-<name>.sh output
-```
-
-### Gateway issues
-```bash
-ps aux | grep clawdbot-gateway
-clawdbot gateway restart
-```
+3. Start: `~/clawd/scripts/manage-bots.sh start`
 
 ## Files
 
 - `~/clawd/scripts/manage-bots.sh` - Bot manager
-- `~/clawd/scripts/run-persistent-bot.sh` - Individual bot runner
+- `~/clawd/scripts/run-persistent-bot.sh` - Bot runner with specialized prompts
 - `~/clawd/scripts/startup-bots.sh` - Auto-start on reboot
 - `~/clawd/scripts/browser-lock.sh` - Browser lock system
-- `~/.clawdbot/cron/jobs.json` - Health check cron jobs
