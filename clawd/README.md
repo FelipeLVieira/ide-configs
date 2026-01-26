@@ -46,6 +46,33 @@ This limits to ~4 concurrent API calls instead of 32, preventing rate limit erro
 
 Copy these files to your Clawdbot workspace (`~/clawd/` or similar).
 
+## Auto-Resume on Restart
+
+Clawdbot doesn't automatically resume tasks after a sudden shutdown. Use these scripts to track and notify about incomplete work:
+
+**Setup (already installed at `~/.clawdbot/scripts/`):**
+```bash
+# Check for incomplete tasks
+~/.clawdbot/scripts/auto-resume.sh check
+
+# Save state before shutdown (added to .zshrc trap)
+~/.clawdbot/scripts/auto-resume.sh save
+```
+
+**What gets saved:**
+- Conversation history (`.jsonl` files) - always persisted
+- Session metadata (`sessions.json`) - always persisted
+- Completed task results (`runs.json`) - always persisted
+
+**What is NOT auto-resumed:**
+- Mid-API-call responses (lost)
+- In-progress tool executions (lost)
+- Active subagent tasks (won't auto-resume)
+
+**LaunchAgent:** `~/Library/LaunchAgents/com.clawdbot.auto-resume.plist`
+- Runs on login to check for incomplete tasks
+- Sends Telegram notification if tasks were interrupted
+
 ## Security Notes
 
 - `MEMORY.md` and `memory/` folder contain personal data - DO NOT commit
