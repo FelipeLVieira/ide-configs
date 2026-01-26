@@ -38,9 +38,11 @@ Clawdbot Gateway is a unified multi-agent orchestrator for Claude Code. It provi
 
 ```
 ~/clawd/                          # Main workspace
+├── BOOTSTRAP.md                  # First-run setup (delete after)
 ├── AGENTS.md                     # Bot rules & guidelines
 ├── SOUL.md                       # Bot personality
-├── USER.md                       # User info
+├── IDENTITY.md                   # Bot name, emoji, vibe
+├── USER.md                       # User info (name, timezone)
 ├── TOOLS.md                      # Tool notes
 ├── HEARTBEAT.md                  # Periodic check tasks
 ├── MEMORY.md                     # Long-term memory
@@ -59,6 +61,22 @@ Clawdbot Gateway is a unified multi-agent orchestrator for Claude Code. It provi
 └── logs/
     └── gateway.log
 ```
+
+### Workspace Files
+
+| File | Purpose |
+|------|---------|
+| `BOOTSTRAP.md` | First-run setup guide. Bot reads this on first session, then deletes it. |
+| `IDENTITY.md` | Bot's name, emoji, personality vibe |
+| `USER.md` | Your info (name, timezone, preferences) |
+| `SOUL.md` | Bot's core personality and behavior rules |
+| `AGENTS.md` | Guidelines for how bot should operate |
+| `MEMORY.md` | Long-term curated memories across sessions |
+| `memory/*.md` | Daily session notes (raw logs) |
+| `HEARTBEAT.md` | Tasks to check during periodic heartbeats |
+| `TOOLS.md` | Notes about available tools and APIs |
+
+The bot will read these files at the start of each session to maintain context.
 
 ## Prerequisites
 
@@ -210,6 +228,106 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 - **pairing**: User must enter a pairing code (most secure)
 - **open**: Anyone can message the bot (not recommended)
 - **allowlist**: Only specific users can message
+
+## Telegram Features
+
+### Emoji Reactions
+
+Bot can react to your messages with emojis:
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "reactionLevel": "minimal",
+      "reactionNotifications": "all"
+    }
+  }
+}
+```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `reactionLevel` | `minimal`, `extensive` | How often bot reacts |
+| `reactionNotifications` | `all`, `none` | See when you react too |
+
+### Ack Reaction (Processing Indicator)
+
+Show an emoji while bot is processing your message:
+
+```json
+{
+  "messages": {
+    "ackReaction": "👀",
+    "ackReactionScope": "all"
+  }
+}
+```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `ackReaction` | Any emoji | Emoji shown while processing |
+| `ackReactionScope` | `dm`, `group`, `all`, `group-mentions` | When to show ack |
+
+### Bot Identity
+
+Set bot name and emoji for mentions:
+
+```json
+{
+  "identity": {
+    "name": "Clawdbot Master",
+    "emoji": "🖥️",
+    "theme": "Windows automation assistant"
+  }
+}
+```
+
+### Custom Commands
+
+Add commands to Telegram's menu:
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "customCommands": [
+        { "command": "backup", "description": "Git backup all repos" },
+        { "command": "status", "description": "Check system status" },
+        { "command": "screenshot", "description": "Take a screenshot" }
+      ]
+    }
+  }
+}
+```
+
+### Full Featured Config Example
+
+```json
+{
+  "identity": {
+    "name": "Clawdbot Master",
+    "emoji": "🖥️"
+  },
+  "messages": {
+    "ackReaction": "👀",
+    "ackReactionScope": "all"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_BOT_TOKEN",
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial",
+      "reactionLevel": "minimal"
+    }
+  },
+  "gateway": {
+    "mode": "local"
+  }
+}
+```
 
 ## Multi-Agent Orchestration
 
@@ -364,6 +482,7 @@ clawdbot sessions send <label> "ping"
 
 ### Port conflicts
 
+**macOS / Linux:**
 ```bash
 # Check what's using the port
 lsof -i :18789
@@ -371,6 +490,22 @@ lsof -i :18789
 # Kill the process
 kill $(lsof -t -i :18789)
 ```
+
+**Windows:**
+```powershell
+# Check what's using the port
+netstat -ano | findstr :18789
+
+# Kill process by PID
+taskkill /PID <pid> /F
+```
+
+### Windows: PowerShell syntax errors
+
+If you see errors like `The token '&&' is not a valid statement separator`:
+- Windows PowerShell doesn't support `&&` - use semicolons `;` instead
+- The bot should automatically use PowerShell-compatible syntax
+- If issues persist, ensure you're running PowerShell 7+ which supports `&&`
 
 ## Commands Reference
 
