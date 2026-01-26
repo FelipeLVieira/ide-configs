@@ -1,0 +1,25 @@
+{
+  "_comment": "Save as ~/.cursor/mcp.json",
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "YOUR_SUPABASE_ACCESS_TOKEN"]
+    },
+    "browsermcp": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "headers": {}
+    },
+    "stripe": {
+      "url": "https://mcp.stripe.com",
+      "headers": {}
+    }
+  }
+}
