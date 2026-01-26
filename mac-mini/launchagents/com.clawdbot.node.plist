@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.clawdbot.node</string>
+    
+    <key>Comment</key>
+    <string>Clawdbot Node Host (v2026.1.24-3)</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/opt/homebrew/bin/node</string>
+      <string>/opt/homebrew/lib/node_modules/clawdbot/dist/entry.js</string>
+      <string>node</string>
+      <string>run</string>
+      <string>--host</string>
+      <string>10.144.238.116</string>
+      <string>--port</string>
+      <string>18789</string>
+    </array>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/felipemacmini/.clawdbot/logs/node.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/felipemacmini/.clawdbot/logs/node.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+    <key>HOME</key>
+    <string>/Users/felipemacmini</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>CLAWDBOT_GATEWAY_TOKEN</key>
+    <string>macmini-node-2026</string>
+    <key>CLAWDBOT_LAUNCHD_LABEL</key>
+    <string>com.clawdbot.node</string>
+    <key>CLAWDBOT_SERVICE_MARKER</key>
+    <string>clawdbot</string>
+    <key>CLAWDBOT_SERVICE_KIND</key>
+    <string>node</string>
+    <key>CLAWDBOT_SERVICE_VERSION</key>
+    <string>2026.1.24-3</string>
+    </dict>
+  </dict>
+</plist>

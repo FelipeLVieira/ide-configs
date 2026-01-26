@@ -1,0 +1,19 @@
+{
+  "files.exclude": {
+    "node_modules": true,
+    ".git": true,
+    ".next": true,
+    "dist": true,
+    "build": true,
+    "coverage": true,
+    "ios": true,
+    "android": true
+  },
+  "search.exclude": {
+    "node_modules": true,
+    ".git": true,
+    "*.lock": true,
+    "pnpm-lock.yaml": true,
+    "package-lock.json": true
+  }
+}

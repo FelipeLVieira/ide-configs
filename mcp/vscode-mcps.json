@@ -1,0 +1,30 @@
+{
+  "_comment": "Add to VSCode User settings.json under 'mcp' key",
+  "mcp": {
+    "servers": {
+      "supabase": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "YOUR_SUPABASE_ACCESS_TOKEN"]
+      },
+      "sequential-thinking": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      },
+      "vercel": {
+        "type": "http",
+        "url": "https://mcp.vercel.com"
+      },
+      "stripe": {
+        "type": "http",
+        "url": "https://mcp.stripe.com"
+      },
+      "playwright": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@playwright/mcp@latest"]
+      }
+    }
+  }
+}
