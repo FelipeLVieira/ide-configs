@@ -340,8 +340,11 @@ Location: `~/.clawdbot/clawdbot.json`
 Key differences from MacBook config:
 - `plugins.entries.telegram.enabled`: **false** (standby mode)
 - `gateway.bind`: **lan** (accessible from MacBook)
+- `gateway.auth.token`: **SET** (required! was missing initially — security fix 2026-01-26)
 - Same bot token as MacBook (for failover)
 - Same agents list (main, shitcoin-bot, aphos)
+
+**⚠️ ALWAYS ensure auth token is set.** Without it, anyone on the network has full shell access.
 
 ## Troubleshooting
 
