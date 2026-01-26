@@ -128,6 +128,9 @@ ide-configs/
 │   └── global-settings-windows.json  # VSCode settings (Windows/.NET)
 ├── clawd/
 │   └── config.json            # Clawd autonomous orchestration config
+├── mac-mini/
+│   ├── README.md              # Mac Mini server setup guide
+│   └── sync-to-mini.sh        # Sync repos/state to Mac Mini
 ├── scripts/
 │   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
 │   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
@@ -334,6 +337,27 @@ The CLAUDE.md and GEMINI.md files are kept in sync. When updating one, update th
 - Antigravity rules are identical in both
 - Deslop principles are in both
 - Clawd triggers are in both
+
+## Mac Mini Server
+
+A Mac Mini is configured as a dedicated server for running clawdbot agents 24/7.
+
+**Quick SSH:**
+```bash
+ssh felipemacmini@felipes-mac-mini.local
+```
+
+**Sync repos and state:**
+```bash
+./mac-mini/sync-to-mini.sh
+```
+
+**Start clawdbot on Mac Mini:**
+```bash
+ssh felipemacmini@felipes-mac-mini.local 'tmux new -d -s clawdbot "eval \"\$(/opt/homebrew/bin/brew shellenv)\" && clawdbot gateway start"'
+```
+
+See [mac-mini/README.md](mac-mini/README.md) for full documentation.
 
 ## License
 
