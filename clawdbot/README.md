@@ -1,18 +1,64 @@
 # Clawdbot Gateway Setup
 
-Clawdbot Gateway provides a unified multi-channel interface for Claude Code, allowing you to access the **same Claude session** from VS Code, terminal, Telegram, WhatsApp, and other channels simultaneously.
+Clawdbot Gateway is a unified multi-agent orchestrator for Claude Code. It provides:
+- **Unified session** across VS Code, terminal, Telegram, and other channels
+- **Multi-agent orchestration** - spawn and coordinate sub-agents
+- **Inter-bot communication** - agents can message each other
+- **Centralized management** - one gateway controls all agents
 
-## Why Clawdbot vs claude-code-telegram?
+## Architecture
 
-| Feature | Clawdbot Gateway | claude-code-telegram |
-|---------|------------------|---------------------|
-| Session sharing | Same session across all channels | Separate Claude processes |
-| Multi-channel | Telegram, WhatsApp, Web, API | Telegram only |
-| Architecture | Unified gateway | Python bot |
-| Setup | npm install + config | Python venv + config |
-| Memory | Shared context everywhere | Per-channel context |
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    CLAWDBOT GATEWAY                         │
+│                   (Main Orchestrator)                       │
+├─────────────────────────────────────────────────────────────┤
+│  Main Session (telegram:main)                               │
+│  └── Orchestrator Bot (monitors swarm)                      │
+│  └── Sub-Agents:                                            │
+│      ├── project-a (development)                            │
+│      ├── project-b (testing)                                │
+│      ├── research-agent (research tasks)                    │
+│      └── ... (spawn as needed)                              │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Recommendation**: Use Clawdbot Gateway for the best experience (same session in VS Code and mobile).
+### How It Works
+
+1. **Gateway** runs as the central orchestrator
+2. **Main session** connects to Telegram (or other channels)
+3. **Sub-agents** are spawned for specific tasks
+4. Agents communicate via:
+   - `sessions_list` - See all active sessions
+   - `sessions_send` - Message other bots by label
+   - `sessions_history` - Read conversation history
+   - `sessions_spawn` - Create sub-agents
+
+### Directory Structure
+
+```
+~/clawd/                          # Main workspace
+├── AGENTS.md                     # Bot rules & guidelines
+├── SOUL.md                       # Bot personality
+├── USER.md                       # User info
+├── TOOLS.md                      # Tool notes
+├── HEARTBEAT.md                  # Periodic check tasks
+├── MEMORY.md                     # Long-term memory
+├── memory/                       # Daily session notes
+│   └── YYYY-MM-DD.md
+└── docs/
+    └── ARCHITECTURE.md           # Architecture docs
+
+~/.clawdbot/                      # Clawdbot state
+├── clawdbot.json                 # Gateway config
+├── agents/
+│   └── main/
+│       ├── agent/
+│       │   └── auth-profiles.json
+│       └── sessions/             # Session transcripts
+└── logs/
+    └── gateway.log
+```
 
 ## Prerequisites
 
@@ -24,12 +70,6 @@ Clawdbot Gateway provides a unified multi-channel interface for Claude Code, all
 
 ### 1. Install Clawdbot
 
-**Windows:**
-```powershell
-npm install -g clawdbot
-```
-
-**macOS / Linux:**
 ```bash
 npm install -g clawdbot
 ```
@@ -46,7 +86,7 @@ This creates `~/.clawdbot/clawdbot.json` with default configuration.
 
 1. Open Telegram and message [@BotFather](https://t.me/BotFather)
 2. Send `/newbot`
-3. Follow prompts to name your bot (e.g., "My Claude Bot")
+3. Follow prompts to name your bot (e.g., "Clawdbot Master")
 4. Save the bot token (looks like `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
 
 ### 4. Configure Telegram
@@ -65,7 +105,17 @@ clawdbot config set channels.telegram.dmPolicy pairing
 clawdbot config set gateway.mode local
 ```
 
-### 5. Start the Gateway
+### 5. Set Up Workspace
+
+```bash
+# Create workspace directory
+mkdir -p ~/clawd/memory
+
+# Copy workspace files from ide-configs
+cp ide-configs/clawd/*.md ~/clawd/
+```
+
+### 6. Start the Gateway
 
 ```bash
 clawdbot gateway
@@ -77,7 +127,7 @@ You should see:
 [gateway] listening on ws://127.0.0.1:18789
 ```
 
-### 6. Test It
+### 7. Test It
 
 Message your bot on Telegram with `/start`
 
@@ -91,7 +141,7 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 {
   "agents": {
     "defaults": {
-      "workspace": "C:\\Users\\YourName\\clawd",
+      "workspace": "~/clawd",
       "maxConcurrent": 4,
       "subagents": {
         "maxConcurrent": 8
@@ -124,6 +174,8 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 
 | Key | Description | Values |
 |-----|-------------|--------|
+| `agents.defaults.workspace` | Default workspace directory | Path |
+| `agents.defaults.maxConcurrent` | Max concurrent agents | Number |
 | `channels.telegram.enabled` | Enable Telegram channel | `true` / `false` |
 | `channels.telegram.botToken` | Bot token from BotFather | String |
 | `channels.telegram.dmPolicy` | How to handle DMs | `pairing`, `open`, `allowlist` |
@@ -137,9 +189,43 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 - **open**: Anyone can message the bot (not recommended)
 - **allowlist**: Only specific users can message
 
+## Multi-Agent Orchestration
+
+### Spawning Sub-Agents
+
+The orchestrator (main session) can spawn sub-agents for specific tasks:
+
+```
+You: spawn a new agent to work on the API refactor
+Bot: [spawns "api-refactor" agent]
+```
+
+### Agent Communication
+
+Agents can communicate with each other:
+
+```bash
+# List all active sessions
+sessions_list
+
+# Send message to another agent
+sessions_send api-refactor "What's the status of the auth endpoints?"
+
+# Read another agent's history
+sessions_history api-refactor
+```
+
+### Orchestrator Responsibilities
+
+The main orchestrator bot:
+- Monitors all agents for timeouts
+- Resolves port conflicts
+- Cleans up resources (browser tabs, processes)
+- Reports status to you via Telegram
+
 ## Running as a Service
 
-### Windows (Scheduled Task)
+### Windows
 
 **Option 1: Install as service (requires Admin)**
 ```powershell
@@ -147,7 +233,7 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 clawdbot gateway install
 ```
 
-**Option 2: Manual scheduled task**
+**Option 2: Scheduled Task**
 ```powershell
 $action = New-ScheduledTaskAction -Execute "clawdbot" -Argument "gateway"
 $trigger = New-ScheduledTaskTrigger -AtLogon
@@ -211,23 +297,10 @@ systemctl --user start clawdbot
 
 ### Gateway won't start
 
-**Check doctor:**
 ```bash
 clawdbot doctor
-```
-
-**Common fixes:**
-```bash
 clawdbot doctor --fix
 ```
-
-### Config validation errors
-
-**"Unrecognized keys" error:**
-```bash
-clawdbot doctor --fix
-```
-This removes invalid keys from your config.
 
 ### Token expiring
 
@@ -241,7 +314,6 @@ claude setup-token
 1. Verify bot token is correct
 2. Check if another instance is running
 3. Ensure `channels.telegram.enabled` is `true`
-4. Check firewall isn't blocking outbound connections
 
 ### Check gateway status
 
@@ -261,6 +333,23 @@ type \tmp\clawdbot\clawdbot-*.log
 cat /tmp/clawdbot/clawdbot-*.log
 ```
 
+### Bot not responding
+
+```bash
+clawdbot sessions list
+clawdbot sessions send <label> "ping"
+```
+
+### Port conflicts
+
+```bash
+# Check what's using the port
+lsof -i :18789
+
+# Kill the process
+kill $(lsof -t -i :18789)
+```
+
 ## Commands Reference
 
 | Command | Description |
@@ -273,21 +362,19 @@ cat /tmp/clawdbot/clawdbot-*.log
 | `clawdbot config set KEY VALUE` | Set configuration value |
 | `clawdbot config get KEY` | Get configuration value |
 | `clawdbot status` | Check gateway status |
+| `clawdbot sessions list` | List all active sessions |
+| `clawdbot sessions send LABEL MSG` | Send message to agent |
 
 ## Security Notes
 
-- **Bot Token**: Keep your bot token secret. Anyone with it can impersonate your bot.
-- **DM Policy**: Use `pairing` for personal bots to prevent unauthorized access.
-- **Group Policy**: Use `allowlist` to control which groups can use the bot.
-- **Telegram Encryption**: Telegram bots don't have end-to-end encryption. Don't share secrets through the bot.
+- **Bot Token**: Keep your bot token secret
+- **DM Policy**: Use `pairing` for personal bots
+- **Group Policy**: Use `allowlist` to control which groups can use the bot
+- **Telegram Encryption**: Bot messages are not end-to-end encrypted
 
 ## Upgrading
 
 ```bash
 npm update -g clawdbot
-```
-
-After upgrading, run doctor to check for config changes:
-```bash
 clawdbot doctor --fix
 ```

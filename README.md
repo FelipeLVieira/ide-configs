@@ -1,6 +1,6 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Telegram bot integration.
+Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Clawdbot multi-agent gateway.
 
 ## Prerequisites Installation
 
@@ -87,9 +87,12 @@ sudo snap install code --classic
 
 ---
 
-### Clawdbot Gateway (Recommended for Mobile)
+### Clawdbot Gateway (Multi-Agent Orchestrator)
 
-Clawdbot provides unified multi-channel access to Claude Code. Use the **same session** from VS Code, terminal, and Telegram simultaneously.
+Clawdbot Gateway is the unified multi-agent orchestrator for Claude Code. It provides:
+- **Unified session** across VS Code, terminal, Telegram simultaneously
+- **Multi-agent orchestration** - spawn and coordinate sub-agents
+- **Inter-bot communication** - agents can message each other
 
 **macOS / Linux / Windows:**
 ```bash
@@ -108,7 +111,7 @@ clawdbot config set gateway.mode local
 clawdbot gateway
 ```
 
-See [clawdbot/README.md](clawdbot/README.md) for detailed setup including service installation.
+See [clawdbot/README.md](clawdbot/README.md) for detailed setup including multi-agent orchestration and service installation.
 
 Requires Node.js 18+ and a Claude subscription.
 
@@ -132,14 +135,10 @@ ide-configs/
 ├── clawd/
 │   └── config.json            # Clawd autonomous orchestration config
 ├── clawdbot/
-│   └── README.md              # Clawdbot Gateway setup (recommended)
+│   └── README.md              # Clawdbot Gateway setup & orchestration
 ├── scripts/
 │   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
 │   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
-├── telegram-bot/
-│   ├── README.md                  # Python telegram bot (alternative)
-│   ├── KNOWN_ISSUES.md            # Documented issues and fixes
-│   └── install-windows.ps1        # Windows installer script
 ├── project-templates/
 │   ├── TEMPLATE-CLAUDE.md           # Generic project instructions template
 │   ├── TEMPLATE-antigravityignore   # Antigravity ignore template
