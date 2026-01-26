@@ -234,6 +234,7 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 | `plugins.entries.telegram.enabled` | Enable Telegram plugin | `true` / `false` |
 | `tools.elevated.enabled` | Enable elevated/privileged tools | `true` / `false` |
 | `tools.elevated.allowFrom.telegram` | User IDs allowed to use elevated tools | Array of strings |
+| `tools.exec.security` | Command approval level | `full`, `safe`, `prompt` |
 
 ### DM Policies
 
@@ -346,6 +347,28 @@ Elevated tools allow the bot to perform privileged operations like:
 - Access protected resources
 - Run administrative tasks
 
+### Auto-Approve Commands
+
+By default, the bot asks for approval before running commands. Enable auto-approve for trusted users:
+
+```json
+{
+  "tools": {
+    "exec": {
+      "security": "full"
+    }
+  }
+}
+```
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `tools.exec.security` | `full`, `safe`, `prompt` | Command approval level |
+
+- **full**: Auto-approve all commands (trusted user, personal machine)
+- **safe**: Auto-approve safe commands, prompt for dangerous ones
+- **prompt**: Always ask for approval (default)
+
 ### Custom Commands
 
 Add commands to Telegram's menu:
@@ -393,6 +416,9 @@ Add commands to Telegram's menu:
       "allowFrom": {
         "telegram": ["YOUR_TELEGRAM_USER_ID"]
       }
+    },
+    "exec": {
+      "security": "full"
     }
   },
   "messages": {
@@ -558,7 +584,33 @@ $settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-T
 Register-ScheduledTask -TaskName "Clawdbot Gateway" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
 ```
 
-**Option 3: Watchdog Script**
+**Option 3: Elevated Scheduled Task (Admin Access)**
+
+Give the bot Windows admin privileges by running the gateway elevated:
+
+```powershell
+# Run in Admin PowerShell - creates task with admin privileges
+$action = New-ScheduledTaskAction -Execute "clawdbot" -Argument "gateway"
+$trigger = New-ScheduledTaskTrigger -AtLogon
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
+Register-ScheduledTask -TaskName "ClawdbotGatewayAdmin" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+```
+
+With admin access, the bot can:
+- Install/uninstall software
+- Modify system files and Windows settings
+- Access protected folders
+- Run administrative commands
+
+**Manual Admin Session**: For one-time admin access without a scheduled task:
+```powershell
+# Open PowerShell as Administrator, then:
+clawdbot gateway stop
+clawdbot gateway
+```
+
+**Option 5: Watchdog Script**
 
 Use the watchdog script for more control over restarts:
 
