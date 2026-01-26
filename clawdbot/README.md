@@ -586,10 +586,11 @@ Register-ScheduledTask -TaskName "Clawdbot Gateway" -Action $action -Trigger $tr
 
 **Option 3: Elevated Scheduled Task (Admin Access)**
 
-Give the bot Windows admin privileges by running the gateway elevated:
+Give the bot Windows admin privileges. Two approaches:
 
+**User-level admin** (runs as your account with admin):
 ```powershell
-# Run in Admin PowerShell - creates task with admin privileges
+# Run in Admin PowerShell
 $action = New-ScheduledTaskAction -Execute "clawdbot" -Argument "gateway"
 $trigger = New-ScheduledTaskTrigger -AtLogon
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
@@ -597,11 +598,30 @@ $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Highest
 Register-ScheduledTask -TaskName "ClawdbotGatewayAdmin" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
 ```
 
+**SYSTEM-level admin** (recommended - survives config restarts):
+```powershell
+# Run in Admin PowerShell - runs as SYSTEM with highest privileges
+# Stop current gateway first
+clawdbot gateway stop
+
+# Create SYSTEM-level task
+$action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c clawdbot gateway"
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName "ClawdbotGateway" -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force
+
+# Start it now
+Start-ScheduledTask -TaskName "ClawdbotGateway"
+```
+
 With admin access, the bot can:
 - Install/uninstall software
 - Modify system files and Windows settings
 - Access protected folders
 - Run administrative commands
+
+**Why SYSTEM-level is better**: When the bot modifies its config (e.g., enabling elevated tools), the gateway restarts. User-level elevated tasks lose admin on restart. SYSTEM-level tasks maintain admin permanently.
 
 **Manual Admin Session**: For one-time admin access without a scheduled task:
 ```powershell
