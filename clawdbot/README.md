@@ -630,25 +630,46 @@ clawdbot gateway stop
 clawdbot gateway
 ```
 
-**Option 5: Watchdog Script**
+**Option 4: Watchdog Script (Recommended)**
 
-Use the watchdog script for more control over restarts:
+The watchdog monitors the gateway every 30 seconds and auto-restarts it if it crashes. It runs completely hidden with no terminal window.
 
+**Setup:**
+
+1. Copy the watchdog script:
 ```powershell
-# Copy watchdog script
 Copy-Item ide-configs\clawdbot\clawdbot-watchdog.ps1 $env:USERPROFILE\.clawdbot\
-
-# Run watchdog (keeps gateway running)
-powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\.clawdbot\clawdbot-watchdog.ps1
 ```
 
-Create a scheduled task for the watchdog:
-
+2. Copy the setup script:
 ```powershell
-$action = New-ScheduledTaskAction -Execute "powershell" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File $env:USERPROFILE\.clawdbot\clawdbot-watchdog.ps1"
-$trigger = New-ScheduledTaskTrigger -AtLogon
-$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Limited
-Register-ScheduledTask -TaskName "Clawdbot Watchdog" -Action $action -Trigger $trigger -Principal $principal
+Copy-Item ide-configs\clawdbot\setup-watchdog-task.ps1 $env:USERPROFILE\.clawdbot\
+```
+
+3. Run the setup script to create a scheduled task:
+```powershell
+powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\.clawdbot\setup-watchdog-task.ps1
+```
+
+This creates a scheduled task "ClawdbotWatchdog" that:
+- Starts at logon (completely hidden, no terminal window)
+- Monitors gateway health every 30 seconds
+- Auto-restarts gateway if it crashes
+- Logs to `C:\tmp\clawdbot\watchdog.log`
+
+**Manual commands:**
+```powershell
+# Check watchdog status
+Get-ScheduledTask -TaskName "ClawdbotWatchdog" | Select-Object TaskName, State
+
+# Start watchdog manually
+Start-ScheduledTask -TaskName "ClawdbotWatchdog"
+
+# Stop watchdog
+Stop-ScheduledTask -TaskName "ClawdbotWatchdog"
+
+# View watchdog logs
+Get-Content C:\tmp\clawdbot\watchdog.log -Tail 20
 ```
 
 ### macOS (launchd)

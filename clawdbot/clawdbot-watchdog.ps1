@@ -36,7 +36,7 @@ function Start-Gateway {
     Write-Log "Starting Clawdbot Gateway..."
     try {
         # Use full path since scheduled tasks don't have user PATH
-        $clawdbotCmd = "C:\Users\felip\AppData\Roaming\npm\clawdbot.cmd"
+        $clawdbotCmd = "$env:APPDATA\npm\clawdbot.cmd"
         Start-Process -FilePath $clawdbotCmd -ArgumentList "gateway" -WindowStyle Hidden -ErrorAction Stop
         Start-Sleep -Seconds 10
 
