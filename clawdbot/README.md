@@ -775,6 +775,52 @@ cat /tmp/clawdbot/clawdbot-*.log
 
 ### Bot not responding
 
+If the bot shows as connected but doesn't respond to Telegram messages:
+
+**Quick diagnosis:**
+```bash
+# Check gateway status
+clawdbot status --deep | grep -A3 "Telegram"
+
+# Check if gateway is processing messages
+clawdbot logs | tail -50 | grep -i telegram
+```
+
+**If Telegram shows OK but bot doesn't respond:**
+
+This usually means the gateway is stuck and not polling for new messages. Restart it:
+
+```bash
+# Restart gateway via LaunchAgent (macOS)
+launchctl kickstart -k gui/$(id -u)/com.clawdbot.gateway
+
+# Wait a few seconds
+sleep 3
+
+# Verify it restarted
+clawdbot status | grep "Gateway service"
+```
+
+**Alternative restart methods:**
+
+```bash
+# Method 1: Graceful restart signal
+kill -USR1 $(pgrep -f clawdbot-gateway)
+
+# Method 2: Stop and start LaunchAgent
+launchctl stop com.clawdbot.gateway
+launchctl start com.clawdbot.gateway
+
+# Method 3: Manual restart (kills running gateway)
+pkill -f clawdbot-gateway && clawdbot gateway &
+```
+
+**After restart:**
+- Send a test message to your bot
+- Check logs for activity: `clawdbot logs | tail -20`
+- Verify new PID: `ps aux | grep clawdbot-gateway | grep -v grep`
+
+**For interactive debugging:**
 ```bash
 clawdbot sessions list
 clawdbot sessions send <label> "ping"
