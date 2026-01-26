@@ -1,0 +1,13 @@
+[user]
+	name = Felipe Vieira
+	email = felipe.lv.90@gmail.com
+[core]
+	excludesfile = ~/.gitignore_global
+	autocrlf = input
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

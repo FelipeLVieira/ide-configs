@@ -1,54 +1,34 @@
 #!/bin/bash
-# Sync repos and clawdbot state to Mac Mini
-# Usage: ./sync-to-mini.sh [--full]
-#   --full: Also sync Claude/Gemini configs
-
+# Sync all IDE configs from MacBook to Mac Mini
 set -e
 
-MAC_MINI="felipemacmini@felipes-mac-mini.local"
-FULL_SYNC=false
+MINI="felipemacmini@felipes-mac-mini.local"
 
-if [ "$1" = "--full" ]; then
-    FULL_SYNC=true
-fi
+echo "🔄 Syncing IDE configs to Mac Mini..."
 
-echo "=== Syncing repos to Mac Mini ==="
-rsync -avz --progress \
-  --exclude 'node_modules' \
-  --exclude '.next' \
-  --exclude 'dist' \
-  --exclude '.git/objects/pack/*.pack' \
-  ~/repos/ $MAC_MINI:~/repos/
+# Claude Code settings (hooks)
+echo "  → Claude Code settings.json"
+scp ~/.claude/settings.json $MINI:~/.claude/settings.json
 
+# Claude Code MCPs (already in ~/.claude.json, sync via python)
+echo "  → Claude Code MCPs (manual - edit ~/.claude.json)"
+
+# Cursor MCPs
+echo "  → Cursor mcp.json"
+ssh $MINI 'mkdir -p ~/.cursor'
+scp ~/.cursor/mcp.json $MINI:~/.cursor/mcp.json
+
+# Git config
+echo "  → Git config"
+scp ~/.gitconfig $MINI:~/.gitconfig 2>/dev/null || true
+scp ~/.gitignore_global $MINI:~/.gitignore_global 2>/dev/null || true
+
+# SSH config
+echo "  → SSH config"
+scp ~/.ssh/config $MINI:~/.ssh/config 2>/dev/null || true
+
+echo "✅ Sync complete!"
 echo ""
-echo "=== Syncing clawdbot agents state ==="
-rsync -avz ~/.clawdbot/agents/ $MAC_MINI:~/.clawdbot/agents/
-
-echo ""
-echo "=== Syncing clawdbot subagents state ==="
-rsync -avz ~/.clawdbot/subagents/ $MAC_MINI:~/.clawdbot/subagents/
-
-echo ""
-echo "=== Syncing clawd workspace (memory, identity, tools) ==="
-rsync -avz ~/clawd/ $MAC_MINI:~/clawd/
-
-if [ "$FULL_SYNC" = true ]; then
-    echo ""
-    echo "=== Syncing Claude config ==="
-    rsync -avz ~/.claude/ $MAC_MINI:~/.claude/
-
-    echo ""
-    echo "=== Syncing Gemini config ==="
-    rsync -avz ~/.gemini/ $MAC_MINI:~/.gemini/
-fi
-
-echo ""
-echo "=== Sync complete! ==="
-echo ""
-echo "NOTE: clawdbot.json NOT synced (Mac Mini has different Telegram settings)"
-echo ""
-echo "To start clawdbot on Mac Mini:"
-echo "  ssh $MAC_MINI 'tmux new -d -s clawdbot \"eval \\\"\\\$(/opt/homebrew/bin/brew shellenv)\\\" && clawdbot gateway start\"'"
-echo ""
-echo "To enable Telegram failover on Mac Mini (when MacBook is offline):"
-echo "  ssh $MAC_MINI  # then edit ~/.clawdbot/clawdbot.json: plugins.entries.telegram.enabled = true"
+echo "Manual steps needed:"
+echo "  - VSCode: Open VSCode on Mac Mini, MCPs are in User settings"
+echo "  - Vercel/Stripe OAuth: May need browser auth on Mac Mini"
