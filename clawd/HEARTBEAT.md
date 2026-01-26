@@ -1,27 +1,33 @@
-# HEARTBEAT.md - Game Development Monitoring
+# HEARTBEAT.md - System Monitoring
 
-## 🤖 Orchestrator Check (PRIORITY)
-- Check if `orchestrator-persistent` is running via `sessions_list`
-- If not running, spawn a new one with the persistent orchestrator task
-- Orchestrator manages all project bots automatically
+## 🔍 Quick Health Check (every heartbeat)
+- Check `sessions_list` for any active sub-agents — if they completed, note it
+- If any critical sub-agent died (0 tokens, never started), re-spawn it
+- Check cron jobs are running: `cron action=list`
 
-## 🎮 Aphos Game Development Tasks
-- **Game Server Check**: Ensure localhost:2567 is running (Colyseus WebSocket)
-- **Player Testing**: Periodically test game functionality  
-- **Performance Monitoring**: Check for console errors or issues
-- **Feature Testing**: Verify spell system, multiplayer, UI responses
-- **Next Implementation**: Structure building (Grok's #1 suggestion)
+## 🎮 Aphos Game
+- Game servers on Mac Mini (ports 2567, 2568, 4000, 4001)
+- Dual environment: prod (2567/4000) and dev (2568/4001)
 
-## 🔀 Dual Environment Setup
-- **Production (port 2567)**: `data/storage/` - Felipe tests here
-- **Development (port 2568)**: `data/storage-dev/` - Bots develop here
-- **Frontend Prod (port 4000)**: Connects to 2567 - Felipe plays here
-- **Frontend Dev (port 4001)**: Connects to 2568 - Bots test UI here
-- **Commands**: `pnpm dev:server:prod` or `pnpm dev:server:dev`
-- **Schema sync**: `pnpm db:sync prod dev` (or `dev prod`)
-- **Docs**: `~/repos/aphos/docs/DUAL-ENVIRONMENT.md`
+## 💰 Shitcoin Bot
+- Running on both MacBook and Mac Mini
+- Research-only mode: check `data/research_opportunities.json` for new finds
+- If high-conviction opportunity found, review and consider approving
 
-## Schedule:
-- Every ~2 hours: Quick game test (connect, cast spell, verify functions)
-- Daily: Review and implement next Grok suggestion
-- Weekly: Major feature review and polish
+## 📱 iOS Apps (3 apps)
+- BMI Calculator, Bills Tracker, Screen Translator
+- Cron job monitors App Store Connect 3x/day (9am, 3pm, 9pm)
+- If build expired/rejected, fix and resubmit
+
+## 🖥️ Clawd Monitor
+- Dev server on port 9000
+- React errors in console = fix immediately
+
+## 🔗 LinkLounge & EZ-CRM
+- Supabase issues being fixed by sub-agents
+- Monitor for completion
+
+## Schedule
+- Cron handles iOS monitoring (3x/day) and project health (3x/day)
+- Heartbeat handles quick sub-agent checks and ad-hoc tasks
+- Don't duplicate cron work in heartbeat
