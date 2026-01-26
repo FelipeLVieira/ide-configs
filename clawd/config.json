@@ -75,5 +75,18 @@
   "hooks": {
     "beforePlan": "echo 'Starting planning phase...'",
     "afterExecution": "echo 'Execution complete. Review changes before committing.'"
+  },
+  "accounts": {
+    "_comment": "Multi-account config for rate-limit fallback. Managed by ~/.clawd/adapter.js",
+    "primary": {
+      "name": "felipe",
+      "email": "felipe.lv.90@gmail.com",
+      "configDir": null
+    },
+    "secondary": {
+      "name": "wisedigital",
+      "email": "wisedigitalinc@gmail.com",
+      "configDir": "~/.claude-wisedigital"
+    }
   }
 }

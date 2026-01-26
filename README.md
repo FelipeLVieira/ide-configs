@@ -22,8 +22,10 @@ ide-configs/
 │   ├── BOOTSTRAP.md          # First-run onboarding
 │   ├── TOOLS.md              # Tool-specific notes
 │   ├── OPTIMIZATION_RULES.md # Token optimization
+│   ├── adapter.js            # Multi-account rate-limit fallback adapter
 │   ├── clawdbot.template.json # Gateway config template
-│   └── scripts/              # Auto-resume, shutdown scripts
+│   ├── scripts/              # Auto-resume, shutdown, account setup scripts
+│   └── docs/ARCHITECTURE.md  # Full architecture + multi-account docs
 ├── mcp/                      # MCP Server configs (all IDEs)
 │   ├── README.md             # MCP inventory & sync status
 │   ├── claude-code-mcps.json # Claude Code MCP template

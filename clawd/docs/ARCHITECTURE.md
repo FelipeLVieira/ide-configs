@@ -247,6 +247,80 @@ Priority files for migration:
 4. `~/clawd/memory/*.md` - Recent session notes
 5. `~/repos/.env` - Shared credentials
 
+## Multi-Account Rate Limit Fallback
+
+Clawd uses a custom adapter (`~/.clawd/adapter.js`) that automatically switches Claude accounts when a rate limit is hit.
+
+### How It Works
+
+```
+Clawd executes task
+  -> Adapter picks Account 1 (felipe.lv.90@gmail.com)
+  -> Spawns: claude --dangerously-skip-permissions -p <prompt>
+  -> If "Session limit reached" / 429 / rate limit detected:
+       -> Marks Account 1 as rate-limited (with reset time)
+       -> Immediately retries with Account 2 (wisedigitalinc@gmail.com)
+       -> Spawns: CLAUDE_CONFIG_DIR=~/.claude-wisedigital claude ...
+       -> If Account 2 also rate-limited:
+            -> Clawd's built-in rate-limit handler waits until reset
+            -> Then retries from the top
+```
+
+### Accounts
+
+| Account | Email | Config Dir | Role |
+|---------|-------|-----------|------|
+| felipe | felipe.lv.90@gmail.com | `~/.claude` (default) | Primary |
+| wisedigital | wisedigitalinc@gmail.com | `~/.claude-wisedigital` | Fallback |
+
+### Setup (per machine)
+
+Each machine (MacBook, Mac Mini) needs both accounts authenticated:
+
+```bash
+# 1. Primary account - already authenticated via default claude login
+
+# 2. Secondary account - one-time setup
+mkdir -p ~/.claude-wisedigital
+CLAUDE_CONFIG_DIR=~/.claude-wisedigital claude setup-token
+# Log in with wisedigitalinc@gmail.com in the browser
+
+# 3. Copy the adapter (if not already installed via ide-configs)
+cp ~/repos/ide-configs/clawd/adapter.js ~/.clawd/adapter.js
+```
+
+Or use the setup script:
+```bash
+~/.clawd/scripts/setup-secondary-account.sh
+```
+
+### Adding More Accounts
+
+Edit the `ACCOUNTS` array in `~/.clawd/adapter.js`:
+```javascript
+const ACCOUNTS = [
+  { name: "felipe", email: "felipe.lv.90@gmail.com", configDir: null },
+  { name: "wisedigital", email: "wisedigitalinc@gmail.com", configDir: path.join(os.homedir(), ".claude-wisedigital") },
+  // Add more here:
+  { name: "newaccount", email: "new@example.com", configDir: path.join(os.homedir(), ".claude-newaccount") },
+];
+```
+
+Then authenticate the new account:
+```bash
+mkdir -p ~/.claude-newaccount
+CLAUDE_CONFIG_DIR=~/.claude-newaccount claude setup-token
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `~/.clawd/adapter.js` | Custom multi-account adapter (loaded by Clawd automatically) |
+| `~/.clawd/scripts/setup-secondary-account.sh` | One-time auth setup for secondary account |
+| `~/.claude-wisedigital/` | Isolated config dir for secondary account |
+| `~/.clawd/config.json` → `accounts` | Documents which accounts are configured |
+
 ## Troubleshooting
 
 ### Gateway won't start
