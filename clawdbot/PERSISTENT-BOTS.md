@@ -114,3 +114,47 @@ Bots run **24/7** as persistent processes on Mac Mini. Each bot is a **SPECIALIS
 ~/clawd/scripts/manage-bots.sh restart
 tmux attach -t bot-<name>
 ```
+
+## Simulator Management
+
+iOS bots use `~/clawd/scripts/sim-manager.sh` to avoid conflicts:
+
+```bash
+# Check if safe to boot
+sim-manager.sh check ios-bmi
+
+# Boot assigned simulator
+sim-manager.sh boot ios-bmi
+
+# Take screenshot
+sim-manager.sh screenshot ios-bmi /tmp/screenshot.png
+
+# Click via Hammerspoon
+sim-manager.sh click ios-bmi 200 400
+
+# Type via Hammerspoon
+sim-manager.sh type ios-bmi "hello"
+
+# ALWAYS shut down when done!
+sim-manager.sh shutdown ios-bmi
+```
+
+### Rules
+1. **CHECK** before booting - never boot if another sim is running
+2. **WAIT** if another bot is using a simulator
+3. **SHUT DOWN** immediately after testing
+4. **Hammerspoon** available for clicking/typing in simulator UI
+5. **One simulator at a time** - no parallel simulators
+
+## Server Cleanup
+
+Bots must clean up orphan servers:
+```bash
+# Before starting, check your port
+lsof -i :<port>
+
+# Kill orphan on your port
+kill $(lsof -t -i :<port>)
+```
+
+Never leave dev servers running after testing.
