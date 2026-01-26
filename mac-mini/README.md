@@ -200,6 +200,7 @@ ssh felipemacmini@felipes-mac-mini.local 'cd ~/clawd && git pull origin master'
 | Clawdbot Gateway | 18789 | HTTP/WS |
 | Shitcoin Bot | — | Background |
 | Failover Watchdog | — | Background |
+| Clawd Monitor | 9000 | HTTP (Next.js) |
 
 ## Shitcoin Bot (Polymarket)
 
@@ -207,6 +208,59 @@ ssh felipemacmini@felipes-mac-mini.local 'cd ~/clawd && git pull origin master'
 - Proxy credentials in `~/repos/shitcoin-bot/.env`
 - Split tunneling: only Polymarket API goes through proxy
 - All other traffic (Claude API, web) uses direct connection
+
+### Operating Modes (brain_control.json)
+
+| Mode | auto_invest | copy_trading | manual_trading | Description |
+|------|:-----------:|:------------:|:--------------:|-------------|
+| **Research Only** | ❌ | ❌ | ✅ | Scans whales & markets, logs opportunities to `data/research_opportunities.json`. Clawdbot reviews & approves. |
+| **Conservative** | ✅ | ✅ | ✅ | Copy trading ON, momentum OFF. Small positions ($3 max). |
+| **Full Auto** | ✅ | ✅ | ✅ | All strategies enabled. Use with caution. |
+| **Emergency Stop** | ❌ | ❌ | ❌ | All trading halted. |
+
+Current mode: **Research Only** (set 2026-01-26)
+
+### Thread Auto-Restart
+
+Bot threads (Price Lag, Cross-Arb, LP, etc.) now auto-restart up to 10 times when they die, instead of just logging a warning. 5s health check interval with 2s backoff. See `src/run_bots.py`.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `data/brain_control.json` | Runtime trading config (read every 60s) |
+| `data/research_opportunities.json` | Logged opportunities in research mode |
+| `data/wallet_snapshot_*.json` | Periodic wallet snapshots |
+| `src/utils/brain_control.py` | Brain control reader + research mode |
+| `src/strategies/copy_trading.py` | Copy trading with research mode integration |
+
+### Lessons Learned (Jan 2026)
+
+- ❌ **15-min crypto Up/Down markets**: Coin flips with 3.15% dynamic fees. Strategy dead.
+- ❌ **Sports bets via copy trading**: Whales inconsistent on sports. All losses.
+- ✅ **Political/geopolitical "NO" bets**: High-conviction unlikely events. Best performers.
+- ✅ **Research-first approach**: Let bot scan, human/AI reviews before trading.
+
+## Aphos Game (Dual Environment)
+
+| Environment | Server Port | Frontend Port | Data Dir | Purpose |
+|------------|:-----------:|:-------------:|----------|---------|
+| **Production** | 2567 | 4000 | `data/storage/` | Felipe plays here |
+| **Development** | 2568 | 4001 | `data/storage-dev/` | Bots develop & test |
+
+```bash
+# Commands
+pnpm dev:server:prod    # Start prod server (2567)
+pnpm dev:server:dev     # Start dev server (2568)
+pnpm db:sync prod dev   # Sync schema prod → dev
+pnpm db:sync dev prod   # Sync schema dev → prod
+```
+
+See `~/repos/aphos/docs/DUAL-ENVIRONMENT.md` for full details.
+
+## Clawdbot Agent Bootstrap
+
+After initial setup, **delete `BOOTSTRAP.md`** from the workspace root. If it exists, the gateway reports all agents as "bootstrapping" and they won't fully initialize. Identity files (`IDENTITY.md`, `SOUL.md`, `USER.md`) must exist before deletion.
 
 ## Energy Settings (Always-On)
 
