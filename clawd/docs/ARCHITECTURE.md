@@ -273,19 +273,37 @@ Clawd executes task
 
 Clawd loads `adapter.js` from `<project-cwd>/.clawd/adapter.js` (symlinked to `~/.clawd/adapter.js`).
 
-#### Clawdbot (Gateway) — `claude-multi` wrapper
+#### Clawdbot (Gateway) — Embedded Agent Auth Profiles
+
+Clawdbot's default agent uses the **embedded** path (direct Anthropic API, `provider=anthropic`),
+NOT the CLI path. The embedded runner has its own auth profile rotation in
+`~/.clawdbot/agents/main/agent/auth-profiles.json`:
 
 ```
-Clawdbot sends message to Claude CLI
-  -> Spawns: claude-multi <args...>  (configured via cliBackends.command)
+Clawdbot receives Telegram message
+  -> Embedded runner resolves auth profile order
+  -> Tries Profile 1 (anthropic:claude-cli = felipe account)
+  -> If rate-limited (429):
+       -> Marks profile with cooldown (1min -> 5min -> 25min -> 1hr max)
+       -> Rotates to Profile 2 (anthropic:wisedigital)
+       -> Retries with wisedigital OAuth token
+  -> If all profiles in cooldown:
+       -> Throws FailoverError, waits for shortest cooldown to expire
+```
+
+#### Clawdbot (Gateway) — `claude-multi` wrapper (CLI path only)
+
+If clawdbot is configured to use `provider: "claude-cli"` instead of the embedded path,
+the `claude-multi` wrapper handles account switching:
+
+```
+Clawdbot spawns: claude-multi <args...>
   -> Wrapper runs: claude <args...>  (primary account, no token)
   -> If exit code != 0 AND output matches rate limit patterns:
        -> Loads token from ~/.claude-wisedigital/oauth-token
        -> Retries: CLAUDE_CODE_OAUTH_TOKEN=<token> claude <args...>
   -> Returns output + exit code transparently
 ```
-
-Clawdbot uses `claude-multi` as a drop-in replacement for `claude` in its backend config.
 
 ### Accounts
 
