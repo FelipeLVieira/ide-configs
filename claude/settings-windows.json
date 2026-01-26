@@ -231,5 +231,8 @@
     "enabled": true,
     "allowNetwork": true
   },
-  "autoAllowBashIfSandboxed": true
+  "autoAllowBashIfSandboxed": true,
+  "extraKnownMarketplaces": [
+    "VoltAgent/awesome-clawdbot-skills"
+  ]
 }
