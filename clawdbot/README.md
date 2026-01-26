@@ -229,8 +229,11 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 | `channels.telegram.streamMode` | Response streaming | `partial`, `full`, `none` |
 | `channels.telegram.reactionLevel` | Bot reaction frequency | `minimal`, `extensive` |
 | `channels.telegram.reactionNotifications` | Reaction notifications | `all`, `none` |
+| `channels.telegram.allowFrom` | Telegram user IDs allowed to use bot | Array of strings |
 | `gateway.mode` | Gateway operation mode | `local`, `cloud` |
 | `plugins.entries.telegram.enabled` | Enable Telegram plugin | `true` / `false` |
+| `tools.elevated.enabled` | Enable elevated/privileged tools | `true` / `false` |
+| `tools.elevated.allowFrom.telegram` | User IDs allowed to use elevated tools | Array of strings |
 
 ### DM Policies
 
@@ -299,6 +302,50 @@ Set bot name and emoji (defined per-agent in `agents.list`):
 }
 ```
 
+### Access Control (allowFrom)
+
+Restrict bot access to specific Telegram users:
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "allowFrom": ["123456789", "987654321"]
+    }
+  }
+}
+```
+
+Get your Telegram user ID by messaging the bot with `/start` - it will display your ID in the pairing message.
+
+### Elevated Tools
+
+Enable privileged tools (system commands, file operations) with user restrictions:
+
+```json
+{
+  "tools": {
+    "elevated": {
+      "enabled": true,
+      "allowFrom": {
+        "telegram": ["123456789"]
+      }
+    }
+  }
+}
+```
+
+| Option | Description |
+|--------|-------------|
+| `tools.elevated.enabled` | Enable elevated tools globally |
+| `tools.elevated.allowFrom.telegram` | Telegram user IDs allowed to use elevated tools |
+
+Elevated tools allow the bot to perform privileged operations like:
+- Execute system commands
+- Modify system files
+- Access protected resources
+- Run administrative tasks
+
 ### Custom Commands
 
 Add commands to Telegram's menu:
@@ -340,6 +387,14 @@ Add commands to Telegram's menu:
       }
     ]
   },
+  "tools": {
+    "elevated": {
+      "enabled": true,
+      "allowFrom": {
+        "telegram": ["YOUR_TELEGRAM_USER_ID"]
+      }
+    }
+  },
   "messages": {
     "ackReaction": "👀",
     "ackReactionScope": "all"
@@ -352,7 +407,8 @@ Add commands to Telegram's menu:
       "groupPolicy": "allowlist",
       "streamMode": "partial",
       "reactionLevel": "minimal",
-      "reactionNotifications": "all"
+      "reactionNotifications": "all",
+      "allowFrom": ["YOUR_TELEGRAM_USER_ID"]
     }
   },
   "gateway": {
@@ -401,6 +457,83 @@ The main orchestrator bot:
 - Resolves port conflicts
 - Cleans up resources (browser tabs, processes)
 - Reports status to you via Telegram
+
+## Browser Control
+
+Clawdbot includes browser automation capabilities through the Clawd browser integration.
+
+### Features
+
+- Open tabs and navigate to URLs
+- Click elements and type text
+- Take screenshots
+- Execute JavaScript
+- Interact with web pages programmatically
+
+### How It Works
+
+1. Gateway starts browser control server on `http://127.0.0.1:18791/`
+2. Clawd browser profile is created (decorated with orange theme)
+3. Bot can control browser tabs via the Clawdbot Chrome extension
+
+### Status Check
+
+Ask the bot for system status to see browser control state:
+```
+You: what's your system status?
+Bot: Browser Control - Clawd browser: Running (PID 12345)
+     Can open tabs, navigate, click, type, screenshot
+```
+
+### Troubleshooting
+
+If browser control shows errors:
+- Restart the gateway: `clawdbot gateway`
+- Check if Clawdbot Chrome extension is installed
+- Click the extension icon on a tab to attach it
+
+## Playwright MCP Integration
+
+Clawdbot supports Playwright MCP for advanced browser automation.
+
+### Setup
+
+1. Install Playwright MCP server:
+```bash
+npm install -g @anthropic/mcp-server-playwright
+```
+
+2. Add to Claude Code settings (`~/.claude/settings.json`):
+```json
+{
+  "mcp": {
+    "servers": {
+      "playwright": {
+        "command": "npx",
+        "args": ["@anthropic/mcp-server-playwright"]
+      }
+    }
+  }
+}
+```
+
+3. Restart Claude Code or the gateway
+
+### Capabilities
+
+With Playwright MCP, the bot can:
+- Navigate complex web applications
+- Fill forms and submit data
+- Handle authentication flows
+- Scrape dynamic content
+- Test web applications
+
+### Usage Example
+
+```
+You: use playwright to log into my dashboard and take a screenshot
+Bot: [Uses Playwright MCP to navigate, authenticate, and capture screenshot]
+```
 
 ## Running as a Service
 
@@ -611,12 +744,73 @@ If you see `Can't reach the clawd browser control server`:
 | `clawdbot sessions send LABEL MSG` | Send message to agent |
 | `clawdbot pairing approve telegram CODE` | Approve Telegram pairing |
 
+## Additional MCP Servers
+
+Enhance Clawdbot with additional MCP servers for extended capabilities.
+
+### Web Search (Brave Search API)
+
+Enable web search capabilities:
+
+1. Get API key from [Brave Search API](https://brave.com/search/api/)
+
+2. Add to Claude Code settings:
+```json
+{
+  "mcp": {
+    "servers": {
+      "brave-search": {
+        "command": "npx",
+        "args": ["@anthropic/mcp-server-brave-search"],
+        "env": {
+          "BRAVE_API_KEY": "YOUR_API_KEY"
+        }
+      }
+    }
+  }
+}
+```
+
+### Filesystem Access
+
+Enable file operations:
+```json
+{
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["@anthropic/mcp-server-filesystem", "~/Documents", "~/Projects"]
+      }
+    }
+  }
+}
+```
+
+### Memory (Persistent Context)
+
+Enable long-term memory:
+```json
+{
+  "mcp": {
+    "servers": {
+      "memory": {
+        "command": "npx",
+        "args": ["@anthropic/mcp-server-memory"]
+      }
+    }
+  }
+}
+```
+
 ## Security Notes
 
 - **Bot Token**: Keep your bot token secret
 - **DM Policy**: Use `pairing` for personal bots
 - **Group Policy**: Use `allowlist` to control which groups can use the bot
 - **Telegram Encryption**: Bot messages are not end-to-end encrypted
+- **Elevated Tools**: Only enable for trusted users via `allowFrom`
+- **allowFrom Lists**: Use to restrict access to specific Telegram user IDs
 
 ## Upgrading
 
