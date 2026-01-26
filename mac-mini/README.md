@@ -222,6 +222,55 @@ sudo pmset -a displaysleep 0 sleep 0 disksleep 0 womp 1 autorestart 1
 | Wake on network | Enabled |
 | Auto-restart after power failure | Enabled |
 
+## Remote Access
+
+### Screen Sharing (VNC)
+```bash
+# From MacBook
+open vnc://felipes-mac-mini.local
+```
+- Port: 5900
+- Login: `felipemacmini` + password
+- Remote Management (ARD) enabled with full privileges
+
+### Mouse & Keyboard Control (cliclick)
+```bash
+# Via Clawdbot node (preferred)
+clawdbot nodes invoke --node mac-mini --command system.run --params '{"command":["cliclick","m:500,500"]}'
+
+# Via SSH + osascript (Terminal.app has Accessibility)
+ssh felipemacmini@felipes-mac-mini.local 'osascript -e "tell application \"Terminal\" to do script \"/opt/homebrew/bin/cliclick m:500,500\""'
+```
+
+**cliclick commands:**
+| Command | Action | Example |
+|---------|--------|---------|
+| `m:X,Y` | Move mouse | `cliclick m:500,500` |
+| `c:X,Y` | Click | `cliclick c:500,500` |
+| `dc:X,Y` | Double-click | `cliclick dc:500,500` |
+| `rc:X,Y` | Right-click | `cliclick rc:500,500` |
+| `t:TEXT` | Type text | `cliclick t:"hello"` |
+| `kp:KEY` | Key press | `cliclick kp:return` |
+| `p` | Print position | `cliclick p` |
+
+**Accessibility permissions required:**
+- System Settings → Privacy & Security → Accessibility
+- Must have: Terminal (and/or sshd, node)
+- cliclick installed at: `/opt/homebrew/bin/cliclick`
+
+### iOS Development (Remote)
+| Tool | Version | Path |
+|------|---------|------|
+| Xcode | 26.2 | `/Applications/Xcode.app` |
+| EAS CLI | v16.28 | `eas` |
+| CocoaPods | 1.16.2 | `pod` |
+| Simulators | iPhone + iPad | via `xcrun simctl` |
+
+**Apple Store Connect (automated builds):**
+- App-Specific Password stored in `~/repos/.env.apple`
+- Env vars: `EXPO_APPLE_ID`, `EXPO_APPLE_PASSWORD`, `APPLE_TEAM_ID`
+- Bots can `eas build` + `eas submit` without 2FA prompts
+
 ## SSH Keys
 
 | From → To | Key | Purpose |
