@@ -1,6 +1,6 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, and Clawd autonomous orchestration.
+Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Telegram bot integration.
 
 ## Prerequisites Installation
 
@@ -119,15 +119,22 @@ ide-configs/
 │   ├── CLAUDE.md              # Global Claude Code instructions
 │   ├── WORKING_PRINCIPLES.md  # Code quality principles
 │   ├── deslop.md              # 50+ clean code principles for analysis
-│   └── settings.json          # Claude Code settings (hooks, permissions)
+│   ├── settings.json          # Claude Code settings (macOS/Linux)
+│   └── settings-windows.json  # Claude Code settings (Windows)
 ├── gemini/
 │   └── GEMINI.md              # Antigravity/Grok global instructions
 ├── vscode/
-│   └── global-settings.json   # VSCode global settings
+│   ├── global-settings.json   # VSCode global settings (macOS/Linux)
+│   └── global-settings-windows.json  # VSCode settings (Windows/.NET)
 ├── clawd/
 │   └── config.json            # Clawd autonomous orchestration config
 ├── scripts/
-│   └── cleanup-antigravity.sh # Cache cleanup script
+│   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
+│   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
+├── telegram-bot/
+│   ├── README.md                  # Telegram bot setup guide
+│   ├── .env.example               # Example configuration
+│   └── install-windows.ps1        # Windows installer script
 ├── project-templates/
 │   ├── TEMPLATE-CLAUDE.md           # Generic project instructions template
 │   ├── TEMPLATE-antigravityignore   # Antigravity ignore template
@@ -138,11 +145,14 @@ ide-configs/
 │   ├── bills-tracker-CLAUDE.md      # Mobile app example
 │   ├── screen-translator-CLAUDE.md  # Mobile app example
 │   └── linklounge-CLAUDE.md         # SaaS example
-├── install.sh                 # Installation script
+├── install.sh                 # Installation script (macOS/Linux)
+├── install.ps1                # Installation script (Windows)
 └── README.md
 ```
 
 ## Quick Install
+
+### macOS / Linux
 
 ```bash
 # Clone the repo
@@ -152,9 +162,22 @@ git clone git@github.com:FelipeLVieira/ide-configs.git ~/repos/ide-configs
 cd ~/repos/ide-configs && ./install.sh
 ```
 
+### Windows
+
+```powershell
+# Clone the repo
+git clone https://github.com/FelipeLVieira/ide-configs.git $env:USERPROFILE\repos\ide-configs
+
+# Run installer (PowerShell)
+cd $env:USERPROFILE\repos\ide-configs
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
 ## Manual Installation
 
-### Claude Code
+### macOS / Linux
+
+#### Claude Code
 ```bash
 cp claude/CLAUDE.md ~/.claude/
 cp claude/WORKING_PRINCIPLES.md ~/.claude/
@@ -162,32 +185,69 @@ cp claude/deslop.md ~/.claude/
 cp claude/settings.json ~/.claude/
 ```
 
-### Antigravity (Gemini/Grok)
+#### Antigravity (Gemini/Grok)
 ```bash
 mkdir -p ~/.gemini
 cp gemini/GEMINI.md ~/.gemini/
 ```
 
-### VSCode
+#### VSCode
 ```bash
 cp vscode/global-settings.json ~/Library/Application\ Support/Code/User/settings.json
 ```
 
-### Clawd
+#### Clawd
 ```bash
-# Install Clawd first
 npm install -g clawd
-
-# Copy config
 mkdir -p ~/.clawd
 cp clawd/config.json ~/.clawd/
 ```
 
-### Scripts
+#### Scripts
 ```bash
 mkdir -p ~/.claude/scripts
 cp scripts/cleanup-antigravity.sh ~/.claude/scripts/
 chmod +x ~/.claude/scripts/cleanup-antigravity.sh
+```
+
+### Windows
+
+#### Claude Code
+```powershell
+$ClaudeDir = "$env:USERPROFILE\.claude"
+New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
+Copy-Item claude\CLAUDE.md $ClaudeDir
+Copy-Item claude\WORKING_PRINCIPLES.md $ClaudeDir
+Copy-Item claude\deslop.md $ClaudeDir
+Copy-Item claude\settings-windows.json "$ClaudeDir\settings.json"
+```
+
+#### Antigravity (Gemini/Grok)
+```powershell
+$GeminiDir = "$env:USERPROFILE\.gemini"
+New-Item -ItemType Directory -Force -Path $GeminiDir | Out-Null
+Copy-Item gemini\GEMINI.md $GeminiDir
+```
+
+#### VSCode
+```powershell
+$VSCodeSettings = "$env:APPDATA\Code\User\settings.json"
+Copy-Item vscode\global-settings-windows.json $VSCodeSettings
+```
+
+#### Clawd
+```powershell
+npm install -g clawd
+$ClawdDir = "$env:USERPROFILE\.clawd"
+New-Item -ItemType Directory -Force -Path $ClawdDir | Out-Null
+Copy-Item clawd\config.json $ClawdDir
+```
+
+#### Scripts
+```powershell
+$ScriptsDir = "$env:USERPROFILE\.claude\scripts"
+New-Item -ItemType Directory -Force -Path $ScriptsDir | Out-Null
+Copy-Item scripts\cleanup-antigravity.ps1 $ScriptsDir
 ```
 
 ## Features
@@ -219,8 +279,15 @@ Pre-configured projects:
 
 ### Cleanup Script
 Clears Antigravity cache when IDE is slow:
+
+**macOS / Linux:**
 ```bash
 ~/.claude/scripts/cleanup-antigravity.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+& "$env:USERPROFILE\.claude\scripts\cleanup-antigravity.ps1"
 ```
 
 ## Using Clawd

@@ -130,6 +130,10 @@ Clawdbot doesn't automatically resume tasks after a sudden shutdown. The auto-re
 ```
 4. Restart clawdbot gateway
 
+## Usage
+
+Copy these files to your Clawdbot workspace (`~/clawd/` or similar).
+
 ## Troubleshooting
 
 ### HTTP 429 Rate Limit Errors

@@ -1,0 +1,235 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$file='{{file_path}}'; Write-Host 'File edited: ' $file\"",
+            "description": "Log file edits"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$cmd='{{command}}'; if ($cmd -match 'npm install|yarn add|pnpm add|dotnet add|nuget install') { Write-Host 'Dependencies updated. Consider running build...' }\"",
+            "description": "Notify when dependencies are installed"
+          },
+          {
+            "type": "command",
+            "command": "powershell -Command \"$cmd='{{command}}'; if ($cmd -match 'git commit') { Write-Host 'Commit created. Remember to push changes.' }\"",
+            "description": "Reminder after git commits"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$logPath = Join-Path $env:USERPROFILE '.claude\\session-log.txt'; Add-Content -Path $logPath -Value \\\"[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] User prompt submitted\\\"\"",
+            "description": "Log all user prompts with timestamp"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$logPath = Join-Path $env:USERPROFILE '.claude\\session-log.txt'; Add-Content -Path $logPath -Value \\\"[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Task completed\\\"\"",
+            "description": "Log task completion"
+          },
+          {
+            "type": "prompt",
+            "prompt": "Check if verification is needed: Were code files modified during this task? If yes, consider running tests or build to validate changes.",
+            "description": "Prompt to trigger verification after implementation tasks"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review subagent results: Did the subagent complete successfully? Were there any errors or issues that need follow-up?",
+            "description": "Evaluate subagent completion"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$logPath = Join-Path $env:USERPROFILE '.claude\\session-log.txt'; Add-Content -Path $logPath -Value '========================================'; Add-Content -Path $logPath -Value \\\"[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] New session started\\\"; Add-Content -Path $logPath -Value \\\"Working directory: $(Get-Location)\\\"\"",
+            "description": "Log session start with context"
+          },
+          {
+            "type": "command",
+            "command": "powershell -Command \"if (Test-Path '*.sln') { Write-Host '.NET Solution detected' } elseif (Test-Path '*.csproj') { Write-Host '.NET Project detected' } elseif (Test-Path 'package.json') { Write-Host 'Node.js project detected' } elseif (Test-Path 'requirements.txt') { Write-Host 'Python project detected' }\"",
+            "description": "Auto-detect project type and notify"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$file='{{file_path}}'; $backupDir = Join-Path $env:USERPROFILE '.claude\\backups'; if (Test-Path $file) { New-Item -ItemType Directory -Force -Path $backupDir | Out-Null; $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'; $backupPath = Join-Path $backupDir \\\"${timestamp}_$([System.IO.Path]::GetFileName($file))\\\"; Copy-Item $file $backupPath -ErrorAction SilentlyContinue }\"",
+            "description": "Auto-backup files before editing (safety net)"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"$logPath = Join-Path $env:USERPROFILE '.claude\\notifications.log'; Add-Content -Path $logPath -Value \\\"[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] Notification: {{message}}\\\"\"",
+            "description": "Log all Claude Code notifications"
+          }
+        ]
+      }
+    ]
+  },
+  "defaultModel": "opus",
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Bash(git:*)",
+      "Bash(dotnet:*)",
+      "Bash(msbuild:*)",
+      "Bash(nuget:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(pwd:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(gh:*)",
+      "Bash(sqlcmd:*)",
+      "Bash(sqlplus:*)",
+      "WebFetch(domain:*)",
+      "Grep(*)",
+      "Glob(*)",
+      "Task(*)",
+      "mcp__*",
+      "ExecuteCommand"
+    ],
+    "deny": [
+      "Bash(rm:-rf:*)",
+      "Bash(sudo:*)",
+      "Bash(del:/s:/q:*)",
+      "Bash(rmdir:/s:*)",
+      "Bash(format:*)"
+    ],
+    "ask": [
+      "Bash(git:push:*)",
+      "Bash(git:force-push:*)",
+      "Bash(git:merge:*)",
+      "Bash(git:rebase:*)"
+    ]
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/.nuxt/**",
+    "**/out/**",
+    "**/.cache/**",
+    "**/.vscode/**",
+    "**/.idea/**",
+    "**/coverage/**",
+    "**/*.log",
+    "**/.DS_Store",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+    "**/.git/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/packages/**",
+    "**/.vs/**",
+    "**/TestResults/**",
+    "**/__pycache__/**",
+    "**/*.pyc"
+  ],
+  "preferences": {
+    "enableHooksGlobally": true,
+    "autoFormatOnSave": true,
+    "logSessions": true
+  },
+  "development": {
+    "dotnet": {
+      "frameworks": [
+        ".NET Framework 4.8",
+        ".NET 8.0",
+        "ASP.NET MVC",
+        "ASP.NET Web API"
+      ],
+      "orm": [
+        "Entity Framework 6",
+        "Entity Framework Core",
+        "Dapper"
+      ],
+      "databases": [
+        "SQL Server",
+        "Oracle",
+        "PostgreSQL"
+      ]
+    },
+    "web": {
+      "frameworks": [
+        "react",
+        "vue",
+        "next.js",
+        "nuxt"
+      ],
+      "tooling": [
+        "vite",
+        "webpack",
+        "typescript",
+        "eslint",
+        "prettier"
+      ]
+    },
+    "python": {
+      "frameworks": [
+        "flask",
+        "django",
+        "fastapi"
+      ]
+    }
+  },
+  "disableAllHooks": false,
+  "sandbox": {
+    "enabled": true,
+    "allowNetwork": true
+  },
+  "autoAllowBashIfSandboxed": true
+}

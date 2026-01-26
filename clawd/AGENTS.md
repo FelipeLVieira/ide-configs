@@ -232,18 +232,6 @@ When testing app interfaces (iOS apps, Aphos game, web apps):
 3. Analyze the frames to verify UI renders correctly at all screen sizes
 4. Great for catching layout bugs, responsive issues, and visual regressions
 
-**🔄 Next.js Projects - Clean Before Testing:**
-Before testing any Next.js project, ALWAYS clean and rebuild:
-```bash
-rm -rf .next
-npm run dev  # or pnpm dev
-```
-This prevents SyntaxErrors and corrupted cache issues. Do this:
-- Before starting a testing session
-- After pulling new changes
-- When you see unexpected errors
-- After making significant code changes
-
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 
 **📝 Platform Formatting:**
