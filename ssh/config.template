@@ -1,0 +1,18 @@
+# Mac Mini SSH Config
+Host github.com
+    HostName github.com
+    User FelipeLVieira
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/id_ed25519
+    UseKeychain yes
+    AddKeysToAgent yes
+
+Host macbook
+    HostName felipes-macbook-pro.local
+    User felipevieira
+    IdentityFile ~/.ssh/id_ed25519
+
+Host mac-mini
+    HostName felipes-mac-mini.local
+    User felipemacmini
+    IdentityFile ~/.ssh/id_ed25519

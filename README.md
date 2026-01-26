@@ -1,383 +1,115 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Clawdbot multi-agent gateway.
+Personal configuration files for Claude Code, Cursor, VSCode, Gemini/Antigravity, Clawdbot, and Mac Mini server setup.
 
-## Prerequisites Installation
-
-### Claude Code
-
-Official docs: https://code.claude.com/docs
-
-**macOS / Linux:**
-```bash
-# Recommended
-curl -fsSL https://claude.ai/install.sh | bash
-
-# Or via Homebrew
-brew install --cask claude-code
-```
-
-**Windows:**
-```powershell
-# PowerShell (Recommended)
-irm https://claude.ai/install.ps1 | iex
-
-# Or via WinGet
-winget install Anthropic.ClaudeCode
-
-# Or CMD
-curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
-
-Requires a [Claude subscription](https://claude.com/pricing) (Pro, Max, Teams, or Enterprise).
-
----
-
-### Gemini CLI (Antigravity)
-
-Official docs: https://geminicli.com/docs
-
-**macOS:**
-```bash
-# Homebrew (Recommended)
-brew install gemini-cli
-
-# Or via npm
-npm install -g @google/gemini-cli
-
-# Or run instantly without install
-npx @google/gemini-cli
-```
-
-**Windows / Linux:**
-```bash
-# Requires Node.js 20+
-npm install -g @google/gemini-cli
-
-# Or run instantly
-npx @google/gemini-cli
-```
-
-Free tier: 60 requests/min, 1,000 requests/day with Google account.
-
----
-
-### VSCode
-
-Official docs: https://code.visualstudio.com/docs/setup
-
-**macOS:**
-1. Download from https://code.visualstudio.com/download
-2. Drag to Applications folder
-3. Add to PATH: Cmd+Shift+P → "Shell Command: Install 'code' command"
-
-**Windows:**
-1. Download from https://code.visualstudio.com/download
-2. Run installer (User or System)
-3. Check "Add to PATH" during install
-
-**Linux:**
-```bash
-# Debian/Ubuntu
-sudo apt install code
-
-# Or via Snap
-sudo snap install code --classic
-```
-
----
-
-### Clawdbot Gateway (Multi-Agent Orchestrator)
-
-Clawdbot Gateway is the unified multi-agent orchestrator for Claude Code. It provides:
-- **Unified session** across VS Code, terminal, Telegram simultaneously
-- **Multi-agent orchestration** - spawn and coordinate sub-agents
-- **Inter-bot communication** - agents can message each other
-
-**macOS / Linux / Windows:**
-```bash
-# Install
-npm install -g clawdbot
-
-# Initial setup
-clawdbot setup
-
-# Configure Telegram (get token from @BotFather)
-clawdbot config set channels.telegram.botToken "YOUR_BOT_TOKEN"
-clawdbot config set channels.telegram.enabled true
-clawdbot config set gateway.mode local
-
-# Start gateway
-clawdbot gateway
-```
-
-See [clawdbot/README.md](clawdbot/README.md) for detailed setup including multi-agent orchestration and service installation.
-
-Requires Node.js 18+ and a Claude subscription.
-
----
-
-## Structure
+## Repository Structure
 
 ```
 ide-configs/
-├── claude/
-│   ├── CLAUDE.md              # Global Claude Code instructions
-│   ├── WORKING_PRINCIPLES.md  # Code quality principles
-│   ├── deslop.md              # 50+ clean code principles for analysis
-│   ├── settings.json          # Claude Code settings (macOS/Linux)
-│   └── settings-windows.json  # Claude Code settings (Windows)
-├── gemini/
-│   └── GEMINI.md              # Antigravity/Grok global instructions
-├── vscode/
-│   ├── global-settings.json   # VSCode global settings (macOS/Linux)
-│   └── global-settings-windows.json  # VSCode settings (Windows/.NET)
-├── clawd/
-│   └── config.json            # Clawd autonomous orchestration config
-├── clawdbot/
-│   ├── README.md              # Clawdbot Gateway setup & orchestration
-│   └── clawdbot-watchdog.ps1  # Windows auto-recovery script
-├── mac-mini/
-│   ├── README.md              # Mac Mini server setup guide
-│   └── sync-to-mini.sh        # Sync repos/state to Mac Mini
-├── scripts/
-│   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
-│   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
-├── project-templates/
-│   ├── TEMPLATE-CLAUDE.md           # Generic project instructions template
-│   ├── TEMPLATE-antigravityignore   # Antigravity ignore template
-│   ├── TEMPLATE-vscode-settings.json # VSCode project settings template
-│   ├── aphos-CLAUDE.md              # Game project example
-│   ├── ez-crm-CLAUDE.md             # Web app example
-│   ├── bmi-calculator-CLAUDE.md     # Mobile app example
-│   ├── bills-tracker-CLAUDE.md      # Mobile app example
-│   ├── screen-translator-CLAUDE.md  # Mobile app example
-│   └── linklounge-CLAUDE.md         # SaaS example
-├── install.sh                 # Installation script (macOS/Linux)
-├── install.ps1                # Installation script (Windows)
-└── README.md
+├── claude/                    # Claude Code CLI configs
+│   ├── CLAUDE.md             # Per-project template
+│   ├── CLAUDE-global.md      # Global ~/.claude/CLAUDE.md
+│   ├── WORKING_PRINCIPLES.md # Development principles
+│   ├── deslop.md             # Anti-slop writing guide
+│   ├── settings.json         # Claude Code hooks (ESLint, Prettier, etc.)
+│   └── settings-windows.json # Windows variant
+├── clawd/                    # Clawdbot workspace files
+│   ├── AGENTS.md             # Agent behavior rules
+│   ├── SOUL.md               # Personality & tone
+│   ├── USER.md               # Human profile
+│   ├── IDENTITY.md           # Bot identity
+│   ├── HEARTBEAT.md          # Periodic check tasks
+│   ├── BOOTSTRAP.md          # First-run onboarding
+│   ├── TOOLS.md              # Tool-specific notes
+│   ├── OPTIMIZATION_RULES.md # Token optimization
+│   ├── clawdbot.template.json # Gateway config template
+│   └── scripts/              # Auto-resume, shutdown scripts
+├── mcp/                      # MCP Server configs (all IDEs)
+│   ├── README.md             # MCP inventory & sync status
+│   ├── claude-code-mcps.json # Claude Code MCP template
+│   ├── cursor-mcps.json      # Cursor MCP template
+│   └── vscode-mcps.json      # VSCode MCP template
+├── vscode/                   # VSCode configs
+│   ├── global-settings.json  # User settings (macOS)
+│   ├── global-settings-windows.json
+│   ├── keybindings.json      # Custom keybindings
+│   └── extensions.txt        # Installed extensions list
+├── homebrew/                 # Homebrew package lists
+│   ├── Brewfile-macbook      # MacBook formulae & casks
+│   └── Brewfile-macmini      # Mac Mini formulae & casks
+├── git/                      # Git configs
+│   ├── gitconfig.template    # ~/.gitconfig template
+│   └── gitignore_global      # Global gitignore
+├── ssh/                      # SSH configs
+│   └── config.template       # SSH config for both machines
+├── mac-mini/                 # Mac Mini server setup
+│   ├── README.md             # Full setup guide & architecture
+│   ├── PERSISTENCE.md        # Bot persistence strategy
+│   ├── sync-to-mini.sh       # One-command config sync
+│   ├── launchagents/         # All 5 LaunchAgent plists
+│   │   ├── com.clawdbot.gateway.plist
+│   │   ├── com.clawdbot.aphos.plist
+│   │   ├── com.clawdbot.shitcoin-bot.plist
+│   │   ├── com.clawdbot.failover.plist
+│   │   └── com.clawdbot.node.plist
+│   └── scripts/              # Startup scripts
+│       ├── start-aphos.sh
+│       ├── start-shitcoin-bot.sh
+│       └── failover.sh
+├── gemini/                   # Gemini/Antigravity configs
+│   └── GEMINI.md
+├── project-templates/        # Per-project CLAUDE.md templates
+│   ├── TEMPLATE-CLAUDE.md
+│   ├── aphos-CLAUDE.md
+│   ├── bills-tracker-CLAUDE.md
+│   ├── bmi-calculator-CLAUDE.md
+│   ├── clawd-monitor-CLAUDE.md
+│   ├── ez-crm-CLAUDE.md
+│   ├── linklounge-CLAUDE.md
+│   ├── screen-translator-CLAUDE.md
+│   └── shitcoin-bot-CLAUDE.md
+├── scripts/                  # Utility scripts
+│   ├── cleanup-antigravity.sh
+│   └── cleanup-antigravity.ps1
+├── clawdbot/                 # Clawdbot setup docs
+│   ├── README.md
+│   └── clawdbot-watchdog.ps1
+├── install.sh                # macOS/Linux setup script
+└── install.ps1               # Windows setup script
 ```
 
-## Quick Install
+## Quick Setup
 
-### macOS / Linux
-
+### New Mac
 ```bash
-# Clone the repo
 git clone git@github.com:FelipeLVieira/ide-configs.git ~/repos/ide-configs
-
-# Run installer
-cd ~/repos/ide-configs && ./install.sh
+cd ~/repos/ide-configs
+./install.sh
 ```
 
-### Windows
-
-```powershell
-# Clone the repo
-git clone https://github.com/FelipeLVieira/ide-configs.git $env:USERPROFILE\repos\ide-configs
-
-# Run installer (PowerShell)
-cd $env:USERPROFILE\repos\ide-configs
-powershell -ExecutionPolicy Bypass -File install.ps1
-```
-
-## Manual Installation
-
-### macOS / Linux
-
-#### Claude Code
-```bash
-cp claude/CLAUDE.md ~/.claude/
-cp claude/WORKING_PRINCIPLES.md ~/.claude/
-cp claude/deslop.md ~/.claude/
-cp claude/settings.json ~/.claude/
-```
-
-#### Antigravity (Gemini/Grok)
-```bash
-mkdir -p ~/.gemini
-cp gemini/GEMINI.md ~/.gemini/
-```
-
-#### VSCode
-```bash
-cp vscode/global-settings.json ~/Library/Application\ Support/Code/User/settings.json
-```
-
-#### Clawd
-```bash
-npm install -g clawd
-mkdir -p ~/.clawd
-cp clawd/config.json ~/.clawd/
-```
-
-#### Clawdbot (for Telegram)
-```bash
-npm install -g clawdbot
-clawdbot setup
-# Then configure Telegram - see clawdbot/README.md
-```
-
-#### Scripts
-```bash
-mkdir -p ~/.claude/scripts
-cp scripts/cleanup-antigravity.sh ~/.claude/scripts/
-chmod +x ~/.claude/scripts/cleanup-antigravity.sh
-```
-
-### Windows
-
-#### Claude Code
-```powershell
-$ClaudeDir = "$env:USERPROFILE\.claude"
-New-Item -ItemType Directory -Force -Path $ClaudeDir | Out-Null
-Copy-Item claude\CLAUDE.md $ClaudeDir
-Copy-Item claude\WORKING_PRINCIPLES.md $ClaudeDir
-Copy-Item claude\deslop.md $ClaudeDir
-Copy-Item claude\settings-windows.json "$ClaudeDir\settings.json"
-```
-
-#### Antigravity (Gemini/Grok)
-```powershell
-$GeminiDir = "$env:USERPROFILE\.gemini"
-New-Item -ItemType Directory -Force -Path $GeminiDir | Out-Null
-Copy-Item gemini\GEMINI.md $GeminiDir
-```
-
-#### VSCode
-```powershell
-$VSCodeSettings = "$env:APPDATA\Code\User\settings.json"
-Copy-Item vscode\global-settings-windows.json $VSCodeSettings
-```
-
-#### Clawd
-```powershell
-npm install -g clawd
-$ClawdDir = "$env:USERPROFILE\.clawd"
-New-Item -ItemType Directory -Force -Path $ClawdDir | Out-Null
-Copy-Item clawd\config.json $ClawdDir
-```
-
-#### Clawdbot (for Telegram)
-```powershell
-npm install -g clawdbot
-clawdbot setup
-# Then configure Telegram - see clawdbot/README.md
-```
-
-#### Scripts
-```powershell
-$ScriptsDir = "$env:USERPROFILE\.claude\scripts"
-New-Item -ItemType Directory -Force -Path $ScriptsDir | Out-Null
-Copy-Item scripts\cleanup-antigravity.ps1 $ScriptsDir
-```
-
-## Features
-
-### Claude Code Instructions
-- Meta-cognitive protocol (personas, confidence, self-challenge)
-- Development preferences for web/mobile/game
-- Memory leak prevention guidelines
-- Deslop code quality analysis (50+ principles)
-- Clawd autonomous orchestration triggers
-
-### Antigravity Rules
-- Build & server management
-- Testing & verification
-- Code quality & review
-- Git workflow
-- Memory management
-- Deslop principles (synced with Claude)
-
-### Clawd Configuration
-Pre-configured projects:
-- **aphos** - Channel-based social RPG
-- **shitcoin-bot** - Polymarket trading bot
-- **ez-crm** - Legal case management
-- **bmi-calculator** - Health tracking app
-- **bills-tracker** - Subscription tracker
-- **screen-translator** - OCR translation app
-- **linklounge** - Link-in-bio platform
-
-### Cleanup Script
-Clears Antigravity cache when IDE is slow:
-
-**macOS / Linux:**
-```bash
-~/.claude/scripts/cleanup-antigravity.sh
-```
-
-**Windows (PowerShell):**
-```powershell
-& "$env:USERPROFILE\.claude\scripts\cleanup-antigravity.ps1"
-```
-
-## Using Clawd
-
-Ask Claude to run tasks autonomously:
-- "Run clawd to [task]"
-- "Use clawd for [task]"
-- "Run perpetually and keep improving"
-
-Commands:
-```bash
-clawd                          # Interactive mode
-clawd --non-interactive "task" # Single task
-clawd --perpetual "task"       # Continuous improvement
-```
-
-## Project Templates
-
-Templates for setting up new projects:
-
-### For a new project:
-```bash
-# Copy templates to your project
-cp project-templates/TEMPLATE-CLAUDE.md ~/repos/my-project/CLAUDE.md
-cp project-templates/TEMPLATE-antigravityignore ~/repos/my-project/.antigravityignore
-cp project-templates/TEMPLATE-vscode-settings.json ~/repos/my-project/.vscode/settings.json
-
-# Edit CLAUDE.md with your project specifics
-```
-
-### Example project configs:
-- `aphos-CLAUDE.md` - MMORPG game (Next.js + Colyseus + Capacitor)
-- `ez-crm-CLAUDE.md` - Legal case management (Next.js + Supabase)
-- `bmi-calculator-CLAUDE.md` - Health app (Expo + RevenueCat + AdMob)
-- `bills-tracker-CLAUDE.md` - Subscription tracker (Expo + SQLite + RevenueCat)
-- `screen-translator-CLAUDE.md` - OCR translation (React Native + ML Kit + RevenueCat)
-- `linklounge-CLAUDE.md` - Link-in-bio platform (Next.js + Stripe + Redis)
-- `shitcoin-bot-CLAUDE.md` - Polymarket trading bot (Python + Kelly Criterion)
-- `clawd-monitor-CLAUDE.md` - Bot monitoring dashboard (Next.js + SWR)
-
-## Syncing
-
-The CLAUDE.md and GEMINI.md files are kept in sync. When updating one, update the other:
-- Antigravity rules are identical in both
-- Deslop principles are in both
-- Clawd triggers are in both
-
-## Mac Mini Server
-
-A Mac Mini is configured as a dedicated server for running clawdbot agents 24/7.
-
-**Quick SSH:**
-```bash
-ssh felipemacmini@felipes-mac-mini.local
-```
-
-**Sync repos and state:**
+### Sync to Mac Mini
 ```bash
 ./mac-mini/sync-to-mini.sh
 ```
 
-**Start clawdbot on Mac Mini:**
+### Restore Homebrew packages
 ```bash
-ssh felipemacmini@felipes-mac-mini.local 'tmux new -d -s clawdbot "eval \"\$(/opt/homebrew/bin/brew shellenv)\" && clawdbot gateway start"'
+brew bundle --file=homebrew/Brewfile-macbook
+# or on Mac Mini:
+brew bundle --file=homebrew/Brewfile-macmini
 ```
 
-See [mac-mini/README.md](mac-mini/README.md) for full documentation.
+## Machines
 
-## License
+| Machine | Role | Status |
+|---------|------|--------|
+| MacBook Pro (M3 Max) | Primary development + Clawdbot gateway | Active |
+| Mac Mini (M4) | Always-on server + failover | Active |
 
-Personal configuration - use at your own discretion.
+## MCP Servers (synced across both machines)
+
+| Server | Supabase | Sequential Thinking | Vercel | Stripe | BrowserMCP | Playwright |
+|--------|----------|-------------------|--------|--------|------------|------------|
+| Claude Code | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cursor | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| VSCode | ✅ | ✅ | ✅ | ✅ | — | ✅ |

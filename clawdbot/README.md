@@ -899,6 +899,85 @@ Enable long-term memory:
 }
 ```
 
+## Cron Jobs (Persistent Automation)
+
+Cron jobs survive compaction, restarts, and session resets. Use them for recurring tasks.
+
+### Schedule Types
+
+| Type | Use For | Example |
+|------|---------|---------|
+| `at` | One-shot (reminder) | `{ "kind": "at", "atMs": 1769436000000 }` |
+| `every` | Fixed interval | `{ "kind": "every", "everyMs": 3600000 }` (1 hour) |
+| `cron` | Cron expression | `{ "kind": "cron", "expr": "0 9,15,21 * * *" }` |
+
+### Creating Cron Jobs (from agent)
+
+```
+cron action=add job={
+  "name": "My Job",
+  "schedule": { "kind": "every", "everyMs": 3600000 },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Task instructions here",
+    "deliver": true,
+    "channel": "last",
+    "to": "telegram:USER_ID"
+  }
+}
+```
+
+### Managing Cron Jobs
+
+```
+cron action=list              # List all jobs
+cron action=update jobId=ID patch={...}  # Update a job
+cron action=remove jobId=ID   # Delete a job
+cron action=run jobId=ID       # Run immediately
+```
+
+### Recommended Cron Setup
+
+| Job | Frequency | Purpose |
+|-----|-----------|---------|
+| Health Monitor | Every 30 min | Check all services are running |
+| App Store Monitor | Every 1 hour | Check iOS builds, resubmit if expired |
+| Project CI (per project) | Every 1 hour | Test, fix, commit, push |
+
+**Note:** On Claude Max, cron jobs are effectively free (flat subscription). Run as frequently as needed.
+
+### Cron vs Heartbeat
+
+| Use Cron When | Use Heartbeat When |
+|---------------|--------------------|
+| Exact timing matters | Multiple checks can batch |
+| Task needs isolation | Needs main session context |
+| One-shot reminders | Timing can drift slightly |
+| Different model/thinking level | Reduce API calls by combining |
+
+## Concurrency Settings
+
+Default concurrency is too low for multi-agent setups. Increase it:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  }
+}
+```
+
+**Symptoms of low concurrency:**
+- Sub-agents show `totalTokens: 0` (queued but never execute)
+- Subagent lane wait exceeded warnings in logs
+- Agents appear "stuck" or dead
+
 ## Security Notes
 
 - **Bot Token**: Keep your bot token secret
@@ -907,6 +986,43 @@ Enable long-term memory:
 - **Telegram Encryption**: Bot messages are not end-to-end encrypted
 - **Elevated Tools**: Only enable for trusted users via `allowFrom`
 - **allowFrom Lists**: Use to restrict access to specific Telegram user IDs
+
+### Gateway Security (CRITICAL)
+
+**923 Clawdbot gateways were found exposed on Shodan (Jan 2026) with zero auth.**
+
+An exposed gateway means: shell access, browser automation, API keys — full device control.
+
+**Always verify:**
+```bash
+# Check your config
+cat ~/.clawdbot/clawdbot.json | python3 -c "
+import json, sys
+c = json.load(sys.stdin)
+gw = c.get('gateway', {})
+print(f'bind: {gw.get(\"bind\")}')
+print(f'auth token: {\"SET\" if gw.get(\"auth\", {}).get(\"token\") else \"MISSING!\"}')"
+```
+
+**Required settings:**
+| Setting | Safe Value | Dangerous Value |
+|---------|-----------|-----------------|
+| `gateway.bind` | `loopback` or `lan` | `all` ⚠️ |
+| `gateway.auth.token` | Any string | Missing/empty ⚠️ |
+
+**Fix if exposed:**
+```json
+{
+  "gateway": {
+    "bind": "loopback",
+    "auth": {
+      "token": "your-secure-token-here"
+    }
+  }
+}
+```
+
+If you need remote access, use Cloudflare Tunnel — never expose port 18789 directly.
 
 ## Upgrading
 

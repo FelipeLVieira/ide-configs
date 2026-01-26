@@ -151,7 +151,7 @@ This prevents the chaos of 5 servers fighting over localhost:3000.
 
 ## 🤖 Use Grok to Save Credits!
 
-User is logged into X with Grok access. **All bots should use Grok when appropriate:**
+Felipe is logged into X with Grok access. **All bots should use Grok when appropriate:**
 
 **Use Grok for:**
 - Research tasks (market analysis, news, trends)
@@ -231,6 +231,18 @@ When testing app interfaces (iOS apps, Aphos game, web apps):
 2. Use `video-frames` skill to extract key frames
 3. Analyze the frames to verify UI renders correctly at all screen sizes
 4. Great for catching layout bugs, responsive issues, and visual regressions
+
+**🔄 Next.js Projects - Clean Before Testing:**
+Before testing any Next.js project, ALWAYS clean and rebuild:
+```bash
+rm -rf .next
+npm run dev  # or pnpm dev
+```
+This prevents SyntaxErrors and corrupted cache issues. Do this:
+- Before starting a testing session
+- After pulling new changes
+- When you see unexpected errors
+- After making significant code changes
 
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 

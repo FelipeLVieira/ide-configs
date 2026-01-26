@@ -1,9 +1,17 @@
 {
-  "_comment": "Clawdbot Gateway Config Template - Copy to ~/.clawdbot/clawdbot.json",
-  "_rateLimitNote": "maxConcurrent values are LOW to prevent HTTP 429 rate limit errors from Anthropic API",
+  "meta": {
+    "lastTouchedVersion": "2026.1.23-1",
+    "lastTouchedAt": "2026-01-25T11:23:02.621Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-01-25T09:50:56.939Z",
+    "lastRunVersion": "2026.1.23-1",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
   "agents": {
     "defaults": {
-      "workspace": "~/clawd",
+      "workspace": "/Users/felipevieira/clawd",
       "compaction": {
         "mode": "safeguard"
       },
@@ -15,6 +23,18 @@
     "list": [
       {
         "id": "main"
+      },
+      {
+        "id": "shitcoin-bot",
+        "name": "shitcoin-bot",
+        "workspace": "/Users/felipevieira/repos/shitcoin-bot",
+        "agentDir": "/Users/felipevieira/.clawdbot/agents/shitcoin-bot/agent"
+      },
+      {
+        "id": "aphos",
+        "name": "aphos",
+        "workspace": "/Users/felipevieira/repos/aphos",
+        "agentDir": "/Users/felipevieira/.clawdbot/agents/aphos/agent"
       }
     ]
   },
@@ -27,9 +47,8 @@
   },
   "channels": {
     "telegram": {
-      "_comment": "Get bot token from @BotFather on Telegram",
       "dmPolicy": "pairing",
-      "botToken": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+      "botToken": "YOUR_BOT_TOKEN_FROM_BOTFATHER",
       "groups": {
         "*": {
           "requireMention": true
@@ -42,7 +61,11 @@
     }
   },
   "gateway": {
-    "mode": "local"
+    "mode": "local",
+    "bind": "lan",
+    "auth": {
+      "token": "YOUR_GATEWAY_AUTH_TOKEN"
+    }
   },
   "plugins": {
     "entries": {
@@ -53,5 +76,10 @@
         "enabled": true
       }
     }
+  },
+  "_comment": "Clawdbot Gateway Config Template - Copy to ~/.clawdbot/clawdbot.json",
+  "_machines": {
+    "macbook": "Primary - Telegram enabled, all bots running",
+    "mac-mini": "Standby - Telegram disabled, all bots running, auto-failover"
   }
 }

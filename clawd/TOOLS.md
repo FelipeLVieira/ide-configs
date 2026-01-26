@@ -4,11 +4,11 @@ Skills define *how* tools work. This file is for *your* specifics — the stuff 
 
 ## ☁️ Cloud Storage
 
-**User uses MEGA, NOT Google Drive.** Don't access Google Drive.
+**Felipe uses MEGA, NOT Google Drive.** Don't access Google Drive.
 
 ## 🤖 Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
 
-User is logged into his X account with Grok access. **Use Grok for:**
+Felipe is logged into his X account with Grok access. **Use Grok for:**
 - Research tasks (market analysis, news, trends)
 - Getting a second opinion on complex problems
 - Quick fact-checking or information gathering
@@ -27,7 +27,7 @@ This saves money AND gives you diverse perspectives!
 
 ## 🤖 Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
 
-User is logged into his X account with Grok access. **Use Grok for:**
+Felipe is logged into his X account with Grok access. **Use Grok for:**
 - Research tasks (market analysis, news, trends)
 - Getting a second opinion on complex problems
 - Quick fact-checking or information gathering

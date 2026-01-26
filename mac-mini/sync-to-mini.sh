@@ -1,32 +1,34 @@
 #!/bin/bash
-# Sync repos and clawdbot state to Mac Mini
-
+# Sync all IDE configs from MacBook to Mac Mini
 set -e
 
-MAC_MINI="felipemacmini@felipes-mac-mini.local"
+MINI="felipemacmini@felipes-mac-mini.local"
 
-echo "=== Syncing repos to Mac Mini ==="
-rsync -avz --progress \
-  --exclude 'node_modules' \
-  --exclude '.next' \
-  --exclude 'dist' \
-  --exclude '.git/objects/pack/*.pack' \
-  ~/repos/ $MAC_MINI:~/repos/
+echo "🔄 Syncing IDE configs to Mac Mini..."
 
-echo ""
-echo "=== Syncing clawdbot agents state ==="
-rsync -avz ~/.clawdbot/agents/ $MAC_MINI:~/.clawdbot/agents/
+# Claude Code settings (hooks)
+echo "  → Claude Code settings.json"
+scp ~/.claude/settings.json $MINI:~/.claude/settings.json
 
-echo ""
-echo "=== Syncing clawdbot subagents state ==="
-rsync -avz ~/.clawdbot/subagents/ $MAC_MINI:~/.clawdbot/subagents/
+# Claude Code MCPs (already in ~/.claude.json, sync via python)
+echo "  → Claude Code MCPs (manual - edit ~/.claude.json)"
 
-echo ""
-echo "=== Syncing clawdbot config ==="
-scp ~/.clawdbot/clawdbot.json $MAC_MINI:~/.clawdbot/
+# Cursor MCPs
+echo "  → Cursor mcp.json"
+ssh $MINI 'mkdir -p ~/.cursor'
+scp ~/.cursor/mcp.json $MINI:~/.cursor/mcp.json
 
+# Git config
+echo "  → Git config"
+scp ~/.gitconfig $MINI:~/.gitconfig 2>/dev/null || true
+scp ~/.gitignore_global $MINI:~/.gitignore_global 2>/dev/null || true
+
+# SSH config
+echo "  → SSH config"
+scp ~/.ssh/config $MINI:~/.ssh/config 2>/dev/null || true
+
+echo "✅ Sync complete!"
 echo ""
-echo "=== Sync complete! ==="
-echo ""
-echo "To start clawdbot on Mac Mini:"
-echo "  ssh $MAC_MINI 'tmux new -d -s clawdbot \"eval \\\"\\\$(/opt/homebrew/bin/brew shellenv)\\\" && clawdbot gateway start\"'"
+echo "Manual steps needed:"
+echo "  - VSCode: Open VSCode on Mac Mini, MCPs are in User settings"
+echo "  - Vercel/Stripe OAuth: May need browser auth on Mac Mini"
