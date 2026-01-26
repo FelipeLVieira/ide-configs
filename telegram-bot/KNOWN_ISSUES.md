@@ -134,7 +134,7 @@ def parse_allowed_tools(cls, v: Any) -> Optional[List[str]]:
 
 ---
 
-## Issue 6: Shell Commands Blocked
+## Issue 6: Shell Commands Blocked (Security Validator)
 
 **Symptoms:**
 - Claude can't use shell operators like `>`, `|`, `&`, `;`
@@ -153,6 +153,47 @@ And modify `src/security/validators.py`:
 1. Add `disable_command_validation` parameter to `__init__`
 2. Create `PATH_ONLY_PATTERNS` for minimal validation
 3. Check `disable_command_validation` in validation methods
+
+---
+
+## Issue 7: Shell Commands Still Blocked (Tool Monitor)
+
+**Symptoms:**
+- Even with `DISABLE_COMMAND_VALIDATION=true`, commands still fail
+- Error: "Dangerous command pattern detected: &" (or `>`, `|`, `;`)
+- Logs show `src.claude.monitor` warnings
+
+**Cause:**
+The `ToolMonitor` class in `src/claude/monitor.py` has its own hardcoded dangerous pattern list that doesn't check the `disable_command_validation` setting.
+
+**Fix:**
+Modify `src/claude/monitor.py` in the `validate_tool_call` method. Replace the shell validation section:
+
+```python
+# Validate shell commands (skip if command validation is disabled)
+if tool_name in ["bash", "shell", "Bash"]:
+    command = tool_input.get("command", "")
+
+    # Check if command validation is disabled
+    disable_validation = getattr(self.config, "disable_command_validation", False)
+
+    if disable_validation:
+        logger.debug(
+            "Command validation disabled, skipping dangerous pattern check",
+            tool_name=tool_name,
+            command=command[:100],
+        )
+    else:
+        # Check for dangerous commands
+        dangerous_patterns = [
+            "rm -rf", "sudo", "chmod 777", "curl", "wget",
+            "nc ", "netcat", ">", ">>", "|", "&", ";", "$(", "`",
+        ]
+
+        for pattern in dangerous_patterns:
+            if pattern in command.lower():
+                # ... existing violation handling
+```
 
 ---
 
