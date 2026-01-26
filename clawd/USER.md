@@ -16,7 +16,7 @@
 
 - **Aphos** - MMORPG game (Real Earth + fantasy setting)
 - **LinkLounge** - Linktree competitor
-- **iOS Apps** - bmi-calculator, bills-tracker, screen-translator
+- **iOS Apps** - health-app, finance-app, translator-app
 - **clawd-monitor** - Bot monitoring dashboard
 
 ## Context

@@ -94,7 +94,7 @@ All deliver reports to Felipe on Telegram. Claude Max = unlimited tokens = no co
 
 | Property | Value |
 |----------|-------|
-| SSH | `ssh felipemacmini@felipes-mac-mini.local` |
+| SSH | `ssh username@hostname.local` |
 | All repos | Already cloned in `~/repos/` |
 | Services | Aphos, Shitcoin Bot, Clawdbot Gateway, Failover Watchdog |
 | Telegram | Disabled (standby — auto-enables if MacBook goes down) |

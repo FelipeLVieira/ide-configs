@@ -12,12 +12,12 @@ Documentation for migrating to new Mac Mini.
 │  Main Session (telegram:main)                               │
 │  └── Orchestrator Bot (monitors swarm)                      │
 │  └── Sub-Agents:                                            │
-│      ├── aphos-rebuild (game dev)                           │
-│      ├── ez-crm-tester (CRM testing)                        │
-│      ├── bmi-calculator (iOS app)                           │
-│      ├── bills-tracker-v2 (iOS app)                         │
-│      ├── screen-translator-v2 (iOS app)                     │
-│      ├── shitcoin-bot (crypto monitoring)                   │
+│      ├── game-project-rebuild (game dev)                           │
+│      ├── crm-app-tester (CRM testing)                        │
+│      ├── health-app (iOS app)                           │
+│      ├── finance-app-v2 (iOS app)                         │
+│      ├── translator-app-v2 (iOS app)                     │
+│      ├── trading-bot (trading monitoring)                   │
 │      └── orchestration-research (research tasks)            │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -38,13 +38,13 @@ Documentation for migrating to new Mac Mini.
     └── ARCHITECTURE.md           # This file
 
 ~/repos/                          # Project repositories
-├── aphos/                        # Game project
-├── ez-crm/                       # CRM project
+├── game-project/                        # Social RPG game
+├── crm-app/                       # CRM project
 ├── clawd-monitor/                # Dashboard
-├── shitcoin-bot/                 # Crypto bot
-├── bmi-calculator/               # iOS app
+├── trading-bot/                 # Trading bot
+├── health-app/               # iOS app
 ├── bill-subscriptions-organizer-tracker/  # iOS app
-├── simple-screen-translator/     # iOS app
+├── simple-translator-app/     # iOS app
 └── ide-configs/                  # Shared configs
 
 ~/.clawdbot/                      # Clawdbot state
@@ -64,12 +64,12 @@ Documentation for migrating to new Mac Mini.
 |------|---------|---------|
 | 2567 | Game Server (prod) | Aphos |
 | 2568 | Game Server (dev) | Aphos |
-| 3000 | Web App | ez-crm |
+| 3000 | Web App | crm-app |
 | 4000 | Web Client | Aphos |
-| 5000-5099 | Reserved | shitcoin-bot |
-| 8081 | Expo Web | bmi-calculator |
-| 8082 | Expo Web | bills-tracker |
-| 8083 | Expo Web | screen-translator |
+| 5000-5099 | Reserved | trading-bot |
+| 8081 | Expo Web | health-app |
+| 8082 | Expo Web | finance-app |
+| 8083 | Expo Web | translator-app |
 | 9000 | Dashboard | clawd-monitor |
 | 18789 | Internal | Clawdbot API |
 
@@ -83,7 +83,7 @@ clawdbot gateway start
 
 ### 2. Aphos Game Servers
 ```bash
-cd ~/repos/aphos
+cd ~/repos/game-project
 
 # Production (port 2567)
 pnpm dev:server:prod
@@ -103,13 +103,13 @@ PORT=9000 pnpm dev
 
 ### 4. Other Services (as needed)
 ```bash
-# ez-crm
-cd ~/repos/ez-crm && pnpm dev
+# crm-app
+cd ~/repos/crm-app && pnpm dev
 
 # iOS apps (Expo)
-cd ~/repos/bmi-calculator && npx expo start --web --port 8081
+cd ~/repos/health-app && npx expo start --web --port 8081
 cd ~/repos/bill-subscriptions-organizer-tracker && npx expo start --web --port 8082
-cd ~/repos/simple-screen-translator && npx expo start --web --port 8083
+cd ~/repos/simple-translator-app && npx expo start --web --port 8083
 ```
 
 ## Migration Checklist
@@ -140,13 +140,13 @@ cd ~/repos/simple-screen-translator && npx expo start --web --port 8083
 2. **Clone Repositories:**
    ```bash
    mkdir -p ~/repos && cd ~/repos
-   git clone git@github.com:UserLVieira/aphos.git
-   git clone git@github.com:UserLVieira/ez-crm.git
+   git clone git@github.com:UserLVieira/game-project.git
+   git clone git@github.com:UserLVieira/crm-app.git
    git clone git@github.com:UserLVieira/clawd-monitor.git
-   git clone git@github.com:UserLVieira/shitcoin-bot.git
-   git clone git@github.com:UserLVieira/bmi-calculator.git
+   git clone git@github.com:UserLVieira/trading-bot.git
+   git clone git@github.com:UserLVieira/health-app.git
    git clone git@github.com:UserLVieira/bill-subscriptions-organizer-tracker.git
-   git clone git@github.com:UserLVieira/simple-screen-translator.git
+   git clone git@github.com:UserLVieira/simple-translator-app.git
    git clone git@github.com:UserLVieira/ide-configs.git
    ```
 
@@ -166,8 +166,8 @@ cd ~/repos/simple-screen-translator && npx expo start --web --port 8083
 
 5. **Install Dependencies:**
    ```bash
-   cd ~/repos/aphos && pnpm install
-   cd ~/repos/ez-crm && pnpm install
+   cd ~/repos/game-project && pnpm install
+   cd ~/repos/crm-app && pnpm install
    cd ~/repos/clawd-monitor && pnpm install
    # ... etc
    ```
@@ -183,8 +183,8 @@ cd ~/repos/simple-screen-translator && npx expo start --web --port 8083
    clawdbot gateway start
    
    # Start Aphos servers
-   cd ~/repos/aphos && pnpm dev:server:prod &
-   cd ~/repos/aphos && pnpm dev:server:dev &
+   cd ~/repos/game-project && pnpm dev:server:prod &
+   cd ~/repos/game-project && pnpm dev:server:dev &
    
    # Start dashboard
    cd ~/repos/clawd-monitor && PORT=9000 pnpm dev &
@@ -219,8 +219,8 @@ BRAVE_API_KEY=
 
 Current tmux sessions to recreate:
 ```bash
-tmux new-session -d -s shitcoin-bot -c ~/repos/shitcoin-bot
-tmux new-session -d -s aphos-bot -c ~/repos/aphos
+tmux new-session -d -s trading-bot -c ~/repos/trading-bot
+tmux new-session -d -s game-project-bot -c ~/repos/game-project
 tmux new-session -d -s monitor-bot -c ~/repos/clawd-monitor
 ```
 

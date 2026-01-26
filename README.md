@@ -48,26 +48,26 @@ ide-configs/
 │   ├── sync-to-mini.sh       # One-command config sync
 │   ├── launchagents/         # All 5 LaunchAgent plists
 │   │   ├── com.clawdbot.gateway.plist
-│   │   ├── com.clawdbot.aphos.plist
-│   │   ├── com.clawdbot.shitcoin-bot.plist
+│   │   ├── com.clawdbot.game-project.plist
+│   │   ├── com.clawdbot.trading-bot.plist
 │   │   ├── com.clawdbot.failover.plist
 │   │   └── com.clawdbot.node.plist
 │   └── scripts/              # Startup scripts
-│       ├── start-aphos.sh
-│       ├── start-shitcoin-bot.sh
+│       ├── start-game-project.sh
+│       ├── start-trading-bot.sh
 │       └── failover.sh
 ├── gemini/                   # Gemini/Antigravity configs
 │   └── GEMINI.md
 ├── project-templates/        # Per-project CLAUDE.md templates
 │   ├── TEMPLATE-CLAUDE.md
-│   ├── aphos-CLAUDE.md
-│   ├── bills-tracker-CLAUDE.md
-│   ├── bmi-calculator-CLAUDE.md
+│   ├── game-project-CLAUDE.md
+│   ├── finance-app-CLAUDE.md
+│   ├── health-app-CLAUDE.md
 │   ├── clawd-monitor-CLAUDE.md
-│   ├── ez-crm-CLAUDE.md
-│   ├── linklounge-CLAUDE.md
-│   ├── screen-translator-CLAUDE.md
-│   └── shitcoin-bot-CLAUDE.md
+│   ├── crm-app-CLAUDE.md
+│   ├── links-app-CLAUDE.md
+│   ├── translator-app-CLAUDE.md
+│   └── trading-bot-CLAUDE.md
 ├── scripts/                  # Utility scripts
 │   ├── cleanup-antigravity.sh
 │   └── cleanup-antigravity.ps1

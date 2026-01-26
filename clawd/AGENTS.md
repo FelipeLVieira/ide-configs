@@ -128,12 +128,12 @@ lsof -i :3000
 | Range | Project | Notes |
 |-------|---------|-------|
 | 2567-2599 | Aphos game servers | 2567=prod, 2568=dev |
-| 3000-3099 | ez-crm | 3000=default |
+| 3000-3099 | crm-app | 3000=default |
 | 4000-4099 | Aphos web | 4000=default |
-| 5000-5099 | shitcoin-bot | If needs web server |
-| 8081 | bmi-calculator | Expo web |
-| 8082 | bills-tracker | Expo web |
-| 8083 | screen-translator | Expo web |
+| 5000-5099 | trading-bot | If needs web server |
+| 8081 | health-app | Expo web |
+| 8082 | finance-app | Expo web |
+| 8083 | translator-app | Expo web |
 | 9000-9099 | clawd-monitor | 9009=default |
 
 **Before starting a server, ALWAYS check your assigned range!**

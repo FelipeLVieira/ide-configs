@@ -13,6 +13,6 @@ Host macbook
     IdentityFile ~/.ssh/id_ed25519
 
 Host mac-mini
-    HostName felipes-mac-mini.local
-    User felipemacmini
+    HostName hostname.local
+    User username
     IdentityFile ~/.ssh/id_ed25519

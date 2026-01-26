@@ -17,50 +17,50 @@
     "retryDelayMs": 5000
   },
   "projects": {
-    "aphos": {
-      "path": "~/repos/aphos",
+    "game-project": {
+      "path": "~/repos/game-project",
       "description": "Channel-based social auto-battle RPG game",
       "techStack": ["next.js", "typescript", "supabase", "react-three-fiber", "capacitor", "zustand"],
       "testCommand": "pnpm test",
       "buildCommand": "pnpm build"
     },
-    "shitcoin-bot": {
-      "path": "~/repos/shitcoin-bot",
+    "trading-bot": {
+      "path": "~/repos/trading-bot",
       "description": "Polymarket algorithmic trading bot with multiple strategies",
       "techStack": ["python", "pydantic", "polymarket", "websocket", "sqlite"],
       "testCommand": "pytest tests/ -v",
       "buildCommand": "python -m build"
     },
-    "ez-crm": {
-      "path": "~/repos/ez-crm",
+    "crm-app": {
+      "path": "~/repos/crm-app",
       "description": "Legal case management system for law firms",
       "techStack": ["next.js", "typescript", "supabase", "tailwind", "radix-ui", "zod"],
       "testCommand": "npm run test:all",
       "buildCommand": "npm run build"
     },
-    "bmi-calculator": {
-      "path": "~/repos/bmi-calculator",
+    "health-app": {
+      "path": "~/repos/health-app",
       "description": "Health tracking app with BMI and nutrition logging",
       "techStack": ["expo", "react-native", "typescript", "zustand", "revenucat", "admob"],
       "testCommand": "npm test",
       "buildCommand": "expo build"
     },
-    "bills-tracker": {
+    "finance-app": {
       "path": "~/repos/bill-subscriptions-organizer-tracker",
       "description": "Offline-first bill and subscription tracker",
       "techStack": ["expo", "react-native", "typescript", "zustand", "drizzle", "sqlite", "revenucat"],
       "testCommand": "npm test",
       "buildCommand": "expo build"
     },
-    "screen-translator": {
-      "path": "~/repos/simple-screen-translator",
+    "translator-app": {
+      "path": "~/repos/simple-translator-app",
       "description": "OCR and translation app using ML Kit",
       "techStack": ["react-native", "typescript", "zustand", "ml-kit", "revenucat", "admob"],
       "testCommand": "npm test",
       "buildCommand": "npx react-native build-android"
     },
-    "linklounge": {
-      "path": "~/repos/linklounge",
+    "links-app": {
+      "path": "~/repos/links-app",
       "description": "Customizable link-in-bio platform for creators",
       "techStack": ["next.js", "typescript", "supabase", "stripe", "tailwind", "radix-ui", "redis"],
       "testCommand": "npm test",
