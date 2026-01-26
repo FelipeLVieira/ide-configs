@@ -4,21 +4,25 @@
 
 Bots run 24/7 as persistent tmux sessions. Each bot is a **SPECIALIST** focused on ONE project only.
 
-## Specialist Bots
+## Specialist Bots (7 Total)
 
 | Bot | Project | Specialization |
 |-----|---------|----------------|
 | **ez-crm** | ~/repos/ez-crm | Next.js CRM, Supabase, Legal/Law |
 | **linklounge** | ~/repos/linklounge | Link-in-bio platform |
-| **aphos** | ~/repos/aphos | MMORPG, Colyseus, Phaser.js |
-| **ios-appstore** | ~/repos/bmi-calculator + 2 more | iOS apps, LOCAL builds only |
+| **aphos** | ~/repos/aphos | **Next.js + Three.js**, 2.5D MMORPG |
+| **ios-bmi** | ~/repos/bmi-calculator | BMI Calculator iOS app |
+| **ios-bills** | ~/repos/bill-subscriptions-organizer-tracker | Bills Tracker iOS app |
+| **ios-translator** | ~/repos/simple-screen-translator | Screen Translator iOS app |
 | **clawd-monitor** | ~/repos/clawd-monitor | Bot monitoring dashboard |
 
-### Key Rule: SPECIALIZATION
-Each bot works ONLY on its assigned project. They do not touch other repos. This ensures:
-- Deep expertise in their domain
-- No conflicts between bots
-- Focused, high-quality improvements
+### Key Rules
+
+1. **SPECIALIZATION** - Each bot works ONLY on its assigned project
+2. **Aphos Tech Stack**: Next.js + Three.js (NOT Colyseus/Phaser!)
+   - 2.5D game (isometric/top-down)
+   - 3D only for skill effects
+3. **iOS Builds**: LOCAL ONLY (xcodebuild), NEVER eas build
 
 ## Architecture
 
@@ -30,8 +34,10 @@ Each bot works ONLY on its assigned project. They do not touch other repos. This
 │  └── Specialist Bot Sessions (tmux):                        │
 │      ├── bot-ez-crm          → Next.js/Supabase expert      │
 │      ├── bot-linklounge      → Link-in-bio expert           │
-│      ├── bot-aphos           → Game dev expert              │
-│      ├── bot-ios-appstore    → iOS/Xcode expert             │
+│      ├── bot-aphos           → Next.js/Three.js 2.5D expert │
+│      ├── bot-ios-bmi         → BMI Calculator expert        │
+│      ├── bot-ios-bills       → Bills Tracker expert         │
+│      ├── bot-ios-translator  → Screen Translator expert     │
 │      ├── bot-clawd-monitor   → Dashboard expert             │
 │      └── run_bots.py         → Crypto trading (Python)      │
 │                                                             │
@@ -46,22 +52,30 @@ Each bot works ONLY on its assigned project. They do not touch other repos. This
 # Check all bots
 ~/clawd/scripts/manage-bots.sh status
 
-# Start all bots
+# Start/Stop/Restart
 ~/clawd/scripts/manage-bots.sh start
-
-# Stop all bots
 ~/clawd/scripts/manage-bots.sh stop
-
-# Restart crashed bots (health check)
-~/clawd/scripts/manage-bots.sh health
-
-# Restart all bots
 ~/clawd/scripts/manage-bots.sh restart
 
+# Health check (restart crashed bots)
+~/clawd/scripts/manage-bots.sh health
+
 # View specific bot logs
-tmux attach -t bot-ez-crm
+tmux attach -t bot-aphos
 # Detach: Ctrl+B, then D
 ```
+
+## Aphos Game - Tech Stack
+
+**DO NOT use Colyseus or Phaser** - those are deprecated!
+
+| Component | Technology |
+|-----------|------------|
+| Framework | Next.js |
+| Rendering | Three.js |
+| Style | 2.5D (isometric/top-down) |
+| 3D Effects | Skill effects only (spells, particles) |
+| Research | Use Grok (x.com/i/grok) for Three.js help |
 
 ## Critical Rules (All Bots)
 
@@ -69,31 +83,4 @@ tmux attach -t bot-ez-crm
 2. **MEGA not Google Drive** - Never access Google Drive
 3. **iOS builds: LOCAL ONLY** - xcodebuild, NEVER eas build
 4. **Browser lock** - `acquire_browser_lock` before browser use
-5. **Save state** - ~/clawd/memory/bot-states/<name>.json
-6. **Use Grok** - x.com/i/grok for research (saves credits)
-
-## Adding a New Specialist Bot
-
-1. Add to BOTS array in `manage-bots.sh`:
-   ```bash
-   "new-bot|/path/to/workspace"
-   ```
-
-2. Add specialized prompt in `run-persistent-bot.sh`:
-   ```bash
-   new-bot)
-       PROMPT="You are the **NewBot Specialist**.
-       YOUR ONLY PROJECT: ~/repos/new-project
-       Your expertise: [specific skills]
-       Your cycle: [specific workflow]"
-       ;;
-   ```
-
-3. Start: `~/clawd/scripts/manage-bots.sh start`
-
-## Files
-
-- `~/clawd/scripts/manage-bots.sh` - Bot manager
-- `~/clawd/scripts/run-persistent-bot.sh` - Bot runner with specialized prompts
-- `~/clawd/scripts/startup-bots.sh` - Auto-start on reboot
-- `~/clawd/scripts/browser-lock.sh` - Browser lock system
+5. **Use Grok** - x.com/i/grok for research (saves credits)
