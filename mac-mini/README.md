@@ -20,12 +20,69 @@ ssh felipemacmini@felipes-mac-mini.local
 
 ## Architecture
 
-| Machine | Role | Telegram |
-|---------|------|----------|
-| **MacBook** | Controller (gateway + Telegram) | Enabled |
-| **Mac Mini** | Worker (task execution) | Disabled |
+| Machine | Role | Telegram | When Active |
+|---------|------|----------|-------------|
+| **MacBook** | Controller (gateway + Telegram) | Enabled | Default |
+| **Mac Mini** | Worker (task execution) | Disabled | Default |
+| **Mac Mini** | Failover Controller | Enabled | When MacBook offline |
 
+### Normal Mode
 The MacBook handles all Telegram communication (screenshots, interactive control). Mac Mini executes tasks via SSH from MacBook.
+
+### Failover Mode
+When MacBook is offline (sleeping, traveling, crashed), Mac Mini can take over Telegram:
+
+1. **Manual Failover** - Enable Telegram on Mac Mini:
+   ```bash
+   ssh felipemacmini@felipes-mac-mini.local
+   # Edit ~/.clawdbot/clawdbot.json: set plugins.entries.telegram.enabled = true
+   eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart
+   ```
+
+2. **Manual Failback** - When MacBook returns:
+   ```bash
+   ssh felipemacmini@felipes-mac-mini.local
+   # Edit ~/.clawdbot/clawdbot.json: set plugins.entries.telegram.enabled = false
+   eval "$(/opt/homebrew/bin/brew shellenv)" && clawdbot gateway restart
+   ```
+
+**Important**: Only ONE machine should have Telegram enabled at a time to avoid polling conflicts.
+
+## Connecting Clawdbot to Mac Mini
+
+When using clawdbot on MacBook (via Telegram or terminal), instruct it to run tasks on Mac Mini using SSH:
+
+```
+Run this command on Mac Mini: cd ~/repos/aphos && pnpm test
+```
+
+Clawdbot will execute:
+```bash
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
+```
+
+### SSH Connection Details
+| Property | Value |
+|----------|-------|
+| Host | `felipes-mac-mini.local` |
+| User | `felipemacmini` |
+| Auth | SSH key (no password) |
+| PATH | Requires `eval "$(/opt/homebrew/bin/brew shellenv)"` |
+
+### Example Commands for Clawdbot
+```bash
+# Run tests
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/aphos && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm test'
+
+# Run build
+ssh felipemacmini@felipes-mac-mini.local 'cd ~/repos/shitcoin-bot && eval "$(/opt/homebrew/bin/brew shellenv)" && pnpm build'
+
+# Start a dev server (in tmux for persistence)
+ssh felipemacmini@felipes-mac-mini.local 'tmux new -d -s aphos-dev "cd ~/repos/aphos && eval \"\$(/opt/homebrew/bin/brew shellenv)\" && pnpm dev"'
+
+# Check running processes
+ssh felipemacmini@felipes-mac-mini.local 'ps aux | grep -E "node|pnpm"'
+```
 
 ## Installed Tools
 
@@ -171,20 +228,50 @@ When using clawdbot on MacBook, ask it to SSH to Mac Mini for task execution.
 
 ## Syncing from MacBook
 
-### Sync Repos
+### What Needs to be Synced
+
+| Data | Location | Sync Frequency | Purpose |
+|------|----------|----------------|---------|
+| Repos | `~/repos/` | Before major tasks | Source code |
+| Clawdbot agents | `~/.clawdbot/agents/` | Periodically | Conversation history |
+| Clawdbot subagents | `~/.clawdbot/subagents/` | Periodically | Subagent data |
+| Clawd workspace | `~/clawd/` | Daily | Memory, identity, tools |
+| Claude config | `~/.claude/` | On change | Global instructions |
+| Gemini config | `~/.gemini/` | On change | Antigravity instructions |
+
+### Quick Sync All (Use sync-to-mini.sh)
+```bash
+cd ~/repos/ide-configs && ./mac-mini/sync-to-mini.sh
+```
+
+### Manual Sync Commands
+
+#### Sync Repos
 ```bash
 rsync -avz --exclude 'node_modules' --exclude '.next' --exclude 'dist' ~/repos/ felipemacmini@felipes-mac-mini.local:~/repos/
 ```
 
-### Sync Clawdbot State
+#### Sync Clawdbot State
 ```bash
 rsync -avz ~/.clawdbot/agents/ felipemacmini@felipes-mac-mini.local:~/.clawdbot/agents/
 rsync -avz ~/.clawdbot/subagents/ felipemacmini@felipes-mac-mini.local:~/.clawdbot/subagents/
 ```
 
-### Sync Config
+#### Sync Clawd Workspace (Memory & Identity)
 ```bash
-scp ~/.clawdbot/clawdbot.json felipemacmini@felipes-mac-mini.local:~/.clawdbot/
+rsync -avz ~/clawd/ felipemacmini@felipes-mac-mini.local:~/clawd/
+```
+
+#### Sync Claude & Gemini Configs
+```bash
+rsync -avz ~/.claude/ felipemacmini@felipes-mac-mini.local:~/.claude/
+rsync -avz ~/.gemini/ felipemacmini@felipes-mac-mini.local:~/.gemini/
+```
+
+#### Sync Clawdbot Config (Careful - different Telegram settings!)
+```bash
+# Don't blindly copy - Mac Mini has Telegram disabled
+# Instead, manually update specific settings if needed
 ```
 
 ## Troubleshooting
