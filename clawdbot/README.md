@@ -887,21 +887,38 @@ Move large files out of workspace or use a minimal workspace for bot operations.
 
 **Automated Session Cleanup:**
 
-Set up weekly cron job to prevent session accumulation:
+Set up weekly cron job to prevent session accumulation (including orphaned files and deleted backups):
 ```bash
-# Create cleanup script
+# Create comprehensive cleanup script
 cat > /tmp/clear-clawdbot-sessions.sh << 'EOF'
 #!/bin/bash
-cd ~/.clawdbot/agents/main/sessions
-cp sessions.json sessions.backup-$(date +%s).json
-echo "{}" > sessions.json
-find ~/.clawdbot/agents/main/sessions -name "sessions.backup-*" -mtime +7 -delete
+SESSION_DIR=~/.clawdbot/agents/main/sessions
+
+# Backup current sessions
+cp "$SESSION_DIR/sessions.json" "$SESSION_DIR/sessions.backup-$(date +%s).json"
+
+# Clear sessions index
+echo "{}" > "$SESSION_DIR/sessions.json"
+
+# Remove deleted session backups (can accumulate to 100MB+)
+rm -f "$SESSION_DIR"/*.jsonl.deleted.* "$SESSION_DIR"/*.jsonl.lock
+
+# Remove large orphaned session files (>5MB, typically from screenshots)
+find "$SESSION_DIR" -name "*.jsonl" -not -name "agent:main:main.jsonl" -size +5M -delete
+
+# Remove old orphaned session files (>7 days)
+find "$SESSION_DIR" -name "*.jsonl" -not -name "agent:main:main.jsonl" -mtime +7 -delete
+
+# Clean up old backups (>30 days)
+find "$SESSION_DIR" -name "sessions.backup-*" -mtime +30 -delete
+
+echo "$(date): Cleanup complete. Sessions dir size: $(du -sh "$SESSION_DIR" | cut -f1)"
 EOF
 
 chmod +x /tmp/clear-clawdbot-sessions.sh
 
 # Add to system crontab (runs every Sunday at midnight)
-(crontab -l 2>/dev/null; echo "0 0 * * 0 /tmp/clear-clawdbot-sessions.sh > /tmp/clear-sessions.log 2>&1") | crontab -
+(crontab -l 2>/dev/null | grep -v clear-clawdbot-sessions; echo "0 0 * * 0 /tmp/clear-clawdbot-sessions.sh > /tmp/clear-sessions.log 2>&1") | crontab -
 ```
 
 **Verify compaction mode:**
@@ -946,6 +963,72 @@ clawdbot status | grep "Agents"
 - Renamed projects in config (old names still in `agents.list`)
 - Missing workspace directories for agents
 - Deleted IDENTITY.md or other required workspace files
+
+**Solution 7: Clean up orphaned session files** (CRITICAL FOR SCREENSHOTS)
+
+If you send screenshots or images to the Telegram bot, session files can grow to **50MB+** and cause overflow even with safeguard mode:
+
+```bash
+# Check sessions directory size
+du -sh ~/.clawdbot/agents/main/sessions/
+ls -lh ~/.clawdbot/agents/main/sessions/*.jsonl | grep -v deleted
+
+# If you see large files (>5MB), clean them up
+cd ~/.clawdbot/agents/main/sessions
+rm -f *.jsonl.deleted.* *.jsonl.lock  # Remove deleted backups
+find . -name "*.jsonl" -not -name "agent:main:main.jsonl" -size +5M -delete  # Remove large orphaned files
+echo "{}" > sessions.json  # Clear sessions index
+```
+
+**Why this happens:**
+- Images/screenshots consume massive tokens when processed by vision models
+- Orphaned `.jsonl` files remain even after `sessions.json` is cleared
+- Deleted session backups (`.jsonl.deleted.*`) accumulate over time (can reach 100MB+)
+- Bot loads these old sessions when processing new messages, causing overflow
+
+**Prevention - Update cleanup script:**
+
+```bash
+# Enhanced cleanup script with orphaned file removal
+cat > /tmp/clear-clawdbot-sessions.sh << 'EOF'
+#!/bin/bash
+SESSION_DIR=~/.clawdbot/agents/main/sessions
+
+# Backup current sessions
+cp "$SESSION_DIR/sessions.json" "$SESSION_DIR/sessions.backup-$(date +%s).json"
+
+# Clear sessions index
+echo "{}" > "$SESSION_DIR/sessions.json"
+
+# Remove deleted session backups
+rm -f "$SESSION_DIR"/*.jsonl.deleted.* "$SESSION_DIR"/*.jsonl.lock
+
+# Remove large orphaned session files (>5MB)
+find "$SESSION_DIR" -name "*.jsonl" -not -name "agent:main:main.jsonl" -size +5M -delete
+
+# Remove old orphaned session files (>7 days)
+find "$SESSION_DIR" -name "*.jsonl" -not -name "agent:main:main.jsonl" -mtime +7 -delete
+
+# Clean up old backups (>30 days)
+find "$SESSION_DIR" -name "sessions.backup-*" -mtime +30 -delete
+
+echo "$(date): Cleanup complete. Sessions dir size: $(du -sh "$SESSION_DIR" | cut -f1)"
+EOF
+
+chmod +x /tmp/clear-clawdbot-sessions.sh
+
+# Test the script
+/tmp/clear-clawdbot-sessions.sh
+
+# Add to crontab (runs every Sunday at midnight)
+(crontab -l 2>/dev/null | grep -v clear-clawdbot-sessions; echo "0 0 * * 0 /tmp/clear-clawdbot-sessions.sh > /tmp/clear-sessions.log 2>&1") | crontab -
+```
+
+**Symptoms:**
+- Context overflow errors after sending screenshots
+- Sessions directory >100MB
+- Multiple large `.jsonl` files in sessions directory
+- Error appears even with safeguard mode enabled
 
 ## Multi-Machine Setup
 
