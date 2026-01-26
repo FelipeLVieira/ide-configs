@@ -373,12 +373,38 @@ The main orchestrator bot:
 clawdbot gateway install
 ```
 
-**Option 2: Scheduled Task**
+**Option 2: Scheduled Task with Auto-Recovery**
+
+Create a scheduled task that starts at login and restarts on failure:
+
 ```powershell
+# Create task that restarts on failure
 $action = New-ScheduledTaskAction -Execute "clawdbot" -Argument "gateway"
 $trigger = New-ScheduledTaskTrigger -AtLogon
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Limited
-Register-ScheduledTask -TaskName "Clawdbot Gateway" -Action $action -Trigger $trigger -Principal $principal
+$settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+Register-ScheduledTask -TaskName "Clawdbot Gateway" -Action $action -Trigger $trigger -Principal $principal -Settings $settings
+```
+
+**Option 3: Watchdog Script**
+
+Use the watchdog script for more control over restarts:
+
+```powershell
+# Copy watchdog script
+Copy-Item ide-configs\clawdbot\clawdbot-watchdog.ps1 $env:USERPROFILE\.clawdbot\
+
+# Run watchdog (keeps gateway running)
+powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\.clawdbot\clawdbot-watchdog.ps1
+```
+
+Create a scheduled task for the watchdog:
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File $env:USERPROFILE\.clawdbot\clawdbot-watchdog.ps1"
+$trigger = New-ScheduledTaskTrigger -AtLogon
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Limited
+Register-ScheduledTask -TaskName "Clawdbot Watchdog" -Action $action -Trigger $trigger -Principal $principal
 ```
 
 ### macOS (launchd)
@@ -506,6 +532,29 @@ If you see errors like `The token '&&' is not a valid statement separator`:
 - Windows PowerShell doesn't support `&&` - use semicolons `;` instead
 - The bot should automatically use PowerShell-compatible syntax
 - If issues persist, ensure you're running PowerShell 7+ which supports `&&`
+
+### Gateway crashes on config change
+
+If gateway crashes with `AbortError: This operation was aborted`:
+- This happens when config is updated while gateway is reloading
+- The gateway tries to hot-reload on config changes but can fail
+- **Solution**: Use the watchdog script for auto-recovery
+- **Alternative**: Manually restart with `clawdbot gateway`
+
+### Gateway crashes with "fetch failed"
+
+If you see `TypeError: fetch failed`:
+- Usually a network issue or API timeout
+- Check internet connectivity
+- Verify Claude CLI is authenticated: `claude --version`
+- The watchdog script will auto-restart on these failures
+
+### Browser control errors
+
+If you see `Can't reach the clawd browser control server`:
+- The browser integration timed out
+- This is non-fatal - Telegram still works
+- Browser features require the Clawdbot Chrome extension
 
 ## Commands Reference
 

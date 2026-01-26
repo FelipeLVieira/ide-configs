@@ -135,7 +135,8 @@ ide-configs/
 ├── clawd/
 │   └── config.json            # Clawd autonomous orchestration config
 ├── clawdbot/
-│   └── README.md              # Clawdbot Gateway setup & orchestration
+│   ├── README.md              # Clawdbot Gateway setup & orchestration
+│   └── clawdbot-watchdog.ps1  # Windows auto-recovery script
 ├── scripts/
 │   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
 │   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
