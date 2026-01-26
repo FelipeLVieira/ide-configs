@@ -17,9 +17,12 @@ function Write-Log {
 }
 
 function Test-GatewayRunning {
-    $process = Get-Process -Name "node" -ErrorAction SilentlyContinue |
-        Where-Object { $_.CommandLine -like "*clawdbot*" }
-    return $null -ne $process
+    try {
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:18789/health" -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+        return $response.StatusCode -eq 200
+    } catch {
+        return $false
+    }
 }
 
 function Start-Gateway {
