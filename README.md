@@ -1,6 +1,6 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Telegram bot integration.
+Personal configuration files for Claude Code, Antigravity (Gemini/Grok), VSCode, Clawd autonomous orchestration, and Clawdbot multi-agent gateway.
 
 ## Prerequisites Installation
 
@@ -87,25 +87,31 @@ sudo snap install code --classic
 
 ---
 
-### Clawdbot
+### Clawdbot Gateway (Multi-Agent Orchestrator)
 
-Official docs: https://docs.clawd.bot
+Clawdbot Gateway is the unified multi-agent orchestrator for Claude Code. It provides:
+- **Unified session** across VS Code, terminal, Telegram simultaneously
+- **Multi-agent orchestration** - spawn and coordinate sub-agents
+- **Inter-bot communication** - agents can message each other
 
-**macOS / Linux:**
+**macOS / Linux / Windows:**
 ```bash
+# Install
 npm install -g clawdbot
 
+# Initial setup
+clawdbot setup
+
+# Configure Telegram (get token from @BotFather)
+clawdbot config set channels.telegram.botToken "YOUR_BOT_TOKEN"
+clawdbot config set channels.telegram.enabled true
+clawdbot config set gateway.mode local
+
 # Start gateway
-clawdbot gateway start
+clawdbot gateway
 ```
 
-**Windows:**
-```powershell
-npm install -g clawdbot
-
-# Start gateway
-clawdbot gateway start
-```
+See [clawdbot/README.md](clawdbot/README.md) for detailed setup including multi-agent orchestration and service installation.
 
 Requires Node.js 18+ and a Claude subscription.
 
@@ -128,16 +134,15 @@ ide-configs/
 │   └── global-settings-windows.json  # VSCode settings (Windows/.NET)
 ├── clawd/
 │   └── config.json            # Clawd autonomous orchestration config
+├── clawdbot/
+│   ├── README.md              # Clawdbot Gateway setup & orchestration
+│   └── clawdbot-watchdog.ps1  # Windows auto-recovery script
 ├── mac-mini/
 │   ├── README.md              # Mac Mini server setup guide
 │   └── sync-to-mini.sh        # Sync repos/state to Mac Mini
 ├── scripts/
 │   ├── cleanup-antigravity.sh     # Cache cleanup (macOS/Linux)
 │   └── cleanup-antigravity.ps1    # Cache cleanup (Windows)
-├── telegram-bot/
-│   ├── README.md                  # Telegram bot setup guide
-│   ├── .env.example               # Example configuration
-│   └── install-windows.ps1        # Windows installer script
 ├── project-templates/
 │   ├── TEMPLATE-CLAUDE.md           # Generic project instructions template
 │   ├── TEMPLATE-antigravityignore   # Antigravity ignore template
@@ -206,6 +211,13 @@ mkdir -p ~/.clawd
 cp clawd/config.json ~/.clawd/
 ```
 
+#### Clawdbot (for Telegram)
+```bash
+npm install -g clawdbot
+clawdbot setup
+# Then configure Telegram - see clawdbot/README.md
+```
+
 #### Scripts
 ```bash
 mkdir -p ~/.claude/scripts
@@ -244,6 +256,13 @@ npm install -g clawd
 $ClawdDir = "$env:USERPROFILE\.clawd"
 New-Item -ItemType Directory -Force -Path $ClawdDir | Out-Null
 Copy-Item clawd\config.json $ClawdDir
+```
+
+#### Clawdbot (for Telegram)
+```powershell
+npm install -g clawdbot
+clawdbot setup
+# Then configure Telegram - see clawdbot/README.md
 ```
 
 #### Scripts
