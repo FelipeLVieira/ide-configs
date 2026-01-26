@@ -1,7 +1,7 @@
 #!/bin/bash
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin"
 eval "$(/opt/homebrew/bin/brew shellenv)"
-cd ~/repos/aphos
+cd ~/repos/game-server
 
 # Start game servers (prod=2567, dev=2568)
 pnpm dev:server:prod &

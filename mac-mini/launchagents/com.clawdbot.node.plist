@@ -24,13 +24,13 @@
     </array>
     
     <key>StandardOutPath</key>
-    <string>/Users/felipemacmini/.clawdbot/logs/node.log</string>
+    <string>/Users/username/.clawdbot/logs/node.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/felipemacmini/.clawdbot/logs/node.err.log</string>
+    <string>/Users/username/.clawdbot/logs/node.err.log</string>
     <key>EnvironmentVariables</key>
     <dict>
     <key>HOME</key>
-    <string>/Users/felipemacmini</string>
+    <string>/Users/username</string>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>CLAWDBOT_GATEWAY_TOKEN</key>

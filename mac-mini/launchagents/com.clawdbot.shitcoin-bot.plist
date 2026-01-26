@@ -3,26 +3,26 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.clawdbot.shitcoin-bot</string>
+    <string>com.clawdbot.trading-bot</string>
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/felipemacmini/.clawdbot/scripts/start-shitcoin-bot.sh</string>
+        <string>/Users/username/.clawdbot/scripts/start-trading-bot.sh</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/clawdbot/shitcoin-bot-stdout.log</string>
+    <string>/tmp/clawdbot/trading-bot-stdout.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/clawdbot/shitcoin-bot-stderr.log</string>
+    <string>/tmp/clawdbot/trading-bot-stderr.log</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
         <key>HOME</key>
-        <string>/Users/felipemacmini</string>
+        <string>/Users/username</string>
     </dict>
 </dict>
 </plist>

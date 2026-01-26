@@ -21,13 +21,13 @@
     </array>
     
     <key>StandardOutPath</key>
-    <string>/Users/felipemacmini/.clawdbot/logs/gateway.log</string>
+    <string>/Users/username/.clawdbot/logs/gateway.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/felipemacmini/.clawdbot/logs/gateway.err.log</string>
+    <string>/Users/username/.clawdbot/logs/gateway.err.log</string>
     <key>EnvironmentVariables</key>
     <dict>
     <key>HOME</key>
-    <string>/Users/felipemacmini</string>
+    <string>/Users/username</string>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>CLAWDBOT_GATEWAY_PORT</key>

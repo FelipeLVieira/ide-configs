@@ -2,7 +2,7 @@
 # Sync all IDE configs from MacBook to Mac Mini
 set -e
 
-MINI="felipemacmini@felipes-mac-mini.local"
+MINI="username@felipes-mac-mini.local"
 
 echo "🔄 Syncing IDE configs to Mac Mini..."
 
