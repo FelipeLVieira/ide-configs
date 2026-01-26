@@ -18,6 +18,11 @@
       "maxConcurrent": 2,
       "subagents": {
         "maxConcurrent": 2
+      },
+      "cliBackends": {
+        "claude-cli": {
+          "command": "/Users/username/.clawd/scripts/claude-multi"
+        }
       }
     },
     "list": [

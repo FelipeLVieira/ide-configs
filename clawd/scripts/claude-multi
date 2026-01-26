@@ -1,0 +1,107 @@
+#!/bin/bash
+# claude-multi - Multi-account Claude CLI wrapper
+#
+# Transparent replacement for 'claude' command that auto-switches
+# to a secondary account when the primary hits rate limits (429).
+#
+# Used by clawdbot as a drop-in backend command replacement.
+# All arguments are passed through to the real 'claude' CLI.
+#
+# Accounts:
+#   Primary:   felipe.lv.90@gmail.com   (default auth, no token override)
+#   Secondary: wisedigitalinc@gmail.com  (OAuth token from file)
+#
+# Setup:
+#   1. Place this script in ~/.clawd/scripts/claude-multi
+#   2. chmod +x ~/.clawd/scripts/claude-multi
+#   3. Set clawdbot.json agents.defaults.cliBackends.claude-cli.command
+#      to the absolute path of this script
+#   4. Ensure ~/.claude-wisedigital/oauth-token exists (from setup-token)
+
+set -o pipefail
+
+TOKEN_FILE="$HOME/.claude-wisedigital/oauth-token"
+LOG_DIR="$HOME/.clawdbot/logs"
+LOG_FILE="$LOG_DIR/claude-multi.log"
+
+mkdir -p "$LOG_DIR" 2>/dev/null
+
+log() {
+    echo "[claude-multi $(date -u +%Y-%m-%dT%H:%M:%SZ)] $*" >> "$LOG_FILE" 2>/dev/null
+}
+
+is_rate_limited() {
+    local output="$1"
+    echo "$output" | grep -qiE \
+        'rate.?limit|HTTP 429|too many requests|session limit reached|quota exceeded|usage limit|exceed.*account.*rate|overloaded'
+}
+
+# Read stdin upfront so it can be replayed on retry
+STDIN_DATA=""
+if [ ! -t 0 ]; then
+    STDIN_DATA=$(cat)
+fi
+
+# Run claude in a subshell with explicit token handling
+run_claude() {
+    local token="$1"
+    shift
+
+    (
+        if [ -n "$token" ]; then
+            export CLAUDE_CODE_OAUTH_TOKEN="$token"
+        else
+            unset CLAUDE_CODE_OAUTH_TOKEN
+        fi
+
+        if [ -n "$STDIN_DATA" ]; then
+            echo "$STDIN_DATA" | claude "$@"
+        else
+            claude "$@"
+        fi
+    )
+}
+
+# Temp files for output capture
+STDOUT_TMP=$(mktemp)
+STDERR_TMP=$(mktemp)
+trap 'rm -f "$STDOUT_TMP" "$STDERR_TMP"' EXIT
+
+# --- Attempt 1: Primary account (default auth) ---
+log "Primary account attempt | args: $*"
+
+run_claude "" "$@" >"$STDOUT_TMP" 2>"$STDERR_TMP"
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    COMBINED=$(cat "$STDOUT_TMP" "$STDERR_TMP" 2>/dev/null)
+
+    if is_rate_limited "$COMBINED"; then
+        log "Primary RATE-LIMITED (exit=$EXIT_CODE), switching to secondary"
+
+        if [ -f "$TOKEN_FILE" ]; then
+            SECONDARY_TOKEN=$(tr -d '[:space:]' < "$TOKEN_FILE")
+
+            if [ -n "$SECONDARY_TOKEN" ]; then
+                # --- Attempt 2: Secondary account ---
+                run_claude "$SECONDARY_TOKEN" "$@" >"$STDOUT_TMP" 2>"$STDERR_TMP"
+                EXIT_CODE=$?
+                log "Secondary account result: exit=$EXIT_CODE"
+            else
+                log "ERROR: Token file is empty at $TOKEN_FILE"
+            fi
+        else
+            log "ERROR: Token file not found at $TOKEN_FILE"
+        fi
+    else
+        log "Primary failed (exit=$EXIT_CODE), not rate-limited"
+    fi
+else
+    log "Primary OK (exit=0)"
+fi
+
+# Emit captured output preserving stdout/stderr separation
+cat "$STDOUT_TMP"
+cat "$STDERR_TMP" >&2
+
+exit $EXIT_CODE

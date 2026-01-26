@@ -249,29 +249,50 @@ Priority files for migration:
 
 ## Multi-Account Rate Limit Fallback
 
-Clawd uses a custom adapter (`~/.clawd/adapter.js`) that automatically switches Claude accounts when a rate limit is hit.
+Both **clawd** (orchestrator) and **clawdbot** (gateway) support automatic account switching when rate limits (429) are hit.
+
+### Authentication Method
+
+Uses `CLAUDE_CODE_OAUTH_TOKEN` environment variable with long-lived OAuth tokens generated via `claude setup-token`. Tokens are stored in files (chmod 600) and loaded at runtime.
 
 ### How It Works
 
+#### Clawd (Orchestrator) — `adapter.js`
+
 ```
 Clawd executes task
-  -> Adapter picks Account 1 (felipe.lv.90@gmail.com)
+  -> Adapter picks Account 1 (felipe.lv.90@gmail.com, default auth)
   -> Spawns: claude --dangerously-skip-permissions -p <prompt>
   -> If "Session limit reached" / 429 / rate limit detected:
-       -> Marks Account 1 as rate-limited (with reset time)
+       -> Marks Account 1 as rate-limited (with parsed reset time)
        -> Immediately retries with Account 2 (wisedigitalinc@gmail.com)
-       -> Spawns: CLAUDE_CONFIG_DIR=~/.claude-wisedigital claude ...
+       -> Spawns: CLAUDE_CODE_OAUTH_TOKEN=<token> claude ...
        -> If Account 2 also rate-limited:
             -> Clawd's built-in rate-limit handler waits until reset
-            -> Then retries from the top
 ```
+
+Clawd loads `adapter.js` from `<project-cwd>/.clawd/adapter.js` (symlinked to `~/.clawd/adapter.js`).
+
+#### Clawdbot (Gateway) — `claude-multi` wrapper
+
+```
+Clawdbot sends message to Claude CLI
+  -> Spawns: claude-multi <args...>  (configured via cliBackends.command)
+  -> Wrapper runs: claude <args...>  (primary account, no token)
+  -> If exit code != 0 AND output matches rate limit patterns:
+       -> Loads token from ~/.claude-wisedigital/oauth-token
+       -> Retries: CLAUDE_CODE_OAUTH_TOKEN=<token> claude <args...>
+  -> Returns output + exit code transparently
+```
+
+Clawdbot uses `claude-multi` as a drop-in replacement for `claude` in its backend config.
 
 ### Accounts
 
-| Account | Email | Config Dir | Role |
-|---------|-------|-----------|------|
-| felipe | felipe.lv.90@gmail.com | `~/.claude` (default) | Primary |
-| wisedigital | wisedigitalinc@gmail.com | `~/.claude-wisedigital` | Fallback |
+| Account | Email | Auth Method | Token File | Role |
+|---------|-------|-------------|------------|------|
+| felipe | felipe.lv.90@gmail.com | Default auth (browser session) | None | Primary |
+| wisedigital | wisedigitalinc@gmail.com | OAuth token | `~/.claude-wisedigital/oauth-token` | Fallback |
 
 ### Setup (per machine)
 
@@ -280,46 +301,75 @@ Each machine (MacBook, Mac Mini) needs both accounts authenticated:
 ```bash
 # 1. Primary account - already authenticated via default claude login
 
-# 2. Secondary account - one-time setup
-mkdir -p ~/.claude-wisedigital
+# 2. Secondary account - generate OAuth token (run in Terminal.app, not via script)
 CLAUDE_CONFIG_DIR=~/.claude-wisedigital claude setup-token
 # Log in with wisedigitalinc@gmail.com in the browser
+# Save the displayed token:
+echo "<token>" > ~/.claude-wisedigital/oauth-token
+chmod 600 ~/.claude-wisedigital/oauth-token
 
-# 3. Copy the adapter (if not already installed via ide-configs)
-cp ~/repos/ide-configs/clawd/adapter.js ~/.clawd/adapter.js
+# 3. Install adapter + wrapper
+~/.clawd/scripts/setup-secondary-account.sh
+
+# 4. Configure clawdbot backend (add to ~/.clawdbot/clawdbot.json)
+# agents.defaults.cliBackends.claude-cli.command = "<absolute-path>/.clawd/scripts/claude-multi"
 ```
 
-Or use the setup script:
+Or use the setup script for steps 1-3:
 ```bash
 ~/.clawd/scripts/setup-secondary-account.sh
 ```
 
+### Clawdbot Config
+
+Add to `~/.clawdbot/clawdbot.json` under `agents.defaults`:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "cliBackends": {
+        "claude-cli": {
+          "command": "/Users/<username>/.clawd/scripts/claude-multi"
+        }
+      }
+    }
+  }
+}
+```
+
+This merges with clawdbot's default Claude CLI backend config, keeping all default args (`-p`, `--output-format json`, `--dangerously-skip-permissions`) but replacing the command.
+
 ### Adding More Accounts
 
-Edit the `ACCOUNTS` array in `~/.clawd/adapter.js`:
+Edit the `ACCOUNTS` array in `~/.clawd/adapter.js` and add a new token check in `claude-multi`:
 ```javascript
+// adapter.js
 const ACCOUNTS = [
-  { name: "felipe", email: "felipe.lv.90@gmail.com", configDir: null },
-  { name: "wisedigital", email: "wisedigitalinc@gmail.com", configDir: path.join(os.homedir(), ".claude-wisedigital") },
-  // Add more here:
-  { name: "newaccount", email: "new@example.com", configDir: path.join(os.homedir(), ".claude-newaccount") },
+  { name: "felipe", email: "felipe.lv.90@gmail.com", tokenFile: null },
+  { name: "wisedigital", email: "wisedigitalinc@gmail.com", tokenFile: path.join(os.homedir(), ".claude-wisedigital", "oauth-token") },
+  // Add more:
+  { name: "newaccount", email: "new@example.com", tokenFile: path.join(os.homedir(), ".claude-newaccount", "oauth-token") },
 ];
 ```
 
-Then authenticate the new account:
+Then authenticate and save the token:
 ```bash
-mkdir -p ~/.claude-newaccount
 CLAUDE_CONFIG_DIR=~/.claude-newaccount claude setup-token
+echo "<displayed-token>" > ~/.claude-newaccount/oauth-token
+chmod 600 ~/.claude-newaccount/oauth-token
 ```
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `~/.clawd/adapter.js` | Custom multi-account adapter (loaded by Clawd automatically) |
-| `~/.clawd/scripts/setup-secondary-account.sh` | One-time auth setup for secondary account |
-| `~/.claude-wisedigital/` | Isolated config dir for secondary account |
-| `~/.clawd/config.json` → `accounts` | Documents which accounts are configured |
+| `~/.clawd/adapter.js` | Multi-account adapter for **clawd** (symlinked into project dirs) |
+| `~/.clawd/scripts/claude-multi` | Multi-account wrapper for **clawdbot** (drop-in `claude` replacement) |
+| `~/.clawd/scripts/setup-secondary-account.sh` | One-time auth setup + symlink creation |
+| `~/.claude-wisedigital/oauth-token` | OAuth token for secondary account (chmod 600) |
+| `~/.clawdbot/clawdbot.json` | Clawdbot config (set `cliBackends.claude-cli.command`) |
+| `~/.clawdbot/logs/claude-multi.log` | Wrapper script logs (account switches, errors) |
 
 ## Troubleshooting
 
