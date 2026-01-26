@@ -1,6 +1,28 @@
-# Claude Code Telegram Bot Setup
+# Claude Code Telegram Bot (Python)
 
-Access Claude Code from your phone via Telegram, using your existing Claude Code CLI login (no API key needed).
+> **Note**: This is the **Python-based** Telegram bot that spawns separate Claude CLI processes.
+> For a **unified session** experience (same Claude session in VS Code and Telegram), use [Clawdbot Gateway](../clawdbot/README.md) instead.
+
+## Comparison
+
+| Feature | claude-code-telegram (this) | Clawdbot Gateway |
+|---------|----------------------------|------------------|
+| Session | Separate processes per chat | Unified session |
+| Setup | Python venv | npm install |
+| Customization | Full source code access | Config-based |
+| Channels | Telegram only | Multi-channel |
+
+**When to use this bot:**
+- You want full control over the source code
+- You need custom modifications
+- You prefer Python over Node.js
+
+**When to use Clawdbot Gateway:**
+- You want the same session in VS Code and Telegram
+- You want multi-channel support (WhatsApp, Web, etc.)
+- You prefer simpler setup
+
+---
 
 ## Prerequisites
 
@@ -153,8 +175,7 @@ Register-ScheduledTask -TaskName "ClaudeCodeTelegram" -Action $action -Trigger $
 
 **"No result message received from Claude Code":**
 - This can occur when Claude returns text-only responses
-- The bot may need a patch to handle non-JSON output from Claude CLI
-- Check that you're using a compatible version of the bot
+- See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for the fix
 
 **Model showing wrong (e.g., Sonnet instead of Opus):**
 - Use the full model ID in CLAUDE_MODEL:
@@ -164,8 +185,10 @@ Register-ScheduledTask -TaskName "ClaudeCodeTelegram" -Action $action -Trigger $
 - Short names like "opus" may not work correctly
 
 **Validation errors on startup (ALLOWED_USERS, CLAUDE_ALLOWED_TOOLS):**
-- ALLOWED_USERS accepts comma-separated IDs or a single integer
-- CLAUDE_ALLOWED_TOOLS must be comma-separated (no spaces after commas)
+- See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for validator fixes
+
+**Shell commands blocked:**
+- See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for Issue 6 and Issue 7
 
 ## Advanced Configuration
 
@@ -179,6 +202,8 @@ For personal/trusted setups where you want Claude to have full shell access:
 DISABLE_COMMAND_VALIDATION=true
 ```
 
+**Note**: You may need to patch both `src/security/validators.py` and `src/claude/monitor.py` - see [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
+
 ### Broader Directory Access
 
 To give the bot access to your entire user directory (not just projects):
@@ -190,6 +215,18 @@ APPROVED_DIRECTORY=C:\Users\YourName
 # macOS/Linux
 APPROVED_DIRECTORY=/home/yourname
 ```
+
+## Known Issues
+
+See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for documented issues and their fixes:
+
+1. "No result message received from Claude Code"
+2. WinError 2 - File Not Found (Windows)
+3. Wrong Model (Sonnet instead of Opus)
+4. ALLOWED_USERS Validation Error
+5. CLAUDE_ALLOWED_TOOLS Validation Error
+6. Shell Commands Blocked (Security Validator)
+7. Shell Commands Still Blocked (Tool Monitor)
 
 ## Credits
 
