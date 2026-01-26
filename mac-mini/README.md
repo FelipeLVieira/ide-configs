@@ -402,3 +402,40 @@ ssh username@hostname.local 'sed -i "" "s/MACBOOK_IP=\".*\"/MACBOOK_IP=\"NEW_IP_
 # Restart watchdog
 ssh username@hostname.local 'launchctl unload ~/Library/LaunchAgents/com.clawdbot.failover.plist; launchctl load ~/Library/LaunchAgents/com.clawdbot.failover.plist'
 ```
+
+---
+
+## Clawdbot Persistent Bots (Added 2026-01-26)
+
+The Mac Mini runs 5 persistent AI bots 24/7:
+
+| Bot | Workspace | Purpose |
+|-----|-----------|---------|
+| ez-crm | ~/repos/ez-crm | CRM development |
+| linklounge | ~/repos/linklounge | Linktree clone |
+| aphos | ~/repos/aphos | MMORPG game |
+| ios-appstore | ~/repos/bmi-calculator | iOS app builds |
+| clawd-monitor | ~/repos/clawd-monitor | Bot dashboard |
+
+Plus the shitcoin trading bot (Python process).
+
+### Quick Commands
+
+```bash
+# Check bot status
+~/clawd/scripts/manage-bots.sh status
+
+# View bot logs
+tmux attach -t bot-ez-crm
+
+# Restart all bots
+~/clawd/scripts/manage-bots.sh restart
+```
+
+### Critical Rules
+
+1. **iOS builds: LOCAL ONLY** - xcodebuild, never eas build
+2. **MEGA not Google Drive**
+3. **Browser lock before browser use**
+
+See `~/repos/ide-configs/clawdbot/PERSISTENT-BOTS.md` for full documentation.
