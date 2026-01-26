@@ -73,6 +73,12 @@ Clawdbot doesn't automatically resume tasks after a sudden shutdown. Use these s
 - Runs on login to check for incomplete tasks
 - Sends Telegram notification if tasks were interrupted
 
+**Install LaunchAgent (on new machine):**
+```bash
+cp ~/repos/ide-configs/clawd/scripts/com.clawdbot.auto-resume.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.clawdbot.auto-resume.plist
+```
+
 ## Security Notes
 
 - `MEMORY.md` and `memory/` folder contain personal data - DO NOT commit
