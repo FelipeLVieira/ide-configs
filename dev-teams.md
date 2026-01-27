@@ -12,12 +12,12 @@ Multi-bot architecture with specialized roles per project.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Game Designer** | Mechanics, balance, systems design | gpt-oss:20b |
+| **Game Designer** | Mechanics, balance, systems design. References: Sakaguchi, Koster, Matsuno, Pardo. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | gpt-oss:20b |
 | **Backend Dev** | Colyseus servers, game logic | devstral-small-2:24b |
 | **Frontend Dev** | Next.js UI, Three.js rendering | gpt-oss:20b |
 | **QA Engineer** | Testing, bug reports, playtesting | qwen3:8b |
 | **Art Director** | Asset generation prompts, visual style | Claude Sonnet |
-| **Sound Engineer** | SFX, music, ambient audio design. References: Ragnarok Online, Chrono Trigger | gpt-oss:20b |
+| **Sound Engineer** | SFX, music, ambient audio. References: Uematsu, Mitsuda, Kikuta, SoundTeMP. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | gpt-oss:20b |
 
 ### Current Focus
 - Combat enhancement system (TypeScript TS7053 fixes)

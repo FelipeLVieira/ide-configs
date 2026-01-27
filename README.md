@@ -2,7 +2,7 @@
 
 Personal configuration files for Claude Code, Cursor, VSCode, Clawdbot, and Mac Mini bot factory.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone
@@ -16,69 +16,70 @@ cd ~/repos/ide-configs
 ./mac-mini/sync-to-mini.sh
 ```
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ide-configs/
-├── 🤖 clawdbot/              # Clawdbot Bot Factory
-│   ├── PERSISTENT-BOTS.md    # 9-bot architecture & management
-│   ├── HYBRID-HEALING.md     # 3-layer self-healing system
+├── clawdbot/                  # Clawdbot Bot Factory
+│   ├── PERSISTENT-BOTS.md     # 9-bot architecture & management
+│   ├── HYBRID-HEALING.md      # 3-layer self-healing system
 │   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
-│   ├── SCRIPTS-REFERENCE.md  # Scripts docs (event-watcher, cleanup)
-│   ├── APP-STORE-MANAGER.md  # iOS App Store monitoring cron
+│   ├── SCRIPTS-REFERENCE.md   # Scripts docs (event-watcher, cleanup)
+│   ├── APP-STORE-MANAGER.md   # iOS App Store monitoring cron
+│   ├── GAME-DESIGN-REFERENCES.md # Game design & sound engineering research
 │   ├── MONITOR-INTEGRATION.md # Dashboard setup
-│   ├── PREREQUISITES.md      # System requirements
-│   └── README.md             # Clawdbot overview
+│   ├── PREREQUISITES.md       # System requirements
+│   └── README.md              # Clawdbot overview
 │
-├── 🧠 clawd/                 # Clawdbot workspace files
-│   ├── AGENTS.md             # Agent behavior rules
-│   ├── SOUL.md               # Personality & tone
-│   ├── USER.md               # Human profile
-│   ├── IDENTITY.md           # Bot identity
-│   ├── HEARTBEAT.md          # Periodic check tasks
-│   ├── adapter.js            # Multi-account failover
-│   ├── scripts/              # Auto-resume, shutdown scripts
-│   └── docs/ARCHITECTURE.md  # Multi-account rate limit docs
+├── clawd/                     # Clawdbot workspace files
+│   ├── AGENTS.md              # Agent behavior rules
+│   ├── SOUL.md                # Personality & tone
+│   ├── USER.md                # Human profile
+│   ├── IDENTITY.md            # Bot identity
+│   ├── HEARTBEAT.md           # Periodic check tasks
+│   ├── adapter.js             # Multi-account failover
+│   ├── scripts/               # Auto-resume, shutdown scripts
+│   └── docs/ARCHITECTURE.md   # Multi-account rate limit docs
 │
-├── 💻 claude/                # Claude Code CLI configs
-│   ├── CLAUDE.md             # Per-project template
-│   ├── CLAUDE-global.md      # Global settings
-│   └── settings.json         # Hooks (ESLint, Prettier)
+├── claude/                    # Claude Code CLI configs
+│   ├── CLAUDE.md              # Per-project template
+│   ├── CLAUDE-global.md       # Global settings
+│   └── settings.json          # Hooks (ESLint, Prettier)
 │
-├── 🔌 mcp/                   # MCP Server configs
+├── mcp/                       # MCP Server configs
 │   ├── claude-code-mcps.json
 │   ├── cursor-mcps.json
 │   └── vscode-mcps.json
 │
-├── 🖥️ mac-mini/              # Mac Mini server setup
-│   ├── README.md             # Setup guide
-│   ├── PERSISTENCE.md        # Bot persistence
-│   ├── launchagents/         # LaunchAgent plists
-│   └── scripts/              # Startup scripts
+├── mac-mini/                  # Mac Mini server setup
+│   ├── README.md              # Setup guide
+│   ├── PERSISTENCE.md         # Bot persistence
+│   ├── launchagents/          # LaunchAgent plists
+│   └── scripts/               # Startup scripts
 │
-├── 📝 project-templates/     # Per-project CLAUDE.md
-├── 🍺 homebrew/              # Brewfiles
-├── ⚙️ vscode/                # VSCode settings
-├── 🔧 git/                   # Git configs
-├── 🏗️ infrastructure/         # Multi-machine architecture docs
+├── project-templates/         # Per-project CLAUDE.md
+├── homebrew/                  # Brewfiles
+├── vscode/                    # VSCode settings
+├── git/                       # Git configs
+├── infrastructure/            # Multi-machine architecture docs
 │   ├── three-machine-architecture.md
-│   └── port-assignments.md   # Master port registry
-└── 🔐 ssh/                   # SSH configs
+│   └── port-assignments.md    # Master port registry
+└── ssh/                       # SSH configs
 ```
 
-## 🤖 Clawdbot Bot Factory (3-Tier Architecture)
+## Clawdbot Bot Factory (3-Tier Architecture)
 
 The Mac Mini runs a cost-optimized bot factory with automated cleanup and monitoring.
 
 ### Tier 1: Event Watcher (FREE, 60s loop, launchd)
-Instant healing via bash — zero LLM tokens, 24/7.
-- event-watcher.sh → monitors Ollama, pm2, zombies, simulators; auto-heals instantly
+Instant healing via bash -- zero LLM tokens, 24/7.
+- event-watcher.sh monitors Ollama, pm2, zombies, simulators; auto-heals instantly
 - Logs to `/tmp/clawdbot/events.jsonl`
 
 ### Tier 2: Bash Cleanup Scripts (FREE, every 15 min)
-Mechanical cleanup via launchd — zero LLM tokens.
-- mac-mini-cleanup.sh → kills simulators, zombies, duplicates; checks health
-- macbook-cleanup.sh → same for MacBook (no simulators allowed!)
+Mechanical cleanup via launchd -- zero LLM tokens.
+- mac-mini-cleanup.sh kills simulators, zombies, duplicates; checks health
+- macbook-cleanup.sh same for MacBook (no simulators allowed)
 
 ### Tier 3: AI Cron Jobs (local LLMs, hourly)
 | Job | Schedule | Purpose |
@@ -111,10 +112,10 @@ ps aux | grep -E "clawdbot-gateway|run_bots" | grep -v grep
 cat /tmp/clawdbot/system-health.json
 ```
 
-📖 See [clawdbot/HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) for the full 3-layer architecture.  
-📖 See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for bot docs.
+See [clawdbot/HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) for the full 3-layer architecture.
+See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for bot docs.
 
-## 💰 Credit Optimization
+## Credit Optimization
 
 3-tier architecture reduced daily costs from ~$15 to ~$5:
 
@@ -124,26 +125,26 @@ cat /tmp/clawdbot/system-health.json
 | Sonnet cron | Clawdbot (30 min) | ~$0.05/run | Research, health |
 | Opus heartbeat | Clawdbot (60 min) | ~$0.10/run | Connectivity only |
 
-📖 See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
+See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
 
-## 🖥️ Mac Mini Architecture
+## Mac Mini Architecture
 
 ```
-┌─────────────────────────────────────────┐
-│           MAC MINI BOT FACTORY          │
-├─────────────────────────────────────────┤
-│  Clawdbot Gateway (port 18789)          │
-│  ├── 9 Persistent Bots (tmux)           │
-│  ├── Python Trading Bot                 │
-│  └── clawd-monitor Dashboard (:9009)    │
-├─────────────────────────────────────────┤
-│  Scripts: ~/clawd/scripts/              │
-│  Memory: ~/clawd/memory/                │
-│  Repos: ~/repos/                        │
-└─────────────────────────────────────────┘
++------------------------------------------+
+|          MAC MINI BOT FACTORY            |
++------------------------------------------+
+|  Clawdbot Gateway (port 18789)           |
+|  -- 9 Persistent Bots (tmux)            |
+|  -- Python Trading Bot                   |
+|  -- clawd-monitor Dashboard (:9009)      |
++------------------------------------------+
+|  Scripts: ~/clawd/scripts/               |
+|  Memory: ~/clawd/memory/                 |
+|  Repos: ~/repos/                         |
++------------------------------------------+
 ```
 
-## 📦 Installation
+## Installation
 
 ### macOS/Linux
 ```bash
@@ -151,10 +152,10 @@ cat /tmp/clawdbot/system-health.json
 ```
 
 Creates symlinks for:
-- `~/.claude/CLAUDE.md` → Global Claude settings
-- `~/.claude/settings.json` → Claude hooks
-- `~/.gitconfig` → Git config
-- `~/.ssh/config` → SSH config
+- `~/.claude/CLAUDE.md` -- Global Claude settings
+- `~/.claude/settings.json` -- Claude hooks
+- `~/.gitconfig` -- Git config
+- `~/.ssh/config` -- SSH config
 
 ### Windows
 ```powershell
@@ -170,7 +171,7 @@ brew bundle --file=homebrew/Brewfile-macbook
 brew bundle --file=homebrew/Brewfile-macmini
 ```
 
-## 🔧 Configuration Files
+## Configuration Files
 
 ### Claude Code
 | File | Purpose |
@@ -196,9 +197,9 @@ brew bundle --file=homebrew/Brewfile-macmini
 | `mcp/cursor-mcps.json` | Cursor |
 | `mcp/vscode-mcps.json` | VSCode |
 
-## 🔄 Syncing
+## Syncing
 
-### MacBook → Mac Mini
+### MacBook to Mac Mini
 ```bash
 ./mac-mini/sync-to-mini.sh
 ```
@@ -212,10 +213,11 @@ cd ~/repos/ide-configs && git pull
 ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 ```
 
-## 📚 Documentation Index
+## Documentation Index
 
 ### Clawdbot
 - [RESEARCH-2026-01-27.md](clawdbot/RESEARCH-2026-01-27.md) - Grok research: trading bot improvements, Clawdbot updates
+- [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) - Game design and sound engineering research for Aphos
 - [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) - Bot architecture & management
 - [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) - 3-layer self-healing system
 - [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies
@@ -225,8 +227,8 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 - [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 
 ### Infrastructure
-- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) - **Full 3-machine overview** (MacBook, Mac Mini, Windows MSI)
-- [Port Assignments](infrastructure/port-assignments.md) - **Master port registry** (all services, all machines)
+- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) - Full 3-machine overview (MacBook, Mac Mini, Windows MSI)
+- [Port Assignments](infrastructure/port-assignments.md) - Master port registry (all services, all machines)
 
 ### Configuration
 - [clawdbot-config.md](clawdbot-config.md) - Model routing & Ollama configuration
@@ -246,7 +248,7 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 - [claude/WORKING_PRINCIPLES.md](claude/WORKING_PRINCIPLES.md) - Dev principles
 - [claude/deslop.md](claude/deslop.md) - Writing quality guide
 
-## 🏷️ Project Templates
+## Project Templates
 
 Pre-configured CLAUDE.md for each project:
 
@@ -261,6 +263,6 @@ Pre-configured CLAUDE.md for each project:
 | `trading-bot-CLAUDE.md` | Shitcoin Bot |
 | `clawd-monitor-CLAUDE.md` | Bot Dashboard |
 
-## 📄 License
+## License
 
 Personal configuration files. Feel free to use as inspiration for your own setup.
