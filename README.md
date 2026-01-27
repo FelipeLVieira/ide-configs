@@ -215,6 +215,7 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 ## 📚 Documentation Index
 
 ### Clawdbot
+- [RESEARCH-2026-01-27.md](clawdbot/RESEARCH-2026-01-27.md) - Grok research: trading bot improvements, Clawdbot updates
 - [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) - Bot architecture & management
 - [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) - 3-layer self-healing system
 - [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies

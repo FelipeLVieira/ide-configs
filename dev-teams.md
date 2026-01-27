@@ -186,7 +186,7 @@ Monitors **all 3 iOS apps** on App Store Connect:
 
 | # | Project | Bot Name | Emoji | Roles | Machine | AGENTS.md | Special |
 |---|---------|----------|-------|-------|---------|-----------|---------|
-| 1 | Aphos | Aphos Dev | 🎮 | 5 | **Mac Mini** | ✅ | Game studio, persistent session |
+| 1 | Aphos | Aphos Dev | 🎮 | 6 | **Mac Mini** | ✅ | Game studio, persistent session |
 | 2 | Shitcoin Bot | Degen Brain | 🧠💰 | 4 | **Mac Mini** | ✅ | Trading intelligence, persistent session |
 | 3 | LinkLounge | LinkLounge Dev | 🔗 | 4 | MacBook | ❌ | Web app team |
 | 4 | EZ-CRM | EZ-CRM Dev | 📇 | 4 | MacBook | ❌ | CRM team |
@@ -196,7 +196,7 @@ Monitors **all 3 iOS apps** on App Store Connect:
 | 8 | Bills Tracker | Bills Tracker Dev | 💳 | 4 | MacBook | ❌ | iOS mobile |
 | 9 | Screen Translator | Translator Dev | 🌐 | 4 | MacBook | ❌ | iOS mobile + ML |
 
-**Total**: 9 project bots, 36 specialized roles
+**Total**: 9 project bots, 37 specialized roles
 
 > **Note**: All 9 projects have `SOUL.md`, `IDENTITY.md`, `USER.md` at repo root. Only Aphos and Shitcoin Bot have `AGENTS.md` — the other 7 projects need it added.
 

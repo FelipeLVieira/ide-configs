@@ -221,6 +221,12 @@ ssh username@hostname.local 'cd ~/clawd && git pull origin master'
 
 ## Trading Bot
 
+### Recommended Execution Engine: Freqtrade
+**Freqtrade** is the recommended CEX execution engine (Python-native, Ollama-compatible, extensive backtesting). Install alongside existing Polymarket bot for CEX trading. See [RESEARCH-2026-01-27.md](../clawdbot/RESEARCH-2026-01-27.md) for details.
+
+### Sentiment: Perception.to (replaces LunarCrush)
+LunarCrush pricing became prohibitive. **Perception.to** provides equivalent social sentiment data with a free tier. Update shitcoin bot API integrations accordingly.
+
 - Uses VPN SOCKS5 proxy for geo-bypass
 - Proxy credentials in `~/repos/trading-bot/.env`
 - Split tunneling: only trading platform API goes through proxy
