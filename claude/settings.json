@@ -6,43 +6,38 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|vue|svelte)$ ]]; then echo \"Running ESLint on $file...\"; npx eslint --fix \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-fix JavaScript/TypeScript files with ESLint after editing"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|vue|svelte)$ ]]; then npx eslint --fix \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-fix JavaScript/TypeScript files with ESLint"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|css|scss|json|md|html|vue|svelte)$ ]]; then echo \"Formatting $file with Prettier...\"; npx prettier --write \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-format web files with Prettier after editing"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(js|jsx|ts|tsx|css|scss|json|md|html|vue|svelte)$ ]]; then npx prettier --write \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format web files with Prettier"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(dart)$ ]]; then echo \"Formatting Flutter file...\"; dart format \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-format Flutter/Dart files for mobile development"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(dart)$ ]]; then dart format \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Flutter/Dart files"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(swift)$ ]]; then echo \"Formatting Swift file...\"; swiftformat \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-format Swift files for iOS development"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(swift)$ ]]; then swiftformat \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Swift files"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(kt|kts)$ ]]; then echo \"Formatting Kotlin file...\"; ktlint -F \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-format Kotlin files for Android development"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(kt|kts)$ ]]; then ktlint -F \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Kotlin files"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(cs)$ ]] && [[ $file =~ Unity ]]; then echo \"Unity C# file modified: $file\"; fi'",
-            "description": "Detect Unity C# file changes for game development"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(gd)$ ]]; then gdformat \"$file\" 2>/dev/null || true; fi'",
+            "description": "Auto-format Godot GDScript"
           },
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(gd)$ ]]; then echo \"Godot GDScript file modified: $file\"; gdformat \"$file\" 2>/dev/null || true; fi'",
-            "description": "Auto-format Godot game scripts"
-          },
-          {
-            "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [[ $file =~ \\.(glsl|shader|shadergraph)$ ]]; then echo \"Shader file modified: $file - Consider regenerating shader variants\"; fi'",
-            "description": "Track shader modifications for game development"
+            "command": "bash -c 'file=\"{{file_path}}\"; ext=\"${file##*.}\"; echo \"$ext\" >> ~/.claude/modified-extensions.tmp 2>/dev/null || true'",
+            "description": "Track modified file types silently"
           }
         ]
       },
@@ -51,13 +46,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ npm\\ install|yarn\\ add|pnpm\\ add ]]; then echo \"Dependencies updated. Consider running build...\"; fi'",
+            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ npm\\ install|yarn\\ add|pnpm\\ add ]]; then echo \"Dependencies updated\"; fi'",
             "description": "Notify when dependencies are installed"
-          },
-          {
-            "type": "command",
-            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ git\\ commit ]]; then echo \"Commit created. Remember to push changes.\"; fi'",
-            "description": "Reminder after git commits"
           }
         ]
       }
@@ -68,8 +58,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] User prompt submitted\" >> ~/.claude/session-log.txt",
-            "description": "Log all user prompts with timestamp"
+            "command": "rm -f ~/.claude/modified-extensions.tmp 2>/dev/null; date >> ~/.claude/session-log.txt",
+            "description": "Reset file tracking and log prompt"
           }
         ]
       }
@@ -80,18 +70,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'if command -v osascript &> /dev/null; then osascript -e \"display notification \\\"Claude Code task completed\\\" with title \\\"Claude Code\\\"\"; elif command -v notify-send &> /dev/null; then notify-send \"Claude Code\" \"Task completed\"; fi'",
-            "description": "Desktop notification when Claude finishes (macOS/Linux)"
+            "command": "bash -c 'osascript -e \"display notification \\\"Task completed\\\" with title \\\"Claude Code\\\"\" 2>/dev/null || true'",
+            "description": "Desktop notification when Claude finishes"
           },
           {
             "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Task completed\" >> ~/.claude/session-log.txt",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Stop\" >> ~/.claude/session-log.txt",
             "description": "Log task completion"
           },
           {
-            "type": "prompt",
-            "prompt": "Check if verification is needed: Were code files (tsx, ts, sql, glsl) modified during this task? If yes, consider invoking post-task-verifier agent to validate changes. If task was just research/questions, no verification needed.",
-            "description": "Prompt to trigger verification after implementation tasks"
+            "type": "command",
+            "command": "bash -c 'if [ -f ~/.claude/modified-extensions.tmp ]; then exts=$(sort -u ~/.claude/modified-extensions.tmp | tr \"\\n\" \",\"); if [[ $exts =~ tsx|ts|sql|glsl|cs|gd ]]; then echo \"[VERIFY-NEEDED] $exts\" >> ~/.claude/session-log.txt; fi; rm -f ~/.claude/modified-extensions.tmp; fi'",
+            "description": "Silently track if verification is needed"
           }
         ]
       }
@@ -101,9 +91,9 @@
         "matcher": "*",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Review subagent results: Did the subagent complete successfully? Were there any errors or issues that need follow-up? Should another specialized verifier be invoked?",
-            "description": "Evaluate subagent completion and chain verification if needed"
+            "type": "command",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Subagent completed\" >> ~/.claude/session-log.txt",
+            "description": "Log subagent completion silently"
           }
         ]
       }
@@ -114,13 +104,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'echo \"========================================\" >> ~/.claude/session-log.txt && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] New session started\" >> ~/.claude/session-log.txt && echo \"Working directory: $(pwd)\" >> ~/.claude/session-log.txt'",
-            "description": "Log session start with context"
+            "command": "bash -c 'echo \"========================================\" >> ~/.claude/session-log.txt && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Session: $(pwd)\" >> ~/.claude/session-log.txt'",
+            "description": "Log session start"
           },
           {
             "type": "command",
-            "command": "bash -c 'if [ -f package.json ]; then echo \"📦 Node.js project detected\"; elif [ -f pubspec.yaml ]; then echo \"📱 Flutter project detected\"; elif [ -f Cargo.toml ]; then echo \"🦀 Rust project detected\"; elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then echo \"🐍 Python project detected\"; elif [ -d Assets ] && [ -f ProjectSettings/ProjectVersion.txt ]; then echo \"🎮 Unity project detected\"; elif [ -f project.godot ]; then echo \"🎮 Godot project detected\"; fi'",
-            "description": "Auto-detect project type and notify"
+            "command": "bash -c 'if [ -f package.json ]; then echo \"Node.js project\"; elif [ -f pubspec.yaml ]; then echo \"Flutter project\"; elif [ -f Cargo.toml ]; then echo \"Rust project\"; elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then echo \"Python project\"; elif [ -d Assets ] && [ -f ProjectSettings/ProjectVersion.txt ]; then echo \"Unity project\"; elif [ -f project.godot ]; then echo \"Godot project\"; fi'",
+            "description": "Auto-detect project type"
           }
         ]
       }
@@ -131,7 +121,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ rm\\ -rf\\ / ]] || [[ $cmd =~ sudo\\ rm ]] || [[ $cmd =~ mkfs ]]; then echo \"⚠️  DANGER: Potentially destructive command blocked\" && exit 1; fi'",
+            "command": "bash -c 'cmd=\"{{command}}\"; if [[ $cmd =~ rm\\ -rf\\ / ]] || [[ $cmd =~ sudo\\ rm ]] || [[ $cmd =~ mkfs ]]; then echo \"BLOCKED: Dangerous command\" && exit 1; fi'",
             "description": "Block dangerous destructive commands"
           }
         ]
@@ -141,8 +131,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'file=\"{{file_path}}\"; if [ -f \"$file\" ]; then mkdir -p ~/.claude/backups/$(dirname \"$file\") && cp \"$file\" ~/.claude/backups/\"$file\".$(date +%s).bak 2>/dev/null || true; fi'",
-            "description": "Auto-backup files before editing (safety net)"
+            "command": "bash -c 'file=\"{{file_path}}\"; if [ -f \"$file\" ]; then mkdir -p ~/.claude/backups && cp \"$file\" ~/.claude/backups/$(basename \"$file\").$(date +%s).bak 2>/dev/null || true; fi'",
+            "description": "Auto-backup files before editing"
           }
         ]
       }
@@ -153,8 +143,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] Notification: {{message}}\" >> ~/.claude/notifications.log",
-            "description": "Log all Claude Code notifications"
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] {{message}}\" >> ~/.claude/notifications.log",
+            "description": "Log notifications"
           }
         ]
       }
@@ -181,6 +171,7 @@
       "mcp__github__*",
       "mcp__vercel__*",
       "mcp__stripe__*",
+      "mcp__playwright__*",
       "Bash(pnpm run build:*)"
     ]
   },
@@ -209,67 +200,21 @@
   },
   "development": {
     "web": {
-      "frameworks": [
-        "react",
-        "vue",
-        "svelte",
-        "next.js",
-        "nuxt",
-        "astro"
-      ],
-      "tooling": [
-        "vite",
-        "webpack",
-        "typescript",
-        "eslint",
-        "prettier"
-      ]
+      "frameworks": ["react", "vue", "svelte", "next.js", "nuxt", "astro"],
+      "tooling": ["vite", "webpack", "typescript", "eslint", "prettier"]
     },
     "mobile": {
-      "frameworks": [
-        "flutter",
-        "react-native",
-        "swift",
-        "kotlin"
-      ],
-      "tooling": [
-        "xcode",
-        "android-studio",
-        "dart",
-        "gradle"
-      ]
+      "frameworks": ["flutter", "react-native", "swift", "kotlin"],
+      "tooling": ["xcode", "android-studio", "dart", "gradle"]
     },
     "game": {
-      "engines": [
-        "unity",
-        "godot",
-        "unreal"
-      ],
-      "assetTools": [
-        "blender",
-        "stable-diffusion",
-        "comfyui"
-      ],
-      "languages": [
-        "c#",
-        "gdscript",
-        "c++",
-        "glsl"
-      ]
+      "engines": ["unity", "godot", "unreal"],
+      "assetTools": ["blender", "stable-diffusion", "comfyui"],
+      "languages": ["c#", "gdscript", "c++", "glsl"]
     },
     "ai": {
-      "local": [
-        "stable-diffusion",
-        "comfyui",
-        "ollama",
-        "lm-studio"
-      ],
-      "assetGeneration": [
-        "texture",
-        "sprite",
-        "3d-model",
-        "audio"
-      ]
+      "local": ["stable-diffusion", "comfyui", "ollama", "lm-studio"],
+      "assetGeneration": ["texture", "sprite", "3d-model", "audio"]
     }
   }
 }

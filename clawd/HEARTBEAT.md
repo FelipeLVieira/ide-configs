@@ -1,52 +1,71 @@
-# HEARTBEAT.md - Orchestrator Duties
+# HEARTBEAT.md - Orchestrator Status Report
 
-## Every Heartbeat: Quick Checks Only
+## Every Heartbeat: Status Dashboard + Quick Checks
 
-Most cleanup is now automated via bash scripts + dedicated cron jobs.
-The heartbeat only needs to handle things that need main session context.
+### 1. Collect System Status (always)
+Run these checks and build a compact status report:
 
-### 1. Check for Cron Health Summary
-The System Health Monitor cron runs every 2 hours and posts a summary.
-If it reported issues recently, follow up on them.
-
-### 2. Quick Mac Mini Connectivity Check
 ```bash
-ssh felipemacmini@felipes-mac-mini.local 'echo "online"' 2>/dev/null || echo "OFFLINE"
-```
-- If offline, REPORT to Felipe immediately
+# MacBook Pro
+echo "=== MacBook ==="
+df -h / | awk 'NR==2{print "Disk: "$4" free ("$5" used)"}'
+echo "Node procs: $(ps aux | grep node | grep -v grep | wc -l | xargs)"
+echo "Ollama: $(curl -sf http://localhost:11434/api/version 2>/dev/null | python3 -c 'import sys,json;print(json.load(sys.stdin)["version"])' 2>/dev/null || echo 'DOWN')"
 
-### 3. Check Context Usage
+# Mac Mini
+echo "=== Mac Mini ==="
+ssh felipemacmini@felipes-mac-mini.local '
+  echo "Status: online"
+  df -h / | awk "NR==2{print \"Disk: \"\$4\" free (\" \$5 \" used)\"}"
+  sysctl vm.swapusage 2>/dev/null | awk -F"= " "{print \"Swap: \" \$3}" | head -1
+  echo "Ollama: $(ollama --version 2>/dev/null | awk "{print \$4}")"
+  echo "Models loaded: $(curl -sf http://localhost:11434/api/ps | python3 -c "import sys,json;ms=json.load(sys.stdin).get(\"models\",[]);print(\", \".join([m[\"name\"] for m in ms]) if ms else \"none\")" 2>/dev/null)"
+  echo "Tmux sessions: $(tmux list-sessions 2>/dev/null | wc -l | xargs)"
+' 2>/dev/null || echo "Status: ⚠️ OFFLINE"
+
+# Windows (optional, skip if unreachable after 3s)
+echo "=== Windows ==="
+timeout 3 ssh msi 'echo "Status: online"' 2>/dev/null || echo "Status: offline (normal if sleeping)"
+```
+
+### 2. Check Context Usage
 - If above 50%, run /compact before next task
 
-### 4. Report Only If Something Needs Attention
-- ❌ Mac Mini offline / unreachable
-- ❌ System Health Monitor reported critical issues
-- ✅ Significant milestone (app submitted, major bug fixed)
-- Otherwise: HEARTBEAT_OK
+### 3. Format Response
+**Always respond with a status card, NOT just "HEARTBEAT_OK".**
 
-## What's Automated (DON'T duplicate these checks)
-These are handled by bash scripts (every 15 min, zero tokens) + cron jobs:
-- ✅ Simulator cleanup on both MacBook and Mac Mini (launchd bash scripts)
-- ✅ Zombie process cleanup (launchd bash scripts)
-- ✅ Temp file cleanup (launchd bash scripts)
-- ✅ Duplicate process detection (launchd bash scripts)
-- ✅ Memory/disk monitoring (launchd bash scripts)
-- ✅ Bot health checks (System Health Monitor cron, every 2h, Sonnet)
-- ✅ Research agents (Shitcoin Brain + Quant crons, every 30min, Sonnet)
-- ✅ Session cleanup (clear-sessions cron, weekly)
-
-## Architecture Reference
+Format:
 ```
-Bash Scripts (FREE, every 15 min via launchd):
-├── MacBook: macbook-cleanup.sh → /tmp/clawdbot/macbook-health.json
-└── Mac Mini: mac-mini-cleanup.sh → /tmp/clawdbot/system-health.json
+🫀 Heartbeat — [timestamp]
+📍 Source: MacBook Pro (main orchestrator)
+🤖 Model: [current model]
 
-Clawdbot Cron Jobs (Sonnet, isolated sessions):
-├── Shitcoin Brain    → :15, :45 every hour (research)
-├── Shitcoin Quant    → :00, :30 every hour (quant strategy)
-├── System Health     → :05 every 2 hours (reads bash output + checks bots)
-└── Clear Sessions    → Sunday midnight (weekly cleanup)
+MacBook Pro: ✅ | Disk [X] free | [N] node procs
+Mac Mini: ✅/⚠️ | Disk [X] free | Swap [X] | Ollama [ver] | [models loaded] | [N] tmux
+Windows: ✅/💤/⚠️
 
-Heartbeat (main session, Opus):
-└── Quick connectivity check + context management only
+🔋 Context: [X]% used
+[Any alerts or notable findings]
+```
+
+If everything is normal, keep it to this compact card.
+If something needs attention, add a ⚠️ section below with details.
+
+## What's Automated (DON'T duplicate)
+All of these are handled by dedicated cron jobs (Sonnet, isolated sessions):
+- ✅ Cleaner Bot (hourly) — simulators, zombies, temp files, disk, browser tabs on BOTH machines
+- ✅ Healer Bot (hourly) — reconciler pattern, circuit breakers, Ollama, pm2, Tailscale on BOTH machines
+- ✅ App Store Manager (3x/day) — reviews, builds, rejections, policy compliance
+- ✅ Session cleanup (weekly Sunday midnight)
+
+## Architecture
+```
+Cron Jobs (Sonnet 4.5, isolated sessions, reasoning):
+├── Cleaner Bot     → hourly (MacBook + Mac Mini cleanup)
+├── Healer Bot      → hourly (reconciler + circuit breakers, both machines)
+├── App Store Mgr   → 9am/3pm/9pm (reviews, builds, compliance)
+└── Clear Sessions  → Sunday midnight (weekly cleanup)
+
+Heartbeat (qwen3 with reasoning, main session):
+└── System status dashboard + connectivity + context management
 ```

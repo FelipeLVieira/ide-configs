@@ -28,6 +28,10 @@ ide-configs/
 │   ├── USER.md                # Human profile (Felipe)
 │   ├── IDENTITY.md            # Bot identity (name, emoji)
 │   ├── HEARTBEAT.md           # Periodic check tasks
+│   ├── TOOLS.md               # Tool configurations and notes
+│   ├── CROSS-BOT-BRIEFING.md  # Inter-bot communication protocols
+│   ├── OPTIMIZATION_RULES.md  # Performance optimization guidelines
+│   ├── BOOTSTRAP.md           # First-run setup (ephemeral)
 │   ├── adapter.js             # Multi-account failover adapter
 │   ├── scripts/               # Auto-resume, shutdown scripts
 │   └── docs/ARCHITECTURE.md   # Multi-account rate limit docs
@@ -38,9 +42,13 @@ ide-configs/
 │   ├── PERSISTENT-BOTS.md     # Bot architecture & management
 │   ├── HYBRID-HEALING.md      # 3-layer self-healing system
 │   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
+│   ├── LOCAL-FIRST-OPTIMIZATION.md # Local model optimization strategies
 │   ├── SCRIPTS-REFERENCE.md   # Scripts docs (event-watcher, cleanup)
 │   ├── APP-STORE-MANAGER.md   # iOS App Store monitoring cron
+│   ├── SKILLS-MAPPING.md      # Bot skills and capabilities mapping
 │   ├── GAME-DESIGN-REFERENCES.md # Game design & sound research
+│   ├── SWARM-RESEARCH.md      # Multi-agent swarm research
+│   ├── RESEARCH-2026-01-27.md # Latest research notes
 │   ├── MONITOR-INTEGRATION.md # Dashboard setup
 │   ├── PREREQUISITES.md       # System requirements
 │   └── README.md              # Clawdbot overview
@@ -120,7 +128,7 @@ Think of it this way: `clawd/` is **who the bot is** (personality, rules, memory
 
 | Machine | Main Model | Heartbeat | Sub-agents | Fallback Chain |
 |---------|-----------|-----------|------------|----------------|
-| **MacBook Pro** | Opus 4.5 | qwen3:8b (local, FREE) | qwen3:8b (local) | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
+| **MacBook Pro** | Opus 4.5 | qwen3:8b (local, FREE) | qwen3:8b (local) | Sonnet 4.5 → devstral-24b → gpt-oss:20b → qwen3:8b |
 | **Mac Mini** | qwen3:8b (local, FREE) | qwen3:8b (local, FREE) | qwen3:8b (local) | MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
 | **Windows MSI** | Opus 4.5 | Mac Mini qwen3:8b (FREE) | Mac Mini qwen3:8b | Sonnet → MacBook devstral → MacBook gpt-oss → MacBook qwen3 → Mac Mini qwen3 |
 
@@ -154,10 +162,16 @@ See [infrastructure/three-machine-architecture.md](infrastructure/three-machine-
 ### Cron Jobs
 | Job | Schedule | Model | Purpose |
 |-----|----------|-------|---------|
-| Cleaner Bot | Hourly | Sonnet 4.5 | Deep cleanup (both machines) |
 | Healer Bot v3 | Hourly | Sonnet 4.5 | Self-healing + swap monitoring |
-| App Store Manager | 3x/day | Sonnet 4.5 | iOS app monitoring |
-| Clear Sessions | Weekly | — | Stale session cleanup |
+| Cleaner Bot | Hourly | Sonnet 4.5 | Deep cleanup (both machines) |
+| App Store Manager | 3x/day | qwen3:8b | iOS app monitoring |
+| Clear Sessions | Weekly (system cron) | — | Stale session cleanup |
+
+**System-Level Cron (crontab)**:
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| lume-update | 10:00 AM daily | Lume updater maintenance |
+| clawd git sync | Every 15 min | Auto-sync workspace changes |
 
 ---
 
@@ -170,7 +184,7 @@ See [infrastructure/three-machine-architecture.md](infrastructure/three-machine-
 | Sonnet cron | Clawdbot isolated sessions | ~$0.05-0.15/run | Self-healing, monitoring |
 | Opus main | MacBook + Windows main chat | ~$0.10-0.50/turn | Complex reasoning, orchestration |
 
-**Estimated monthly**: $60-130 (down from $300+ before local LLMs)
+**Estimated monthly**: $50-100 (down from $300+ before local LLMs, ~85% reduction)
 
 ---
 

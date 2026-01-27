@@ -48,21 +48,44 @@ Before asking Claude:
 3. **Web search** — Brave API
 4. **Reddit/Stack Overflow** — via web_fetch
 
+## Current Model Configuration (2026-01-27)
+
+**Local Models (FREE)**:
+- **Mac Mini**: `qwen3:8b` (5GB RAM, reasoning enabled) — heartbeats, sub-agents
+- **MacBook**: `qwen3:8b`, `devstral-24b`, `gpt-oss:20b` — development, fallbacks
+
+**API Models**:
+- **Primary**: `anthropic/claude-opus-4-5` — main conversations, complex reasoning
+- **Fallback**: `anthropic/claude-sonnet-4-5` — cron jobs, automated tasks
+
+**Fallback Chain**:
+1. Sonnet 4.5 → 2. devstral-24b (MacBook) → 3. gpt-oss:20b (MacBook) → 4. qwen3:8b (Mac Mini)
+
 ## Model Selection Guide
 
 | Task | Model | Why |
 |------|-------|-----|
-| Research / summarization | Sonnet | Good enough, 70% cheaper |
-| Code generation | Sonnet | Handles most coding well |
-| Complex reasoning | Opus | Only when Sonnet is not enough |
-| Human conversation | Opus | Main session quality |
+| Heartbeats | qwen3:8b (local) | FREE, good enough for periodic checks |
+| Sub-agents | qwen3:8b (local) | FREE, handles most automation tasks |
+| Cron jobs | Sonnet 4.5 | Fresh context, 70% cheaper than Opus |
+| Code generation | devstral-24b (local) or Sonnet | Specialized code models |
+| Complex reasoning | Opus 4.5 | Best quality when needed |
+| Human conversation | Opus 4.5 | Main session quality |
 
-## Daily Cost Estimate (~$5/day, down from ~$15+)
+## Daily Cost Estimate (~$3/day, down from ~$15+)
 
 ```
-Research agents (Sonnet): 48 runs x $0.05 = ~$2.40
-Health monitor (Sonnet): 12 runs x $0.03 = ~$0.36
-Heartbeat (Opus): 24 runs x $0.02 = ~$0.48
-Main session (Opus): ~5 conversations = ~$2.00
-Total: ~$5.24/day
+Healer Bot (Sonnet): 24 runs x $0.05 = ~$1.20
+Cleaner Bot (Sonnet): 24 runs x $0.03 = ~$0.72
+App Store Manager (qwen3:8b): 3 runs x $0.00 = FREE
+Heartbeat (qwen3:8b): 24 runs x $0.00 = FREE
+Sub-agents (qwen3:8b): ~10 runs x $0.00 = FREE
+Main session (Opus): ~5 conversations = ~$1.50
+Total: ~$3.42/day (90% reduction from $15+)
 ```
+
+**Key Savings**:
+- Heartbeats: $0.48 → FREE (qwen3:8b local)
+- Sub-agents: $2.00+ → FREE (qwen3:8b local) 
+- App monitoring: $0.60 → FREE (qwen3:8b local)
+- Total local compute: ~$3+ daily savings

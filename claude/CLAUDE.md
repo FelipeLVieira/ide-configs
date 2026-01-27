@@ -1,9 +1,9 @@
-# Your Global Development Context
+# Felipe's Global Development Context
 
 ## Developer Profile
 
-**Name**: Your Name
-**Email**: your-email@example.com
+**Name**: Felipe Vieira
+**Email**: felipe.lv.90@gmail.com
 **Primary Stack**: Full-stack web, mobile, and game development
 **AI Tools**: Local AI asset generation (Stable Diffusion, ComfyUI)
 
@@ -98,42 +98,6 @@ For simple questions or quick tasks, this can be abbreviated to a single line.
 - Use try-catch blocks appropriately
 - Provide meaningful error messages
 - Log errors for debugging
-
----
-
-## Resource Management
-
-**Port Management**:
-Before starting ANY dev server, check what's already running:
-```bash
-lsof -i :3000 -i :4000 -i :8080 | grep LISTEN
-```
-- Check first, never blindly start servers
-- Use different ports if one is busy
-- Clean up duplicate processes
-- Assigned ranges: See project-specific docs
-
-**Context Management (for AI agents)**:
-- Check context usage after each task
-- If above 50%, compact before next task
-- Don't wait until 80%+ to compact
-
-**Browser/Process Cleanup**:
-- Close browser tabs after using them (max 2-3 open)
-- Kill dev servers when done testing
-- Check for orphaned processes before starting new ones
-
-**Git Hygiene**:
-- Commit often with clear messages
-- Push after significant milestones
-- Format: `<type>: <description>` (feat, fix, refactor, docs, etc.)
-
-**Use Grok for Research**:
-User is logged into X with Grok access. Use Grok for:
-- Market research, news, trends
-- Quick fact-checking
-- Second opinions on complex decisions
-This saves Claude API credits!
 
 ---
 
@@ -725,19 +689,19 @@ clawd --non-interactive "Implement user authentication with OAuth"
 clawd --perpetual "Continuously improve test coverage and fix bugs"
 
 # With specific project context
-cd ~/repos/game-project && clawd "Add guild chat feature"
+cd ~/repos/aphos && clawd "Add guild chat feature"
 ```
 
 ### Configured Projects
 
 Clawd knows about these projects (in `~/.clawd/config.json`):
-- **game-project** - Channel-based social RPG game
-- **trading-bot** - Automated trading bot
-- **crm-app** - Legal case management system
-- **health-app** - Health tracking mobile app
-- **finance-app** - Subscription tracker app
-- **translator-app** - OCR translation app
-- **links-app** - Link-in-bio platform
+- **aphos** - Channel-based social RPG game
+- **shitcoin-bot** - Polymarket trading bot
+- **ez-crm** - Legal case management system
+- **bmi-calculator** - Health tracking mobile app
+- **bills-tracker** - Subscription tracker app
+- **screen-translator** - OCR translation app
+- **linklounge** - Link-in-bio platform
 
 ### How to Orchestrate
 
@@ -764,18 +728,18 @@ When user asks for autonomous execution:
 
 ### Example Orchestration Responses
 
-**User**: "Use clawd to add dark mode to links-app"
+**User**: "Use clawd to add dark mode to linklounge"
 **Claude**: I'll start Clawd for this task:
 ```bash
-cd ~/repos/links-app && clawd --non-interactive "Add dark mode theme support with system preference detection and manual toggle"
+cd ~/repos/linklounge && clawd --non-interactive "Add dark mode theme support with system preference detection and manual toggle"
 ```
 
-**User**: "Run clawd perpetually on game-project to improve code quality"
+**User**: "Run clawd perpetually on aphos to improve code quality"
 **Claude**: I'll start Clawd in perpetual mode. This will run continuously until you stop it:
 ```bash
-tmux new -s clawd-game-project -d 'cd ~/repos/game-project && clawd --perpetual "Continuously improve code quality: fix lint errors, add missing tests, refactor complex functions, and address TODO comments"'
+tmux new -s clawd-aphos -d 'cd ~/repos/aphos && clawd --perpetual "Continuously improve code quality: fix lint errors, add missing tests, refactor complex functions, and address TODO comments"'
 ```
-You can check progress with `tmux attach -t clawd-game-project` and stop with Ctrl+C.
+You can check progress with `tmux attach -t clawd-aphos` and stop with Ctrl+C.
 
 ---
 

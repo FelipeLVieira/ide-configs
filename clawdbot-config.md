@@ -128,7 +128,69 @@ MacBook qwen3 → Mac Mini qwen3
 
 **Why it matters:** Zero downtime. If Mac Mini Ollama crashes, MacBook picks up. If MacBook sleeps, Mac Mini keeps heartbeats alive.
 
-## ⏰ Cron Jobs
+## Memory Search (Semantic Recall)
+
+Clawdbot uses Gemini embeddings for semantic memory search across MEMORY.md and memory/*.md files.
+
+| Setting | Value |
+|---------|-------|
+| **Provider** | gemini |
+| **Model** | gemini-embedding-001 |
+| **Purpose** | Semantic recall -- finds relevant memories by meaning, not keyword match |
+| **Indexed files** | MEMORY.md, memory/*.md |
+
+This enables the bot to recall past context even when the exact wording differs from the query. Powered by Google's Gemini embedding model (free tier).
+
+## Context Pruning
+
+Manages context window size by trimming old messages when the conversation grows too long.
+
+| Setting | Value |
+|---------|-------|
+| **Mode** | cache-ttl |
+| **keepLastAssistants** | 3 |
+| **softTrimRatio** | 0.5 |
+| **hardClearRatio** | 0.7 |
+
+**How it works:**
+- Keeps the last 3 assistant messages intact (never pruned)
+- At 50% context usage: soft trim -- removes oldest cached messages
+- At 70% context usage: hard clear -- aggressively prunes to free space
+- Mode `cache-ttl` means messages expire based on cache time-to-live rather than fixed counts
+
+## Compaction
+
+Automatic conversation compaction to prevent context overflow.
+
+| Setting | Value |
+|---------|-------|
+| **Mode** | safeguard |
+| **memoryFlush** | enabled |
+| **softThresholdTokens** | 100,000 |
+
+**How it works:**
+- Mode `safeguard` triggers compaction only when approaching token limits (not proactively)
+- At 100k tokens: compaction kicks in, summarizing older context
+- `memoryFlush` writes important context to memory files before compacting, preventing information loss
+- Works alongside context pruning -- pruning trims individual messages, compaction summarizes entire sections
+
+## Auth Cooldowns
+
+Rate limiting and backoff for API authentication failures and billing issues.
+
+| Setting | Value |
+|---------|-------|
+| **billingBackoffHours** | 1 |
+| **billingMaxHours** | 5 |
+| **failureWindowHours** | 1 |
+
+**How it works:**
+- On billing/quota errors: backs off for 1 hour initially
+- Each subsequent billing failure doubles the backoff, capped at 5 hours max
+- Auth failures within a 1-hour window are grouped (prevents rapid retry loops)
+- After the backoff period, the provider is retried automatically
+
+## Cron Jobs
 
 | Job | Schedule | Model | Session | Purpose |
 |-----|----------|-------|---------|---------|

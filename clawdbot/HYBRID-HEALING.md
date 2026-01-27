@@ -336,7 +336,32 @@ Desired state: /tmp/clawdbot/desired-state.json
 
 ---
 
-## 📚 References
+## Incident Log
+
+### 2026-01-27: Mac Mini Ollama Binding to localhost Only
+
+**Problem**: Mac Mini Ollama was binding to `localhost:11434` instead of `0.0.0.0:11434`, making it unreachable from other machines on the network. Cross-machine fallback was broken -- MacBook and Windows could not reach Mac Mini Ollama.
+
+**Detection**: Healer Bot circuit breaker triggered after 5 consecutive probe failures to `http://felipes-mac-mini.local:11434/api/tags` over a 14-minute window. The circuit opened, stopping restart attempts and escalating to diagnostics.
+
+**Root Cause**: Homebrew's `brew services` does not reliably persist environment variables like `OLLAMA_HOST=0.0.0.0`. The ephemeral service config only reads from shell profile on interactive login, not when launchd spawns the process. After a reboot or service restart, Ollama reverted to binding `127.0.0.1` only.
+
+**Fix**: Healer Bot created a custom launchd plist at `~/Library/LaunchAgents/com.user.ollama.plist` that embeds `OLLAMA_HOST=0.0.0.0` directly in the plist's `EnvironmentVariables` dict. This replaces Homebrew's service management entirely for Ollama on Mac Mini.
+
+**Steps taken by Healer Bot:**
+1. Stopped Homebrew service: `brew services stop ollama`
+2. Created custom plist with OLLAMA_HOST=0.0.0.0, OLLAMA_FLASH_ATTENTION=1, OLLAMA_KV_CACHE_TYPE=q8_0
+3. Loaded via: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist`
+4. Verified Ollama responding on 0.0.0.0:11434
+5. Confirmed cross-machine fallback operational (MacBook and Windows can reach Mac Mini)
+
+**Result**: Cross-machine Ollama fallback restored. Both directions (Mac Mini to MacBook, MacBook to Mac Mini) now operational. See [ollama-setup.md](../ollama-setup.md) for the custom plist documentation.
+
+**Lesson**: Never rely on `brew services` for environment variable persistence on services managed by launchd. Always use a custom plist with embedded `EnvironmentVariables`.
+
+---
+
+## References
 
 - [Three-Machine Architecture](../infrastructure/three-machine-architecture.md) — Full infrastructure overview
 - [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) — All script documentation

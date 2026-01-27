@@ -96,13 +96,74 @@ launchctl start com.ollama.serve
 launchctl list | grep ollama
 ```
 
-### Mac Mini Service
+### Mac Mini Service (Custom LaunchAgent)
 
-Mac Mini uses Homebrew services:
+Mac Mini uses a **custom launchd plist** instead of Homebrew services. This is required because `brew services` does not reliably persist environment variables like `OLLAMA_HOST=0.0.0.0` -- after a reboot, Ollama reverts to binding `127.0.0.1` only, breaking cross-machine access.
 
+**File**: `~/Library/LaunchAgents/com.user.ollama.plist`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.ollama</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/opt/ollama/bin/ollama</string>
+        <string>serve</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>OLLAMA_HOST</key>
+        <string>0.0.0.0</string>
+        <key>OLLAMA_FLASH_ATTENTION</key>
+        <string>1</string>
+        <key>OLLAMA_KV_CACHE_TYPE</key>
+        <string>q8_0</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>/tmp/ollama.err.log</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/ollama.out.log</string>
+</dict>
+</plist>
+```
+
+**Migration from Homebrew services:**
 ```bash
-brew services start ollama
-brew services list  # Verify running
+# 1. Stop Homebrew service first (avoids port conflict)
+brew services stop ollama
+
+# 2. Load the custom plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
+
+# 3. Verify it's running and bound to 0.0.0.0
+curl http://localhost:11434/api/tags
+curl http://felipes-mac-mini.local:11434/api/tags  # from another machine
+```
+
+**Why not Homebrew services?** Homebrew's `brew services` creates an ephemeral launchd config that does not include custom environment variables. Setting `OLLAMA_HOST` in `~/.zshrc` only works for interactive shells, not launchd-spawned processes. The custom plist embeds environment variables directly, guaranteeing they persist across reboots. This was discovered after the Healer Bot detected 5 consecutive cross-machine failures (see [HYBRID-HEALING.md incident log](clawdbot/HYBRID-HEALING.md)).
+
+**Management:**
+```bash
+# Check status
+launchctl list | grep com.user.ollama
+
+# Stop
+launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
+
+# Start
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
+
+# View logs
+tail -f /tmp/ollama.out.log
+tail -f /tmp/ollama.err.log
 ```
 
 ## 🤖 Models

@@ -48,6 +48,35 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+## 💰 Cost Optimization - Save API Credits!
+
+**Before using Claude for research, use cheaper tools first:**
+
+1. **web_search (Brave)** - Use for factual lookups, current events, technical docs
+   ```
+   web_search("how to configure nginx proxy")
+   ```
+
+2. **Grok (X/Twitter)** - Felipe is logged in. Use for:
+   - Real-time news and trends
+   - Market/crypto data
+   - Second opinions on complex problems
+   - Browse to `x.com/i/grok` and ask
+
+3. **web_fetch** - Grab content from URLs without browser overhead
+
+**Use Claude (expensive) for:**
+- Complex reasoning and analysis
+- Code generation and review
+- Multi-step planning
+- File operations and tool use
+
+**Token Management:**
+- Check context usage after each major task
+- Run `/compact` proactively when above 50%
+- Don't wait until 80%+ to compact
+- Keep responses concise when possible
+
 ## 🧹 Resource Management - Clean Up After Yourself!
 
 **Browser tabs:**
@@ -128,13 +157,13 @@ lsof -i :3000
 | Range | Project | Notes |
 |-------|---------|-------|
 | 2567-2599 | Aphos game servers | 2567=prod, 2568=dev |
-| 3000-3099 | crm-app | 3000=default |
+| 3000-3099 | ez-crm | 3000=default |
 | 4000-4099 | Aphos web | 4000=default |
-| 5000-5099 | trading-bot | If needs web server |
-| 8081 | health-app | Expo web |
-| 8082 | finance-app | Expo web |
-| 8083 | translator-app | Expo web |
-| 9000-9099 | clawd-monitor | 9009=default |
+| 5000-5099 | shitcoin-bot | If needs web server |
+| 8081 | bmi-calculator | Expo web |
+| 8082 | bills-tracker | Expo web |
+| 8083 | screen-translator | Expo web |
+| 9000-9099 | crabwalk (dashboard) | 9009=default |
 
 **Before starting a server, ALWAYS check your assigned range!**
 

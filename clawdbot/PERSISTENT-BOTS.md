@@ -35,15 +35,24 @@ Documentation for running 24/7 specialist bots on Mac Mini.
 
 ## Cron Jobs (Clawdbot Built-In)
 
-All research agents run as **isolated cron jobs** with fresh context each run.
+All automated agents run as **isolated cron jobs** with fresh context each run.
 Replaced old bash loop scripts (which accumulated context and burned Opus tokens).
+
+**Currently Active** (as of 2026-01-27):
 
 | Job | Schedule | Model | Purpose |
 |-----|----------|-------|---------|
-| Shitcoin Brain | :15, :45 hourly | Sonnet | Bot monitoring + research |
-| Shitcoin Quant | :00, :30 hourly | Sonnet | Quant strategy research |
-| System Health Monitor | :05 every 2h | Sonnet | Reads cleanup reports, checks all bots |
-| Clear Sessions | Sunday midnight | Default | Weekly session cleanup |
+| Healer Bot v3 | Hourly | Sonnet 4.5 | Self-healing, swap monitoring, cross-machine failover |
+| Cleaner Bot | Hourly | Sonnet 4.5 | Deep cleanup, resource management |
+| App Store Manager | 3x daily (9 AM, 3 PM, 9 PM EST) | qwen3:8b | iOS app monitoring |
+
+**System-Level Cron** (via crontab -l):
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| lume-update | 10:00 AM daily | Lume updater maintenance |
+| clawd git sync | Every 15 min | Auto-sync workspace changes |
+| Clear Sessions | Sunday midnight | Weekly session cleanup |
 
 ### Why Cron > Bash Loops (Migration 2026-01-26)
 - **Fresh context each run** → no token accumulation, predictable costs

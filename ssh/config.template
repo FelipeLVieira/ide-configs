@@ -1,18 +1,43 @@
-# Mac Mini SSH Config
+
+# --- Sourcetree Generated ---
 Host github.com
-    HostName github.com
-    User FelipeLVieira
-    PreferredAuthentications publickey
-    IdentityFile ~/.ssh/id_ed25519
-    UseKeychain yes
-    AddKeysToAgent yes
+	HostName github.com
+	User FelipeLVieira
+	PreferredAuthentications publickey
+	IdentityFile /Users/felipevieira/.ssh/FelipeLVieira-GitHub
+	UseKeychain yes
+	AddKeysToAgent yes
+# ----------------------------
 
-Host macbook
-    HostName felipes-macbook-pro.local
-    User felipevieira
-    IdentityFile ~/.ssh/id_ed25519
+# --- Sourcetree Generated ---
+Host github.com
+	HostName github.com
+	User felipe.lv.90@gmail.com
+	PreferredAuthentications publickey
+	IdentityFile /Users/felipevieira/.ssh/felipe.lv.90@gmail.com-GitHub
+	UseKeychain yes
+	AddKeysToAgent yes
+# ----------------------------
 
+# --- Clawdbot Cross-Machine SSH ---
 Host mac-mini
-    HostName hostname.local
-    User username
+    HostName felipes-mac-mini.local
+    User felipemacmini
     IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    StrictHostKeyChecking accept-new
+
+Host mac-mini-ts
+    HostName 100.115.10.14
+    User felipemacmini
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    StrictHostKeyChecking accept-new
+# --- End Clawdbot ---
+
+# Windows MSI via Tailscale SOCKS proxy
+Host msi windows-msi
+    HostName 100.67.241.32
+    User felip
+    ProxyCommand nc -x localhost:1055 %h %p
+    StrictHostKeyChecking no

@@ -14,33 +14,42 @@ Source: https://docs.clawd.bot/start/getting-started
 
 | Tool | Purpose | MacBook | Mac Mini |
 |------|---------|---------|----------|
-| **Brave Search API** | Web search for agents | ❌ NOT SET | ❌ NOT SET |
-| **Docker** | Containerized setup (optional) | Not needed | ❌ Not installed |
+| **Brave Search API** | Web search for agents | ✅ Configured | ✅ Configured |
+| **Docker** | Containerized setup (optional) | ✅ Installed | ❌ Not installed |
 | **Xcode / CLT** | iOS builds, macOS app | ✅ Installed | ✅ Xcode 26.2 |
 
-## ⚠️ Missing: Brave Search API Key
+## Automation Tools (Installed)
 
-Both machines are missing the Brave Search API key. This is recommended for web search tools.
+| Tool | Purpose | MacBook | Mac Mini | 
+|------|---------|---------|----------|
+| **Hammerspoon** | macOS automation & window management | ✅ Installed | ✅ Installed |
+| **cliclick** | Command-line mouse/keyboard automation | ✅ Installed | ✅ Installed |
+| **tmux** | Terminal multiplexer for persistent sessions | ✅ Installed | ✅ Installed |
+| **ffmpeg** | Video/audio processing | ✅ Installed | ✅ Installed |
+| **jq** | JSON processing | ✅ Installed | ✅ Installed |
+| **tree** | Directory structure visualization | ✅ Installed | ✅ Installed |
 
-### Setup:
-```bash
-clawdbot configure --section web
-# Enter your Brave Search API key
-# Get one at: https://brave.com/search/api/
-```
+## ✅ Configured: Brave Search API Key
 
-Or add to `~/.clawdbot/clawdbot.json`:
+Brave Search API key is configured and functional for web search tools.
+
+**Current Status**: ✅ Active (`BSAqL_T5epoaUSzN4HHBOOZb9UdWq8D`)
+
+The web search tool is available via:
 ```json
 {
   "tools": {
     "web": {
       "search": {
-        "apiKey": "YOUR_BRAVE_API_KEY"
+        "enabled": true,
+        "apiKey": "BSAqL_T5epoaUSzN4HHBOOZb9UdWq8D"
       }
     }
   }
 }
 ```
+
+**Note**: To get your own Brave Search API key, visit: https://brave.com/search/api/
 
 ## Installation
 
