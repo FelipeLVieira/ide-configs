@@ -12,12 +12,12 @@ Documentation for migrating to new Mac Mini.
 │  Main Session (telegram:main)                               │
 │  └── Orchestrator Bot (monitors swarm)                      │
 │  └── Sub-Agents:                                            │
-│      ├── game-project-rebuild (game dev)                           │
-│      ├── crm-app-tester (CRM testing)                        │
-│      ├── health-app (iOS app)                           │
-│      ├── finance-app-v2 (iOS app)                         │
-│      ├── translator-app-v2 (iOS app)                     │
-│      ├── trading-bot (trading monitoring)                   │
+│      ├── aphos-rebuild (game dev)                           │
+│      ├── ez-crm-tester (CRM testing)                        │
+│      ├── bmi-calculator (iOS app)                           │
+│      ├── bills-tracker-v2 (iOS app)                         │
+│      ├── screen-translator-v2 (iOS app)                     │
+│      ├── shitcoin-bot (crypto monitoring)                   │
 │      └── orchestration-research (research tasks)            │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -38,13 +38,13 @@ Documentation for migrating to new Mac Mini.
     └── ARCHITECTURE.md           # This file
 
 ~/repos/                          # Project repositories
-├── game-project/                        # Social RPG game
-├── crm-app/                       # CRM project
+├── aphos/                        # Game project
+├── ez-crm/                       # CRM project
 ├── clawd-monitor/                # Dashboard
-├── trading-bot/                 # Trading bot
-├── health-app/               # iOS app
+├── shitcoin-bot/                 # Crypto bot
+├── bmi-calculator/               # iOS app
 ├── bill-subscriptions-organizer-tracker/  # iOS app
-├── simple-translator-app/     # iOS app
+├── simple-screen-translator/     # iOS app
 └── ide-configs/                  # Shared configs
 
 ~/.clawdbot/                      # Clawdbot state
