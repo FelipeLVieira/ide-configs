@@ -12,12 +12,12 @@ Multi-bot architecture with specialized roles per project.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Game Designer** | Mechanics, balance, systems design. References: Sakaguchi, Koster, Matsuno, Pardo. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | gpt-oss:20b |
+| **Game Designer** | Mechanics, balance, systems design. References: Sakaguchi, Koster, Matsuno, Pardo. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | qwen3-coder:30b |
 | **Backend Dev** | Colyseus servers, game logic | devstral-small-2:24b |
-| **Frontend Dev** | Next.js UI, Three.js rendering | gpt-oss:20b |
+| **Frontend Dev** | Next.js UI, Three.js rendering | qwen3-coder:30b |
 | **QA Engineer** | Testing, bug reports, playtesting | qwen3:8b |
 | **Art Director** | Asset generation prompts, visual style | Claude Sonnet |
-| **Sound Engineer** | SFX, music, ambient audio. References: Uematsu, Mitsuda, Kikuta, SoundTeMP. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | gpt-oss:20b |
+| **Sound Engineer** | SFX, music, ambient audio. References: Uematsu, Mitsuda, Kikuta, SoundTeMP. See [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) | qwen3-coder:30b |
 
 ### Current Focus
 - Combat enhancement system (TypeScript TS7053 fixes)
@@ -74,8 +74,8 @@ WARNING: **CRITICAL: Shitcoin team must run on MacBook!**
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Designer/Frontend** | UX/UI, landing pages, components | gpt-oss:20b |
-| **Backend Dev** | Supabase schema, API routes | gpt-oss:20b |
+| **Designer/Frontend** | UX/UI, landing pages, components | qwen3-coder:30b |
+| **Backend Dev** | Supabase schema, API routes | qwen3-coder:30b |
 | **Growth Hacker** | SEO, analytics, virality | qwen3:8b |
 | **QA Engineer** | Testing, edge cases | qwen3:8b |
 
@@ -92,8 +92,8 @@ WARNING: **CRITICAL: Shitcoin team must run on MacBook!**
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
 | **Backend Dev** | API routes, Supabase schema, auth | devstral-small-2:24b |
-| **Frontend Dev** | React components, forms, dashboards | gpt-oss:20b |
-| **Product Designer** | UX flows, wireframes, design system | gpt-oss:20b |
+| **Frontend Dev** | React components, forms, dashboards | qwen3-coder:30b |
+| **Product Designer** | UX flows, wireframes, design system | qwen3-coder:30b |
 | **QA Engineer** | Testing, validation, edge cases | qwen3:8b |
 
 ---
@@ -110,8 +110,8 @@ WARNING: **CRITICAL: Shitcoin team must run on MacBook!**
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
 | **Art Director** | Visual style guide, asset reviews | Claude Sonnet |
-| **Sprite Artist** | Character sprites, animations | gpt-oss:20b |
-| **Icon Designer** | UI icons, item icons, badges | gpt-oss:20b |
+| **Sprite Artist** | Character sprites, animations | qwen3-coder:30b |
+| **Icon Designer** | UI icons, item icons, badges | qwen3-coder:30b |
 | **UI Asset Creator** | Backgrounds, panels, frames | qwen3:8b |
 | **Pipeline Engineer** | Asset processing, format conversion | qwen3:8b |
 
@@ -127,7 +127,7 @@ WARNING: **CRITICAL: Shitcoin team must run on MacBook!**
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Dashboard Dev** | UI components, real-time updates | gpt-oss:20b |
+| **Dashboard Dev** | UI components, real-time updates | qwen3-coder:30b |
 | **DevOps** | Deployment, monitoring setup | qwen3:8b |
 | **Analytics** | Metrics, visualizations, alerts | qwen3:8b |
 
@@ -144,7 +144,7 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Engineer** | Expo app, BMI logic, navigation | gpt-oss:20b |
+| **Mobile Engineer** | Expo app, BMI logic, navigation | qwen3-coder:30b |
 | **UI Designer** | Health-focused design, animations | qwen3:8b |
 | **QA Engineer** | Device testing, edge cases | qwen3:8b |
 
@@ -155,9 +155,9 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Dev** | Expo app, bill reminders, notifications | gpt-oss:20b |
+| **Mobile Dev** | Expo app, bill reminders, notifications | qwen3-coder:30b |
 | **UI Designer** | Finance-focused design, charts | qwen3:8b |
-| **Product Designer** | Feature planning, user flows | gpt-oss:20b |
+| **Product Designer** | Feature planning, user flows | qwen3-coder:30b |
 | **QA Engineer** | Testing, data validation | qwen3:8b |
 
 ### Screen Translator
@@ -167,7 +167,7 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Dev** | Expo app, camera integration | gpt-oss:20b |
+| **Mobile Dev** | Expo app, camera integration | qwen3-coder:30b |
 | **ML/Vision Engineer** | OCR, translation API, text detection | devstral-small-2:24b |
 | **UI Designer** | Overlay UI, camera preview design | qwen3:8b |
 | **QA Engineer** | Multi-language testing, OCR accuracy | qwen3:8b |
@@ -179,7 +179,7 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 **Type**: Automated cron job (not a bot)
 **Machine**: MacBook Pro (main session)
 **Schedule**: 3x daily (9 AM, 3 PM, 9 PM EST)
-**Model**: gpt-oss:20b (local, FREE)
+**Model**: qwen3-coder:30b (local, FREE)
 
 Monitors **all 3 iOS apps** on App Store Connect:
 
@@ -228,7 +228,7 @@ All Mac Mini cron jobs updated from deprecated `qwen2.5-coder` to `qwen3:8b`:
 - ✅ Shitcoin Quant (15 min)
 - ✅ System Health Monitor (30 min)
 
-WARNING: **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-loading. gpt-oss:20b exists on disk but is NEVER in auto-fallback chains.
+WARNING: **Mac Mini RAM constraints**: Only qwen3:8b (5GB) and phi4:14b (9GB) are safe for auto-loading on Mac Mini (16GB RAM).
 
 ---
 
@@ -243,19 +243,19 @@ WARNING: **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-load
 | **Simple** | qwen3:8b (reasoning=true, both Macs) | QA, testing, quick fixes, research |
 | **Medium** | qwen3:8b (reasoning=true) | Feature dev, refactoring, design |
 | **Heavy** | devstral-small-2:24b (MacBook 48GB ONLY) | Architecture, backend systems, ML |
-| **General** | gpt-oss:20b (MacBook 48GB ONLY) | Complex tasks needing bigger model |
+| **General** | qwen3-coder:30b (MacBook 48GB ONLY) | Complex tasks needing bigger model |
 | **Creative** | Claude Sonnet 4.5 | Art direction, storytelling |
 | **Critical** | Claude Opus 4.5 | Major refactors, security |
 
-> WARNING: devstral-24b and gpt-oss:20b are MacBook-only models. Mac Mini (16GB) can only safely auto-load qwen3:8b.
+> WARNING: qwen3-coder:30b, devstral-24b, and gemma3:12b are MacBook-only models. Mac Mini (16GB) can only safely auto-load qwen3:8b and phi4:14b.
 
 ### By Role Type
 
 | Role Type | Primary Model | Fallback |
 |-----------|---------------|----------|
-| **Frontend** | qwen3:8b (reasoning=true) | gpt-oss:20b |
+| **Frontend** | qwen3:8b (reasoning=true) | qwen3-coder:30b |
 | **Backend** | qwen3:8b (reasoning=true) | devstral-small-2:24b |
-| **QA** | qwen3:8b (reasoning=true) | gpt-oss:20b |
+| **QA** | qwen3:8b (reasoning=true) | qwen3-coder:30b |
 | **Design** | Claude Sonnet 4.5 | qwen3:8b |
 | **Research** | Grok (free!) | qwen3:8b |
 | **Data/ML** | qwen3:8b (reasoning=true) | devstral-small-2:24b |
@@ -275,14 +275,14 @@ Before using expensive models, check:
 ### Sub-Agent Cascade
 
 When spawning sub-agents (reasoning-first, swap-safe):
-1. **qwen3:8b** (local, reasoning=true — PRIMARY, FREE)
-2. **qwen3:8b** (cross-machine via Tailscale — if local fails)
+1. **qwen3-coder:30b** (MacBook primary — 30B params, FREE)
+2. **qwen3:8b** (local or cross-machine via Tailscale — reasoning=true, FREE)
 3. **devstral-small-2:24b** (MacBook Ollama — heavy coding, 48GB safe)
-4. **gpt-oss:20b** (MacBook Ollama ONLY — NOT on Mac Mini auto-fallback!)
+4. **gemma3:12b** (MacBook Ollama — vision-capable, image input!)
 5. **Claude Sonnet 4.5** (API, if all local fail)
 6. **Claude Opus 4.5** (critical tasks only)
 
-> WARNING: gpt-oss:20b (14GB) is NEVER in Mac Mini auto-fallback chains — causes swap death on 16GB.
+> NOTE: MacBook-only models (qwen3-coder:30b, devstral-24b, gemma3:12b) require 48GB RAM. Mac Mini (16GB) only auto-loads qwen3:8b and phi4:14b.
 
 ### Parallel Work
 
@@ -298,7 +298,7 @@ When spawning sub-agents (reasoning-first, swap-safe):
 ### Free Resources (Use First!)
 1. **Grok** — X/Twitter AI (Felipe's account)
 2. **Web search** — Brave, Google
-3. **Local LLMs** — gpt-oss, qwen3, devstral
+3. **Local LLMs** — qwen3-coder, devstral, gemma3, qwen3
 
 ### Paid APIs (Use Wisely!)
 1. **Claude Sonnet** — $3/million tokens input, $15/million output

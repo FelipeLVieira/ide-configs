@@ -60,12 +60,14 @@ All of these are handled by dedicated cron jobs (Sonnet, isolated sessions):
 
 ## Architecture
 ```
-Cron Jobs (Sonnet 4.5, isolated sessions, reasoning):
+Cron Jobs (Sonnet 4.5, isolated sessions, maxConcurrentRuns=6):
  Cleaner Bot -> hourly (MacBook + Mac Mini cleanup)
  Healer Bot -> hourly (reconciler + circuit breakers, both machines)
  App Store Mgr -> 9am/3pm/9pm (reviews, builds, compliance)
+ R&D Research -> every 6h (AI improvements, X/Reddit/Google)
  Clear Sessions -> Sunday midnight (weekly cleanup)
 
-Heartbeat (qwen3 with reasoning, main session):
+Heartbeat (qwen3-coder:30b, thinkingDefault=off, main session):
  System status dashboard + connectivity + context management
+ Model: ollama-macbook/qwen3-coder:30b (30B params, FREE)
 ```

@@ -116,12 +116,22 @@ nodes.run(mac-mini, ["cliclick", "c:500,400"])
 - **Note**: Both Macs use Tailscale in userspace-networking mode (SOCKS5 on localhost:1055)
 - **From Mac Mini**: same `ssh msi` works
 
-## QWEN Local LLM (Mac Mini)
-- **Model**: qwen2.5-coder:7b-instruct-q5_K_M (5.4 GB)
+## Local LLMs (Ollama)
+
+### MacBook Pro (48GB RAM)
+- **Primary**: qwen3-coder:30b (30B params, contextWindow=40960) — sub-agents & heartbeats
+- **Coding**: devstral-small-2:24b (24B) — heavy coding tasks
+- **Vision**: gemma3:12b (12B, image input!) — can analyze images
+- **Lightweight**: qwen3:8b (8B, reasoning=true) — quick tasks
+- **Ollama**: http://localhost:11434 on MacBook
+- **Concurrency**: maxConcurrent=8, subagents=10, cron=6 (local models have NO rate limits)
+
+### Mac Mini (16GB RAM)
+- **Primary**: qwen3:8b (8B, reasoning=true) — always-on
+- **Secondary**: phi4:14b (14B, reasoning=true) — larger tasks
 - **Ollama**: http://localhost:11434 on Mac Mini
 - **Cost**: FREE — use for all automated/cron tasks
-- **Mac Mini Clawdbot config**: Primary model = QWEN, fallback = Sonnet -> Opus
-- **Cron jobs on Mac Mini**: Shitcoin Brain (10min), Quant (15min), Health (30min) — all QWEN
+- **Cron jobs on Mac Mini**: Shitcoin Brain (10min), Quant (15min), Health (30min) — all qwen3:8b
 
 ## What Goes Here
 

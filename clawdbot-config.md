@@ -2,22 +2,21 @@
 
 Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 
-> **Last updated**: 2026-01-27 — Config audit, swap protection enforced, Windows dual-provider
+> **Last updated**: 2026-01-27 — qwen3-coder:30b primary, gemma3:12b added, gpt-oss:20b removed, concurrency bump
 
 ## Model Routing Strategy
 
 ### Architecture Philosophy: Reasoning-First, Swap-Safe, Cost-Second
 
-**ALL machines use thinking/reasoning by default:**
-- `thinkingDefault: "medium"` — Extended reasoning on all models that support it (changed from "low" to fix Opus 4.5 400 errors)
+**MacBook thinking is OFF to maximize concurrency:**
+- `thinkingDefault: "off"` — Disabled to reduce token usage and allow higher parallelism with local models
 - **Valid thinking levels**: off, minimal, low, medium, high, xhigh
-- Reasoning = better decisions, fewer mistakes, less wasted work
+- **Rationale**: Local Ollama models have NO rate limits — turning off thinking allows more concurrent requests
 - **Native reasoning support**: Only qwen3:8b and phi4:14b have reasoning=true among local models
 
 **Mac Mini swap protection is NON-NEGOTIABLE:**
-- Mac Mini has 16GB RAM — gpt-oss:20b (14GB) causes swap death
-- Only qwen3:8b (5GB) is allowed in Mac Mini auto-fallback chains
-- gpt-oss:20b exists on disk but is NEVER in automatic cascades
+- Mac Mini has 16GB RAM — heavy models cause swap death
+- Only qwen3:8b (5GB) and phi4:14b (9GB) are allowed in Mac Mini auto-fallback chains
 
 ### Model Tiers
 
@@ -25,20 +24,23 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 |------|--------|------|-----------|
 | **1 — Frontier** | Claude Opus 4.5 | $$$ | Main chat, complex reasoning (MacBook + Windows) |
 | **2 — Smart API** | Claude Sonnet 4.5 | $$ | Cron jobs (isolated sessions), API fallback |
-| **3 — Free local** | qwen3:8b (reasoning=true) | FREE | Heartbeats, sub-agents, quick tasks (all machines) |
-| **4 — Free heavy** | devstral-24b, gpt-oss:20b | FREE | Heavy coding, general tasks (MacBook ONLY, 48GB) |
-| **5 — Free research** | Grok, Brave Search, web_fetch | FREE | Research before burning tokens |
+| **3 — Free powerful** | qwen3-coder:30b | FREE | Sub-agents, heartbeats (MacBook primary, 30B params) |
+| **4 — Free coding** | devstral-24b | FREE | Heavy coding tasks (MacBook ONLY, 48GB) |
+| **5 — Free light** | qwen3:8b, gemma3:12b, phi4:14b | FREE | Quick tasks, vision (gemma3 has image input!), Mac Mini |
+| **6 — Free research** | Grok, Brave Search, web_fetch | FREE | Research before burning tokens |
 
 ### Available Models
 
-| Model | Params | Disk | RAM | Reasoning | Machines |
-|-------|--------|------|-----|-----------|----------|
-| **qwen3:8b** | 8B | 5.2 GB | ~6 GB | [OK] true | Both Macs |
-| **phi4:14b** | 14B | 9.1 GB | ~10 GB | [OK] true | Mac Mini (NEW) |
-| **devstral-small-2:24b** | 24B | 15 GB | ~18 GB | [NO] | MacBook ONLY (48GB) |
-| **gpt-oss:20b** | 20B (DeepSeek-V3) | 13 GB | ~14 GB | [NO] | MacBook (safe), Mac Mini (on-demand ONLY) |
+| Model | Params | Context | MaxTokens | Reasoning | Image | Machines |
+|-------|--------|---------|-----------|-----------|-------|----------|
+| **qwen3-coder:30b** | 30B | 40960 | 40960 | [NO] | [NO] | MacBook ONLY (48GB) — NEW PRIMARY |
+| **devstral-small-2:24b** | 24B | 32768 | 8192 | [NO] | [NO] | MacBook ONLY (48GB) |
+| **gemma3:12b** | 12B | 32768 | 8192 | [NO] | [OK] | MacBook ONLY (48GB) — NEW, has image input! |
+| **qwen3:8b** | 8B | 40960 | 40960 | [OK] true | [NO] | Both Macs |
+| **phi4:14b** | 14B | 16384 | — | [OK] true | [NO] | Mac Mini |
 
 **Removed:**
+- [NO] gpt-oss:20b — Deleted from MacBook (replaced by qwen3-coder:30b)
 - [NO] qwen3-fast:8b — Deleted from Mac Mini (duplicate of qwen3:8b, freed 5.2GB disk)
 
 ## Model Routing Table (All 3 Machines)
@@ -48,20 +50,25 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b | All safe on 48GB |
-| **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` -> macbook qwen3 -> macbook devstral -> gpt-oss -> Sonnet -> Opus | Local-first cascade |
-| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (was causing 400 errors with Opus 4.5) |
+| **Fallbacks** | Sonnet 4.5 -> devstral-24b -> gemma3:12b | All safe on 48GB |
+| **Heartbeat** | `ollama-macbook/qwen3-coder:30b` | FREE, 30B params |
+| **Sub-agents primary** | `ollama-macbook/qwen3-coder:30b` | FREE, 30B coding model |
+| **Sub-agent fallbacks** | qwen3:8b (macbook) -> qwen3:8b (mini) -> Sonnet 4.5 | Local-first cascade |
+| **Default fallbacks** | devstral-24b -> gemma3:12b -> qwen3:8b (mini) -> phi4:14b (mini) | Cross-machine |
+| **Thinking** | `thinkingDefault: "off"` | Off for higher concurrency |
+| **maxConcurrent** | 8 (was 4) | Local models have no rate limits |
+| **subagents.maxConcurrent** | 10 (was 5) | Ollama queues requests |
+| **cron.maxConcurrentRuns** | 6 | New setting |
 
 ### Mac Mini (16GB RAM) — Always-On Server
 
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Fallbacks** | phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Full local-to-cloud cascade |
+| **Fallbacks** | phi4:14b -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Full local-to-cloud cascade |
 | **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` -> phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Cross-machine fallback |
-| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (Opus 4.5 fix) |
+| **Sub-agents** | `ollama/qwen3:8b` -> phi4:14b -> MacBook qwen3-coder -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Cross-machine fallback |
+| **Thinking** | `thinkingDefault: "medium"` | Mac Mini unchanged |
 
 > **phi4:14b now available** — Microsoft Phi-4 (14B params, 9.1GB, reasoning=true, contextWindow=16384). Safe for Mac Mini 16GB RAM.
 
@@ -70,10 +77,10 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet -> MacBook devstral -> MacBook gpt-oss -> MacBook qwen3 -> Mac Mini qwen3 | Dual-provider |
+| **Fallbacks** | Sonnet -> MacBook devstral -> MacBook qwen3-coder -> MacBook gemma3:12b -> Mac Mini qwen3 | Dual-provider |
 | **Heartbeat** | `ollama-macmini/qwen3:8b` | FREE, via Tailscale |
-| **Sub-agents** | Mac Mini qwen3 -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Mac Mini first (always-on) |
-| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (Opus 4.5 fix) |
+| **Sub-agents** | Mac Mini qwen3 -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Mac Mini first (always-on) |
+| **Thinking** | `thinkingDefault: "medium"` | Windows unchanged |
 
 ## Ollama Providers
 
@@ -84,7 +91,7 @@ tailscaleUrl: http://100.115.10.14:11434 # remote access
 models:
   - qwen3:8b # PRIMARY (5GB, reasoning=true, SAFE for 16GB)
   - phi4:14b # NEW: Microsoft Phi-4 (9.1GB, reasoning=true, contextWindow=16384)
-note: gpt-oss:20b exists on disk but is NOT registered as auto-fallback
+note: Only qwen3:8b and phi4:14b are registered for auto-fallback (swap protection)
 ```
 
 ### Provider: `ollama-macbook` (MacBook Pro — heavy compute)
@@ -92,16 +99,17 @@ note: gpt-oss:20b exists on disk but is NOT registered as auto-fallback
 baseUrl: http://100.125.165.107:11434 # Tailscale IP (reliable)
 # Alternative: http://felipes-macbook-pro-2.local:11434
 models:
-  - qwen3:8b # PRIMARY for sub-agents (reasoning=true)
+  - qwen3-coder:30b # PRIMARY for sub-agents/heartbeats (30B, contextWindow=40960)
   - devstral-small-2:24b # Heavy coding (48GB RAM safe)
-  - gpt-oss:20b # General fallback (48GB RAM safe)
+  - gemma3:12b # NEW: Vision-capable model (image input!, contextWindow=32768)
+  - qwen3:8b # Lightweight fallback (reasoning=true, contextWindow=40960)
 ```
 
 ### Windows-specific providers
 ```yaml
 ollama-macbookpro:
   baseUrl: http://100.125.165.107:11434 # MacBook via Tailscale
-  models: [devstral-24b, gpt-oss:20b, qwen3:8b]
+  models: [qwen3-coder:30b, devstral-24b, gemma3:12b, qwen3:8b]
 
 ollama-macmini:
   baseUrl: http://100.115.10.14:11434 # Mac Mini via Tailscale
@@ -114,20 +122,20 @@ Both Macs have **bidirectional Ollama fallback** — if one machine's Ollama fai
 
 ### Mac Mini -> MacBook fallback
 ```
-qwen3:8b (local) -> MacBook qwen3:8b -> MacBook devstral-24b ->
-MacBook gpt-oss:20b -> Sonnet -> Opus
+qwen3:8b (local) -> phi4:14b (local) -> MacBook qwen3-coder:30b ->
+MacBook devstral-24b -> MacBook gemma3:12b -> Sonnet -> Opus
 ```
 
 ### MacBook -> Mac Mini fallback
 ```
-Opus -> Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b (local) ->
+Opus -> Sonnet -> devstral-24b -> gemma3:12b -> qwen3:8b (local) ->
 Mac Mini qwen3:8b (remote)
 ```
 
 ### Windows -> Both Macs
 ```
-Opus -> Sonnet -> MacBook devstral -> MacBook gpt-oss ->
-MacBook qwen3 -> Mac Mini qwen3
+Opus -> Sonnet -> MacBook qwen3-coder:30b -> MacBook devstral ->
+MacBook gemma3:12b -> MacBook qwen3 -> Mac Mini qwen3
 ```
 
 **Why it matters:** Zero downtime. If Mac Mini Ollama crashes, MacBook picks up. If MacBook sleeps, Mac Mini keeps heartbeats alive.
@@ -196,13 +204,13 @@ Rate limiting and backoff for API authentication failures and billing issues.
 
 ## Cron Jobs
 
-### MacBook Pro (5 jobs)
+### MacBook Pro (5 jobs + cron.maxConcurrentRuns=6)
 | Job | Schedule | Model | Session | Purpose |
 |-----|----------|-------|---------|---------|
 | **Cleaner Bot** | Hourly | Sonnet 4.5 | isolated | Deep cleanup |
 | **Healer Bot v3** | Hourly | Sonnet 4.5 | isolated | Self-healing + swap monitoring |
 | **App Store Manager** | 3x/day (9/3/9 EST) | Sonnet 4.5 | isolated | iOS app monitoring |
-| **R&D AI Research** | Every 6 hours | Sonnet 4.5 | isolated | Monitors X/Twitter, Reddit, Google for AI improvements |
+| **R&D AI Research** | Every 6 hours | Sonnet 4.5 | isolated | Monitors X/Twitter, Reddit, Google for AI improvements. See [rd-research-team.md](rd-research-team.md) |
 | **Clear Sessions** | Weekly (Sun midnight) | — | — | Stale session cleanup |
 
 ### Mac Mini (3 jobs)
@@ -243,9 +251,10 @@ OLLAMA_KV_CACHE_TYPE=q8_0 # 4x memory reduction vs f16
 
 | Task | Before | After | Savings |
 |------|--------|-------|---------|
-| Heartbeats | Claude Sonnet ($) | qwen3:8b (FREE) | 100% |
-| Sub-agents (coding) | Claude Sonnet ($) | devstral-24b / qwen3:8b (FREE) | 100% |
-| Sub-agents (general) | Claude Sonnet ($) | qwen3:8b (FREE) | 100% |
+| Heartbeats | Claude Sonnet ($) | qwen3-coder:30b (FREE) | 100% |
+| Sub-agents (coding) | Claude Sonnet ($) | qwen3-coder:30b / devstral-24b (FREE) | 100% |
+| Sub-agents (general) | Claude Sonnet ($) | qwen3-coder:30b (FREE) | 100% |
+| Sub-agents (vision) | Claude Sonnet ($) | gemma3:12b (FREE, image input!) | 100% |
 | Self-healing | Claude Sonnet ($) | event-watcher bash (FREE) + Sonnet cron | 95% |
 | Windows tasks | Claude API only ($$$) | MacBook + Mac Mini Ollama (FREE) | 90% |
 
@@ -276,6 +285,17 @@ curl http://100.125.165.107:11434/api/tags # Tailscale (MacBook)
 ```
 
 ## Fix History
+
+### 2026-01-27: qwen3-coder:30b, gemma3:12b, Concurrency Bump
+**Changes:**
+- **New MacBook models**: qwen3-coder:30b (30B, primary for sub-agents/heartbeats), gemma3:12b (12B, image input!)
+- **Removed**: gpt-oss:20b — replaced by qwen3-coder:30b (better coding, larger context)
+- **Heartbeat model**: Changed from `ollama/qwen3:8b` to `ollama-macbook/qwen3-coder:30b`
+- **Sub-agent primary**: Changed to `ollama-macbook/qwen3-coder:30b`
+- **thinkingDefault**: Changed from "medium" to "off" (reduces token usage, enables higher concurrency)
+- **Concurrency bump**: maxConcurrent 4→8, subagents.maxConcurrent 5→10, cron.maxConcurrentRuns=6
+- **Why higher concurrency**: Local Ollama models have NO rate limits (unlike Anthropic API which returns 429s). Ollama simply queues requests, so more concurrent agents = faster throughput without errors.
+- **R&D Research cron**: Added every-6-hour cron for AI research (see rd-research-team.md)
 
 ### 2026-01-27: Config Audit & Swap Protection Enforcement
 **Problem**: gpt-oss:20b (14GB) in Mac Mini auto-fallback chains was causing 15.6GB swap death. Windows only had Mac Mini as Ollama provider. qwen3-fast:8b was a dead reference.
