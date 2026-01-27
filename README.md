@@ -1,117 +1,234 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Cursor, VSCode, Gemini/Antigravity, Clawdbot, and Mac Mini server setup.
+Personal configuration files for Claude Code, Cursor, VSCode, Clawdbot, and Mac Mini bot factory.
 
-## Repository Structure
+## 🚀 Quick Start
+
+```bash
+# Clone
+git clone git@github.com:FelipeLVieira/ide-configs.git ~/repos/ide-configs
+cd ~/repos/ide-configs
+
+# Install (macOS/Linux)
+./install.sh
+
+# Sync to Mac Mini
+./mac-mini/sync-to-mini.sh
+```
+
+## 📁 Repository Structure
 
 ```
 ide-configs/
-├── claude/                    # Claude Code CLI configs
-│   ├── CLAUDE.md             # Per-project template
-│   ├── CLAUDE-global.md      # Global ~/.claude/CLAUDE.md
-│   ├── WORKING_PRINCIPLES.md # Development principles
-│   ├── deslop.md             # Anti-slop writing guide
-│   ├── settings.json         # Claude Code hooks (ESLint, Prettier, etc.)
-│   └── settings-windows.json # Windows variant
-├── clawd/                    # Clawdbot workspace files
+├── 🤖 clawdbot/              # Clawdbot Bot Factory (NEW!)
+│   ├── PERSISTENT-BOTS.md    # 9-bot architecture & management
+│   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
+│   ├── SCRIPTS-REFERENCE.md  # Mac Mini scripts docs
+│   ├── MONITOR-INTEGRATION.md # Dashboard setup
+│   ├── PREREQUISITES.md      # System requirements
+│   └── README.md             # Clawdbot overview
+│
+├── 🧠 clawd/                 # Clawdbot workspace files
 │   ├── AGENTS.md             # Agent behavior rules
 │   ├── SOUL.md               # Personality & tone
 │   ├── USER.md               # Human profile
 │   ├── IDENTITY.md           # Bot identity
 │   ├── HEARTBEAT.md          # Periodic check tasks
-│   ├── BOOTSTRAP.md          # First-run onboarding
-│   ├── TOOLS.md              # Tool-specific notes
-│   ├── OPTIMIZATION_RULES.md # Token optimization
-│   ├── adapter.js            # Multi-account rate-limit fallback adapter
-│   ├── clawdbot.template.json # Gateway config template
-│   ├── scripts/              # Auto-resume, shutdown, account setup scripts
-│   └── docs/ARCHITECTURE.md  # Full architecture + multi-account docs
-├── mcp/                      # MCP Server configs (all IDEs)
-│   ├── README.md             # MCP inventory & sync status
-│   ├── claude-code-mcps.json # Claude Code MCP template
-│   ├── cursor-mcps.json      # Cursor MCP template
-│   └── vscode-mcps.json      # VSCode MCP template
-├── vscode/                   # VSCode configs
-│   ├── global-settings.json  # User settings (macOS)
-│   ├── global-settings-windows.json
-│   ├── keybindings.json      # Custom keybindings
-│   └── extensions.txt        # Installed extensions list
-├── homebrew/                 # Homebrew package lists
-│   ├── Brewfile-macbook      # MacBook formulae & casks
-│   └── Brewfile-macmini      # Mac Mini formulae & casks
-├── git/                      # Git configs
-│   ├── gitconfig.template    # ~/.gitconfig template
-│   └── gitignore_global      # Global gitignore
-├── ssh/                      # SSH configs
-│   └── config.template       # SSH config for both machines
-├── mac-mini/                 # Mac Mini server setup
-│   ├── README.md             # Full setup guide & architecture
-│   ├── PERSISTENCE.md        # Bot persistence strategy
-│   ├── sync-to-mini.sh       # One-command config sync
-│   ├── launchagents/         # All 5 LaunchAgent plists
-│   │   ├── com.clawdbot.gateway.plist
-│   │   ├── com.clawdbot.game-project.plist
-│   │   ├── com.clawdbot.trading-bot.plist
-│   │   ├── com.clawdbot.failover.plist
-│   │   └── com.clawdbot.node.plist
+│   ├── adapter.js            # Multi-account failover
+│   ├── scripts/              # Auto-resume, shutdown scripts
+│   └── docs/ARCHITECTURE.md  # Multi-account rate limit docs
+│
+├── 💻 claude/                # Claude Code CLI configs
+│   ├── CLAUDE.md             # Per-project template
+│   ├── CLAUDE-global.md      # Global settings
+│   └── settings.json         # Hooks (ESLint, Prettier)
+│
+├── 🔌 mcp/                   # MCP Server configs
+│   ├── claude-code-mcps.json
+│   ├── cursor-mcps.json
+│   └── vscode-mcps.json
+│
+├── 🖥️ mac-mini/              # Mac Mini server setup
+│   ├── README.md             # Setup guide
+│   ├── PERSISTENCE.md        # Bot persistence
+│   ├── launchagents/         # LaunchAgent plists
 │   └── scripts/              # Startup scripts
-│       ├── start-game-project.sh
-│       ├── start-trading-bot.sh
-│       └── failover.sh
-├── gemini/                   # Gemini/Antigravity configs
-│   └── GEMINI.md
-├── project-templates/        # Per-project CLAUDE.md templates
-│   ├── TEMPLATE-CLAUDE.md
-│   ├── game-project-CLAUDE.md
-│   ├── finance-app-CLAUDE.md
-│   ├── health-app-CLAUDE.md
-│   ├── clawd-monitor-CLAUDE.md
-│   ├── crm-app-CLAUDE.md
-│   ├── links-app-CLAUDE.md
-│   ├── translator-app-CLAUDE.md
-│   └── trading-bot-CLAUDE.md
-├── scripts/                  # Utility scripts
-│   ├── cleanup-antigravity.sh
-│   └── cleanup-antigravity.ps1
-├── clawdbot/                 # Clawdbot setup docs
-│   ├── README.md
-│   └── clawdbot-watchdog.ps1
-├── install.sh                # macOS/Linux setup script
-└── install.ps1               # Windows setup script
+│
+├── 📝 project-templates/     # Per-project CLAUDE.md
+├── 🍺 homebrew/              # Brewfiles
+├── ⚙️ vscode/                # VSCode settings
+├── 🔧 git/                   # Git configs
+└── 🔐 ssh/                   # SSH configs
 ```
 
-## Quick Setup
+## 🤖 Clawdbot Bot Factory
 
-### New Mac
+The Mac Mini runs 9 persistent AI bots 24/7:
+
+| Bot | Project | Purpose |
+|-----|---------|---------|
+| bot-ez-crm | EZ-CRM | Next.js/Supabase CRM |
+| bot-linklounge | LinkLounge | Linktree competitor |
+| bot-aphos | Aphos | MMORPG (Next.js + Three.js) |
+| bot-game-assets | Game Assets | Asset generation tool |
+| bot-ios-bmi | BMI Calculator | iOS app |
+| bot-ios-bills | Bills Tracker | iOS app |
+| bot-ios-translator | Screen Translator | iOS app |
+| bot-clawd-monitor | Dashboard | Bot monitoring UI |
+| bot-shitcoin-brain | Trading Research | Strategy analysis |
+
+### Key Features
+- **10-minute cycles** for dev bots (90% API savings)
+- **Multi-account failover** on rate limits
+- **Simulator coordination** for iOS bots
+- **Browser lock** to prevent conflicts
+- **Research-first** approach (Grok/X/Reddit before Claude)
+
+### Quick Commands
 ```bash
-git clone git@github.com:FelipeLVieira/ide-configs.git ~/repos/ide-configs
-cd ~/repos/ide-configs
+# Check all bots
+~/clawd/scripts/manage-bots.sh status
+
+# Restart all
+~/clawd/scripts/manage-bots.sh restart
+
+# View bot logs
+tmux attach -t bot-<name>
+```
+
+📖 See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for full docs.
+
+## 💰 Credit Optimization
+
+Strategies that reduced API usage by ~90%:
+
+| Strategy | Savings |
+|----------|---------|
+| 10-min pause (was 60s) | ~90% |
+| Multi-account failover | No downtime on 429 |
+| Grok/X research first | Variable |
+| Browser task skipping | Avoids failures |
+
+📖 See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
+
+## 🖥️ Mac Mini Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           MAC MINI BOT FACTORY          │
+├─────────────────────────────────────────┤
+│  Clawdbot Gateway (port 18789)          │
+│  ├── 9 Persistent Bots (tmux)           │
+│  ├── Python Trading Bot                 │
+│  └── clawd-monitor Dashboard (:9009)    │
+├─────────────────────────────────────────┤
+│  Scripts: ~/clawd/scripts/              │
+│  Memory: ~/clawd/memory/                │
+│  Repos: ~/repos/                        │
+└─────────────────────────────────────────┘
+```
+
+## 📦 Installation
+
+### macOS/Linux
+```bash
 ./install.sh
 ```
 
-### Sync to Mac Mini
+Creates symlinks for:
+- `~/.claude/CLAUDE.md` → Global Claude settings
+- `~/.claude/settings.json` → Claude hooks
+- `~/.gitconfig` → Git config
+- `~/.ssh/config` → SSH config
+
+### Windows
+```powershell
+.\install.ps1
+```
+
+### Homebrew Packages
+```bash
+# MacBook
+brew bundle --file=homebrew/Brewfile-macbook
+
+# Mac Mini
+brew bundle --file=homebrew/Brewfile-macmini
+```
+
+## 🔧 Configuration Files
+
+### Claude Code
+| File | Purpose |
+|------|---------|
+| `claude/CLAUDE.md` | Per-project rules template |
+| `claude/CLAUDE-global.md` | Global ~/.claude/CLAUDE.md |
+| `claude/settings.json` | Pre-commit hooks |
+| `claude/deslop.md` | Anti-slop writing guide |
+
+### Clawdbot Workspace
+| File | Purpose |
+|------|---------|
+| `clawd/AGENTS.md` | Bot behavior & memory rules |
+| `clawd/SOUL.md` | Personality & tone |
+| `clawd/USER.md` | Human profile |
+| `clawd/HEARTBEAT.md` | Periodic check tasks |
+| `clawd/adapter.js` | Multi-account rate limit adapter |
+
+### MCP Servers
+| File | IDEs |
+|------|------|
+| `mcp/claude-code-mcps.json` | Claude Code |
+| `mcp/cursor-mcps.json` | Cursor |
+| `mcp/vscode-mcps.json` | VSCode |
+
+## 🔄 Syncing
+
+### MacBook → Mac Mini
 ```bash
 ./mac-mini/sync-to-mini.sh
 ```
 
-### Restore Homebrew packages
+### Pull latest on both
 ```bash
-brew bundle --file=homebrew/Brewfile-macbook
-# or on Mac Mini:
-brew bundle --file=homebrew/Brewfile-macmini
+# MacBook
+cd ~/repos/ide-configs && git pull
+
+# Mac Mini (via SSH)
+ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 ```
 
-## Machines
+## 📚 Documentation Index
 
-| Machine | Role | Status |
-|---------|------|--------|
-| MacBook Pro (M3 Max) | Primary development + Clawdbot gateway | Active |
-| Mac Mini (M4) | Always-on server + failover | Active |
+### Clawdbot
+- [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) - Bot architecture & management
+- [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies
+- [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) - Script documentation
+- [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
+- [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 
-## MCP Servers (synced across both machines)
+### Mac Mini
+- [mac-mini/README.md](mac-mini/README.md) - Server setup guide
+- [mac-mini/PERSISTENCE.md](mac-mini/PERSISTENCE.md) - Bot persistence strategy
 
-| Server | Supabase | Sequential Thinking | Vercel | Stripe | BrowserMCP | Playwright |
-|--------|----------|-------------------|--------|--------|------------|------------|
-| Claude Code | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cursor | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| VSCode | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+### Claude Code
+- [claude/WORKING_PRINCIPLES.md](claude/WORKING_PRINCIPLES.md) - Dev principles
+- [claude/deslop.md](claude/deslop.md) - Writing quality guide
+
+## 🏷️ Project Templates
+
+Pre-configured CLAUDE.md for each project:
+
+| Template | Project |
+|----------|---------|
+| `game-project-CLAUDE.md` | Aphos MMORPG |
+| `crm-app-CLAUDE.md` | EZ-CRM |
+| `links-app-CLAUDE.md` | LinkLounge |
+| `health-app-CLAUDE.md` | BMI Calculator |
+| `finance-app-CLAUDE.md` | Bills Tracker |
+| `translator-app-CLAUDE.md` | Screen Translator |
+| `trading-bot-CLAUDE.md` | Shitcoin Bot |
+| `clawd-monitor-CLAUDE.md` | Bot Dashboard |
+
+## 📄 License
+
+Personal configuration files. Feel free to use as inspiration for your own setup.
