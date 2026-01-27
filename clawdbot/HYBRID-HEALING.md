@@ -1,6 +1,12 @@
-# Hybrid Self-Healing Architecture
+# Hybrid Self-Healing Architecture v3
 
 Three-layer healing system combining free bash scripts with AI-powered diagnostics.
+
+**v3 Enhancements:**
+- ✅ Swap monitoring for Mac Mini (16GB RAM protection)
+- ✅ Cross-machine Ollama fallback (bidirectional)
+- ✅ Resource limits in desired-state.json
+- ✅ Auto-unload heavy models when swap >8GB
 
 ## 🏗️ Architecture Overview
 
@@ -140,25 +146,52 @@ tail -f /tmp/clawdbot/event-watcher.out.log
 
 ---
 
-## 🏥 Layer 3 — Healer Bot (Hourly Cron, AI)
+## 🏥 Layer 3 — Healer Bot v3 (Hourly Cron, AI)
 
 **The smart doctor.** Reads Layer 1 logs, performs deep diagnosis, researches fixes.
 
 ### Schedule
 - **Frequency**: Every hour
-- **Model**: Local LLM → Claude Sonnet (fallback for complex issues)
-- **Cost**: Usually FREE, occasionally ~$0.05 for API calls
+- **Model**: Claude Sonnet 4.5 in isolated sessions (extended thinking)
+- **Cost**: ~$0.05-0.15 per run (worth it for diagnostics)
 
 ### What It Heals
 
 | System | Diagnosis | Healing Action |
 |--------|-----------|----------------|
 | Event-watcher logs | Parse `/tmp/clawdbot/events.jsonl` | Identify patterns, recurring failures |
+| **Swap monitoring (Mac Mini)** | Check swap usage, model memory | **Auto-unload gpt-oss:20b if swap >8GB** |
 | Clawdbot Gateway | Check port 18789 responsive | Restart gateway service |
 | Tailscale | Check mesh connectivity | `tailscale up`, restart service |
 | Aphos game servers | pm2 status, port 2567/2568 | `pm2 restart`, rebuild if needed |
 | Git repos | Check for stale branches, uncommitted work | Alert Felipe |
-| Cross-machine Ollama | Verify both endpoints respond | Restart on failing machine |
+| Cross-machine Ollama | Verify both endpoints respond | **Failover to other machine automatically** |
+
+### v3 Features: Swap Protection
+
+**Mac Mini has only 16GB RAM** — heavy models cause swap death.
+
+**Healer Bot v3 monitors:**
+```bash
+# Check swap usage on Mac Mini
+vm_stat | grep "swap" | awk '{print $4}' | sed 's/\.//'
+```
+
+**Swap thresholds (desired-state.json):**
+```json
+{
+  "resource_limits": {
+    "macmini_swap_warn_gb": 8,
+    "macmini_swap_critical_gb": 12,
+    "max_loaded_model_gb": 6
+  }
+}
+```
+
+**Actions:**
+- Swap >8GB: Auto-unload gpt-oss:20b (14GB), keep qwen3:8b (5GB)
+- Swap >12GB: Alert Felipe (critical, needs manual intervention)
+- Always: Ensure qwen3:8b is primary (safe for 16GB)
 
 ### Smart Healing Logic
 
@@ -192,12 +225,15 @@ Every 60 seconds:
 
 Every hour:
   Cleaner Bot runs → cleans caches/temp → frees resources
-  Healer Bot runs → reads event logs → deep diagnosis → smart healing
+  Healer Bot v3 runs → reads event logs → deep diagnosis → swap monitoring → 
+    cross-machine failover → smart healing
 
 Result:
   ✅ 95% of issues fixed in <60 seconds (bash)
   ✅ 4% fixed within the hour (AI healing)
   ✅ 1% escalated to Felipe (truly broken)
+  ✅ Mac Mini swap death prevented automatically
+  ✅ Cross-machine Ollama failover seamless
 ```
 
 ### Why Hybrid?
@@ -265,7 +301,7 @@ State file: /tmp/clawdbot/healer_circuit.json
 
 ### Reconciler Pattern
 
-Instead of reactive "fix when broken", v2 uses a **desired-state reconciler**:
+Instead of reactive "fix when broken", v2+ uses a **desired-state reconciler**:
 
 ```
 Desired state: /tmp/clawdbot/desired-state.json
@@ -279,6 +315,11 @@ Desired state: /tmp/clawdbot/desired-state.json
     "clawdbot_gateway": { "state": "running", "probe": "http://localhost:18789/health" },
     "pm2_aphos_prod": { "state": "running", "port": 2567 },
     "pm2_aphos_dev": { "state": "running", "port": 2568 }
+  },
+  "resource_limits": {
+    "macmini_swap_warn_gb": 8,
+    "macmini_swap_critical_gb": 12,
+    "max_loaded_model_gb": 6
   }
 }
 ```

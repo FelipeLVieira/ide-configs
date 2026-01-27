@@ -107,32 +107,54 @@ brew services list  # Verify running
 
 ## 🤖 Models
 
-### Mac Mini (16 GB RAM)
+### Mac Mini (16 GB RAM) — RESOURCE-CONSTRAINED!
 
-| Model | Size | Purpose |
-|-------|------|---------|
-| gpt-oss:20b | 13 GB | Primary model (DeepSeek-V3), heartbeats |
-| qwen3:8b | 5.2 GB | Fast reasoning tasks |
+⚠️ **CRITICAL: Swap Protection**
+
+Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
+- **gpt-oss:20b (14GB)** was causing **15.6GB swap** — system grinding to a halt
+- **Solution**: Primary changed to qwen3:8b (5GB), gpt-oss as on-demand fallback ONLY
+
+| Model | Size | Purpose | Status |
+|-------|------|---------|--------|
+| **qwen3:8b** | 5.2 GB | **PRIMARY** model (reasoning=true, safe for 16GB RAM) | ✅ Always loaded |
+| **gpt-oss:20b** | 13 GB | On-demand fallback (DeepSeek-V3) | ⚠️ NOT kept loaded |
+
+**Resource Limits (desired-state.json):**
+```json
+{
+  "resource_limits": {
+    "macmini_swap_warn_gb": 8,
+    "macmini_swap_critical_gb": 12,
+    "max_loaded_model_gb": 6
+  }
+}
+```
+
+**Healer Bot v3 monitors swap:**
+- Checks every hour for swap usage
+- Auto-unloads heavy models if swap >8GB
+- Alerts Felipe if swap >12GB (critical)
 
 **Pull models:**
 ```bash
-ollama pull gpt-oss:20b
-ollama pull qwen3:8b
+ollama pull qwen3:8b      # Keep loaded (5GB, safe)
+ollama pull gpt-oss:20b   # On-demand only (14GB, dangerous)
 ```
 
 ### MacBook Pro (48 GB RAM)
 
 | Model | Size | Purpose |
 |-------|------|---------|
-| devstral-small-2:24b | 15 GB | **PRIMARY for coding** (Mistral) |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** for sub-agents/heartbeats (reasoning=true) |
+| devstral-small-2:24b | 15 GB | Heavy coding tasks (48GB RAM safe) |
 | gpt-oss:20b | 13 GB | General tasks fallback |
-| qwen3:8b | 5.2 GB | Fast reasoning |
 
 **Pull models:**
 ```bash
-ollama pull devstral-small-2:24b
-ollama pull gpt-oss:20b
-ollama pull qwen3:8b
+ollama pull qwen3:8b              # PRIMARY (reasoning-first)
+ollama pull devstral-small-2:24b  # Heavy coding
+ollama pull gpt-oss:20b           # Fallback
 ```
 
 ### Removed Models
@@ -167,29 +189,35 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 
 ### Models Available on Each Machine
 
-| Machine | Models | Total Size |
-|---------|--------|-----------|
-| **MacBook Pro** | devstral-small-2:24b (15GB), gpt-oss:20b (13GB), qwen3:8b (5.2GB) | ~33 GB |
-| **Mac Mini** | gpt-oss:20b (13GB), qwen3:8b (5.2GB), qwen3-fast:8b (5.2GB) | ~23 GB |
-| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB |
+| Machine | Models | Total Size | Status |
+|---------|--------|-----------|--------|
+| **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | ✅ All loaded |
+| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand), qwen3-fast:8b (5.2GB) | ~23 GB | ⚠️ Only qwen3 kept loaded |
+| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB | ✅ Via Tailscale |
 
 ---
 
 ## 🎯 Sub-Agent Priority Chain
 
-When spawning sub-agents for coding tasks, models cascade:
+**Reasoning-first architecture** — sub-agents cascade with thinking enabled:
 
 ```
-1. devstral-small-2:24b (MacBook)  ← PRIMARY for coding
-2. gpt-oss:20b (Mac Mini)          ← always-on fallback
-3. gpt-oss:20b (MacBook)           ← secondary fallback
-4. qwen3:8b (either machine)       ← fast/light tasks
-5. Claude Sonnet (API)             ← if all local fail
-6. Claude Opus (API)               ← critical tasks only
+1. qwen3:8b (both machines, reasoning=true)  ← PRIMARY (FREE, smart)
+2. gpt-oss:20b (Mac Mini, on-demand)         ← Fallback (NOT kept loaded)
+3. devstral-small-2:24b (MacBook)            ← Heavy coding (48GB RAM)
+4. Claude Sonnet 4.5 (API)                   ← If all local fail
+5. Claude Opus 4.5 (API)                     ← Critical tasks only
 ```
 
 ### Heartbeat Model
-- **gpt-oss:20b on Mac Mini** — Always-on, free, good enough for periodic checks
+- **qwen3:8b (reasoning=true) on all machines** — Always-on, FREE, thinking enabled for smarter decisions
+
+### Why qwen3:8b as Primary?
+- **Reasoning enabled**: Thinks before acting, fewer mistakes
+- **5GB RAM**: Safe for Mac Mini's 16GB limit
+- **FREE**: No API costs
+- **Fast**: Quick inference for most tasks
+- **Quality**: Qwen3.1 8B with reasoning rivals larger models
 
 ## 🌐 Network Access
 
@@ -215,7 +243,7 @@ curl http://100.125.165.107:11434/api/tags
 
 ### Cross-Machine Ollama Access (Bidirectional)
 
-Both Macs can use each other's Ollama instances for load balancing and failover:
+Both Macs can use each other's Ollama instances for **automatic failover** and load balancing:
 
 ```bash
 # MacBook → Mac Mini (always-on, heartbeats)
@@ -229,7 +257,18 @@ curl http://felipes-macbook-pro-2.local:11434/api/tags
 - `ollama` → Mac Mini (always-on)
 - `ollama-macbook` → MacBook Pro (coding-focused)
 
-Sub-agents cascade across both machines automatically.
+**Mac Mini fallback chain (NEW):**
+```
+qwen3 local → gpt-oss local → MacBook qwen3 → MacBook devstral → 
+MacBook gpt-oss → Sonnet → Opus
+```
+
+**MacBook fallback chain:**
+```
+qwen3 local → Mac Mini qwen3 → Mac Mini gpt-oss → Sonnet → Opus
+```
+
+This means: **if one machine's Ollama fails, the other catches it automatically**. Zero downtime.
 
 ### Tailscale CLI Fix
 

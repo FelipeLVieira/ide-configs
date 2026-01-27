@@ -4,10 +4,30 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 
 ## 🤖 Model Routing Strategy
 
+### Architecture Philosophy: Reasoning-First, Cost-Second
+
+**ALL machines now use thinking/reasoning by default:**
+- `thinkingDefault: "low"` — Extended reasoning on all models that support it
+- Reasoning = better decisions, fewer mistakes, less wasted work
+
+### Model Tiers
+
+**Tier 1 — Opus 4.5 (best reasoning):**
+- MacBook Pro (main orchestrator)
+- Windows MSI (secondary Opus instance)
+
+**Tier 2 — Free local models with reasoning:**
+- Mac Mini cron bots → Sonnet 4.5 in isolated sessions
+- All heartbeats → qwen3:8b (free, reasoning=true)
+- All sub-agents → qwen3:8b (free, reasoning=true)
+
+**Tier 3 — Free research tools (before burning tokens):**
+- Grok/X, Brave Search, web_fetch, Reddit
+
 ### Primary Models
-- **devstral-small-2:24b** (Mistral) — PRIMARY for coding sub-agents (MacBook only)
-- **gpt-oss:20b** (DeepSeek-V3) — Primary for heartbeats, general tasks (both machines)
-- **qwen3:8b** (Qwen3.1) — Fast model for quick tasks, reasoning mode enabled
+- **qwen3:8b** (Qwen3.1) — Fast model with reasoning=true, now PRIMARY for sub-agents/heartbeats
+- **gpt-oss:20b** (DeepSeek-V3) — On-demand fallback (Mac Mini: NOT kept loaded to save RAM)
+- **devstral-small-2:24b** (Mistral) — MacBook only (heavy coding, 48GB RAM)
 
 ### Legacy Models (Removed)
 - ❌ Legacy 7B coder model — Replaced by qwen3:8b (better reasoning) and gpt-oss:20b
@@ -15,21 +35,50 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 ## 🧠 Model Assignment by Task
 
 ### Heartbeat (Periodic Checks)
-- **Model**: gpt-oss:20b on Mac Mini
-- **Why**: Always-on, free, good enough for periodic checks
+- **Model**: qwen3:8b (reasoning=true) on all machines
+- **Why**: Always-on, FREE, reasoning enabled for smarter decisions
 
 ### Sub-Agent Cascade
 When spawning sub-agents, models cascade in order:
-1. **devstral-small-2:24b** (MacBook Ollama — primary for coding)
-2. **gpt-oss:20b** (Mac Mini Ollama — always-on fallback)
-3. **gpt-oss:20b** (MacBook Ollama — secondary fallback)
-4. **qwen3:8b** (either machine, fast fallback)
-5. **Claude Sonnet** (API, if local fails)
-6. **Claude Opus** (API, last resort)
+1. **qwen3:8b** (both machines — PRIMARY, reasoning=true, FREE)
+2. **gpt-oss:20b** (Mac Mini Ollama — on-demand fallback, NOT kept loaded)
+3. **devstral-small-2:24b** (MacBook Ollama — heavy coding only)
+4. **Claude Sonnet 4.5** (API, if local fails)
+5. **Claude Opus 4.5** (API, last resort)
 
-### Reasoning Mode
-- **qwen3:8b**: `reasoning=true` (thinking mode, free tokens)
-- Other models: reasoning disabled by default
+### Thinking/Reasoning Configuration
+**ALL machines now think by default:**
+- **MacBook Pro**: `thinkingDefault: "low"` — Opus always thinks
+- **Mac Mini**: `thinkingDefault: "low"` — qwen3:8b with reasoning=true
+- **Windows MSI**: `thinkingDefault: "low"` — qwen3:8b via Mac Mini with reasoning=true
+
+**Why reasoning everywhere?**
+- Better decisions upfront = less wasted work
+- Free on local models (qwen3:8b)
+- Opus 4.5 has extended thinking built-in
+- Minimal token overhead, massive quality gain
+
+## 🔄 Cross-Machine Ollama Fallback (NEW)
+
+Both Macs now have **bidirectional Ollama fallback** — if one machine's Ollama fails, the other catches it automatically.
+
+### Mac Mini Fallback Chain
+```
+qwen3:8b (local) → gpt-oss:20b (local, on-demand) → MacBook qwen3:8b → 
+MacBook devstral → MacBook gpt-oss → Sonnet → Opus
+```
+
+### MacBook Fallback Chain
+```
+qwen3:8b (local) → Mac Mini qwen3:8b → Mac Mini gpt-oss → Sonnet → Opus
+```
+
+### Configuration
+- Mac Mini config now has `ollama-macbook` provider pointing to MacBook Pro
+- MacBook already had `ollama` (Mac Mini) as provider
+- Automatic failover with zero manual intervention
+
+**Why it matters:** If Mac Mini Ollama crashes, MacBook picks up the slack. If MacBook sleeps, Mac Mini keeps heartbeats alive.
 
 ## 🖥️ Ollama Providers
 
@@ -41,9 +90,16 @@ name: ollama
 baseUrl: http://felipes-mac-mini.local:11434
 tailscaleUrl: http://100.115.10.14:11434
 models:
-  - gpt-oss:20b      # Primary for heartbeats
-  - qwen3:8b         # Fast reasoning
+  - qwen3:8b         # PRIMARY (5GB, reasoning=true, safe for 16GB RAM)
+  - gpt-oss:20b      # On-demand fallback (14GB, NOT kept loaded)
 ```
+
+**RAM Protection (CRITICAL):**
+- Mac Mini has only 16GB RAM
+- gpt-oss:20b (14GB) was causing 15.6GB swap — SWAP DEATH
+- Primary changed to qwen3:8b (5GB) — safe for 16GB
+- gpt-oss:20b still available but NOT kept loaded
+- Healer Bot v3 monitors swap and auto-unloads heavy models
 
 ### Provider 2: `ollama-macbook` (MacBook Pro — primary for coding)
 ```yaml
@@ -51,21 +107,36 @@ name: ollama-macbook
 baseUrl: http://felipes-macbook-pro-2.local:11434
 tailscaleUrl: http://100.125.165.107:11434
 models:
-  - devstral-small-2:24b  # PRIMARY for coding sub-agents
+  - qwen3:8b              # PRIMARY for sub-agents (reasoning=true)
+  - devstral-small-2:24b  # Heavy coding tasks (48GB RAM safe)
   - gpt-oss:20b           # General fallback
-  - qwen3:8b              # Fast reasoning
 ```
 
 ## ⏰ Cron Jobs
 
 ### Active Cron Jobs
 
-| Job | Schedule | Model | Purpose |
-|-----|----------|-------|---------|
-| **Cleaner Bot** | Hourly | gpt-oss:20b / qwen3:8b | Deep cleanup (caches, temp, disk) |
-| **Healer Bot** | Hourly | gpt-oss:20b → Sonnet | Read event logs, diagnose, heal |
-| **Clear Sessions** | Weekly (Sunday midnight) | — | Clean stale Clawdbot sessions |
-| **App Store Manager** | 3x daily (9 AM, 3 PM, 9 PM EST) | gpt-oss:20b | Monitor iOS apps on App Store Connect |
+All cron jobs now use **Sonnet 4.5 in isolated sessions with extended thinking** — they need intelligence for self-healing and diagnostics.
+
+| Job | Schedule | Model | Session | Machines | Purpose |
+|-----|----------|-------|---------|----------|---------|
+| **Cleaner Bot** | Hourly | `anthropic/claude-sonnet-4-5` | isolated | MacBook + Mac Mini | Deep cleanup (caches, temp, disk) |
+| **Healer Bot v3** | Hourly | `anthropic/claude-sonnet-4-5` | isolated | MacBook + Mac Mini | Read event logs, diagnose, heal, **swap monitoring** |
+| **App Store Manager** | 3x daily (9 AM, 3 PM, 9 PM EST) | `anthropic/claude-sonnet-4-5` | isolated | MacBook | Monitor iOS apps on App Store Connect |
+| **Clear Sessions** | Weekly (Sunday midnight) | — | — | MacBook | Clean stale Clawdbot sessions |
+
+### Cleaned Up (Removed 5 Legacy Jobs)
+- ❌ iOS App Store Monitor (old) — Replaced by App Store Manager
+- ❌ Project Health Monitor — Replaced by Healer Bot v3
+- ❌ EZ-CRM Continuous — Disabled
+- ❌ LinkLounge Continuous — Disabled
+- ❌ Aphos Game Dev — Disabled
+
+### Why Sonnet for Cron Jobs?
+- **Intelligence needed**: Self-healing requires reasoning, diagnostics, web research
+- **Isolated sessions**: Each cron run is independent, no context pollution
+- **Extended thinking**: Sonnet 4.5 has built-in reasoning for complex decisions
+- **Cost-effective**: ~$0.05-0.15 per cron run vs manual debugging time
 
 See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full App Store Manager docs.
 
@@ -74,9 +145,9 @@ See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full App Store Man
 # List cron jobs
 clawdbot cron list
 
-# Add a cron job
-clawdbot cron add --name "cleaner-bot" --schedule "0 * * * *" --model "ollama/gpt-oss:20b"
-clawdbot cron add --name "healer-bot" --schedule "30 * * * *" --model "ollama/gpt-oss:20b"
+# Add a cron job with Sonnet in isolated session
+clawdbot cron add --name "cleaner-bot" --schedule "0 * * * *" \
+  --model "anthropic/claude-sonnet-4-5" --session-target "isolated"
 ```
 
 ## 🩺 Event Watcher (Launchd Service)
@@ -128,13 +199,15 @@ OLLAMA_KV_CACHE_TYPE=q8_0         # 8-bit quantized KV cache
 
 ## 🗺️ Model Routing Table (All 3 Machines)
 
-| Machine | Main Model | Heartbeat | Sub-agents | Fallbacks |
-|---------|-----------|-----------|------------|-----------|
-| **MacBook** | `anthropic/claude-opus-4-5` | `ollama/gpt-oss:20b` (via Mac Mini) | `ollama-macbook/devstral-small-2:24b` | Sonnet → Opus |
-| **Mac Mini** | `ollama/gpt-oss:20b` | `ollama/gpt-oss:20b` (local) | `ollama/gpt-oss:20b` | `qwen3:8b` → Sonnet → Opus |
-| **Windows** | `ollama-macmini/gpt-oss:20b` | `ollama-macmini/gpt-oss:20b` (via Tailscale) | `ollama-macmini/gpt-oss:20b` | `qwen3:8b` → Sonnet → Opus |
+**Reasoning-first architecture — ALL models think by default.**
 
-> **Mac Mini is the CENTRAL BRAIN** — all 3 machines route heartbeats through it.
+| Machine | Main Model | Heartbeat | Sub-agents | Thinking | Fallbacks |
+|---------|-----------|-----------|------------|----------|-----------|
+| **MacBook Pro** | `anthropic/claude-opus-4-5` | `ollama/qwen3:8b` (reasoning) | `ollama/qwen3:8b` (reasoning) | low (always) | Sonnet → Opus |
+| **Mac Mini** | `ollama/qwen3:8b` (reasoning) | `ollama/qwen3:8b` (reasoning) | `ollama/qwen3:8b` (reasoning) | low (always) | gpt-oss → MacBook qwen3 → Sonnet → Opus |
+| **Windows MSI** | `anthropic/claude-opus-4-5` | `ollama-macmini/qwen3:8b` (reasoning) | `ollama-macmini/qwen3:8b` (reasoning) | low (always) | Sonnet → Opus |
+
+> **Mac Mini is still the CENTRAL BRAIN** — all 3 machines route heartbeats through it, but now with qwen3:8b (5GB) instead of gpt-oss:20b (14GB) for RAM safety.
 
 ## 🔄 Load Balancing
 
@@ -226,19 +299,20 @@ The Windows MSI machine routes ALL inference through **Mac Mini's Ollama via Tai
 name: ollama-macmini
 baseUrl: http://100.115.10.14:11434
 models:
-  - gpt-oss:20b      # Primary (routed from Mac Mini)
-  - qwen3:8b         # Fast fallback (routed from Mac Mini)
+  - qwen3:8b         # PRIMARY (reasoning=true, FREE)
+  - gpt-oss:20b      # On-demand fallback (routed from Mac Mini)
 ```
 
 ### Configuration
 ```yaml
-main: ollama-macmini/gpt-oss:20b
+main: ollama-macmini/qwen3:8b (reasoning=true)
 fallbacks:
-  - ollama-macmini/qwen3:8b
+  - ollama-macmini/gpt-oss:20b
   - anthropic/claude-sonnet-4-5
   - anthropic/claude-opus-4-5
-heartbeat: ollama-macmini/gpt-oss:20b
+heartbeat: ollama-macmini/qwen3:8b (reasoning=true)
 ollama: remote only (via Mac Mini Tailscale 100.115.10.14:11434)
+thinkingDefault: "low"
 ```
 
 ### Auto-Start

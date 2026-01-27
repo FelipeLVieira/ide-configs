@@ -2,7 +2,7 @@
 
 Complete infrastructure documentation across all 3 machines in the Clawdbot ecosystem.
 
-> **Last updated**: July 2025 — Windows routing through Mac Mini Ollama, architecture update
+> **Last updated**: January 2025 — Reasoning-first models, swap protection, cross-machine fallback
 
 ---
 
@@ -13,17 +13,18 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 ### Ollama Models
 | Model | Size | Purpose |
 |-------|------|---------|
-| devstral-small-2:24b | 15 GB | **PRIMARY** for coding sub-agents (Mistral) |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** for sub-agents/heartbeats (reasoning=true) |
+| devstral-small-2:24b | 15 GB | Heavy coding tasks (48GB RAM safe) |
 | gpt-oss:20b | 13 GB | General tasks fallback |
-| qwen3:8b | 5.2 GB | Fast reasoning |
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
-| **Fallbacks** | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
-| **Heartbeat** | `ollama/gpt-oss:20b` (via Mac Mini, **FREE**) |
-| **Sub-agents** | `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → `ollama-macbook/gpt-oss:20b` → `ollama/qwen3:8b` → Sonnet → Opus |
+| **Fallbacks** | Sonnet → qwen3:8b → devstral-24b → gpt-oss:20b |
+| **Heartbeat** | `ollama/qwen3:8b` (reasoning=true, via Mac Mini, **FREE**) |
+| **Sub-agents** | `ollama/qwen3:8b` (reasoning=true) → `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → Sonnet → Opus |
+| **Thinking** | `thinkingDefault: "low"` (Opus always thinks) |
 
 ### Services
 - **Clawdbot Gateway** — AI orchestrator (port 18789+)
@@ -49,19 +50,29 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 **Role**: **CENTRAL BRAIN** — Always-on services, heartbeats, Ollama hub for all machines, game servers
 
 ### Ollama Models
-| Model | Size | Purpose |
-|-------|------|---------|
-| gpt-oss:20b | 13 GB | **Primary** model (DeepSeek-V3), heartbeats |
-| qwen3:8b | 5.2 GB | Fast reasoning tasks |
-| qwen3-fast:8b | 5.2 GB | Faster variant for quick responses |
+
+⚠️ **CRITICAL: Mac Mini has only 16GB RAM!**
+
+| Model | Size | Purpose | Status |
+|-------|------|---------|--------|
+| **qwen3:8b** | 5.2 GB | **PRIMARY** model (reasoning=true, safe for 16GB RAM) | ✅ Always loaded |
+| gpt-oss:20b | 13 GB | On-demand fallback (DeepSeek-V3, causes swap) | ⚠️ NOT kept loaded |
+| qwen3-fast:8b | 5.2 GB | Faster variant for quick responses | Optional |
+
+**Swap Protection:**
+- gpt-oss:20b (14GB) was causing **15.6GB swap** — SWAP DEATH
+- Primary changed to qwen3:8b (5GB) — safe for 16GB
+- Healer Bot v3 monitors swap and auto-unloads heavy models
+- desired-state.json has resource_limits: swap_warn_gb=8, critical=12, max_loaded_model_gb=6
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
-| **Main model** | `ollama/gpt-oss:20b` (**FREE**) |
-| **Fallbacks** | `ollama/qwen3:8b` → Sonnet → Opus (local first!) |
-| **Heartbeat** | `ollama/gpt-oss:20b` (**FREE**) |
-| **Sub-agents** | `ollama/gpt-oss:20b` → `ollama/qwen3:8b` → Sonnet → Opus |
+| **Main model** | `ollama/qwen3:8b` (reasoning=true, **FREE**) |
+| **Fallbacks** | `ollama/gpt-oss:20b` (on-demand) → `ollama-macbook/qwen3:8b` → Sonnet → Opus |
+| **Heartbeat** | `ollama/qwen3:8b` (reasoning=true, **FREE**) |
+| **Sub-agents** | `ollama/qwen3:8b` (reasoning=true) → `ollama/gpt-oss:20b` → Sonnet → Opus |
+| **Thinking** | `thinkingDefault: "low"` (qwen3:8b with reasoning=true) |
 
 ### Services
 - **Clawdbot Gateway** — AI orchestrator (port 18789)
@@ -103,11 +114,13 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
-| **Main model** | `ollama-macmini/gpt-oss:20b` (via Mac Mini Tailscale) |
-| **Fallbacks** | `ollama-macmini/qwen3:8b` → `anthropic/claude-sonnet-4-5` → `anthropic/claude-opus-4-5` |
-| **Heartbeat** | `ollama-macmini/gpt-oss:20b` (via Mac Mini, **FREE**) |
+| **Main model** | `anthropic/claude-opus-4-5` |
+| **Fallbacks** | `ollama-macmini/qwen3:8b` (reasoning=true) → Sonnet → Opus |
+| **Heartbeat** | `ollama-macmini/qwen3:8b` (reasoning=true, via Mac Mini, **FREE**) |
+| **Sub-agents** | `ollama-macmini/qwen3:8b` (reasoning=true) → Sonnet → Opus |
 | **Ollama provider** | `ollama-macmini` → `http://100.115.10.14:11434` |
 | **Auto-start** | Windows Scheduled Task "ClawdbotGateway" (runs on login) |
+| **Thinking** | `thinkingDefault: "low"` (Opus always thinks) |
 
 ### Architecture Flow
 ```
@@ -138,10 +151,15 @@ MacBook Pro (48GB) ←──local network──→ Mac Mini (16GB) ← CENTRAL B
        ↕                                    ↕
 Windows MSI ───Ollama via Tailscale───→ Mac Mini (100.115.10.14:11434)
 
-Heartbeat routing:
-  MacBook  → Mac Mini Ollama (gpt-oss:20b)
-  Mac Mini → Local Ollama (gpt-oss:20b)
-  Windows  → Mac Mini Ollama via Tailscale (gpt-oss:20b)
+Heartbeat routing (reasoning-first):
+  MacBook  → Mac Mini Ollama (qwen3:8b, reasoning=true)
+  Mac Mini → Local Ollama (qwen3:8b, reasoning=true)
+  Windows  → Mac Mini Ollama via Tailscale (qwen3:8b, reasoning=true)
+
+Cross-machine fallback (NEW):
+  Mac Mini Ollama fails → MacBook Ollama catches it
+  MacBook Ollama fails → Mac Mini Ollama catches it
+  Automatic failover, zero downtime
 ```
 
 ### Tailscale IPs
@@ -194,15 +212,15 @@ curl http://100.125.165.107:11434/api/tags  # Tailscale
 
 | Task | Machine | Why |
 |------|---------|-----|
-| Main chat session | MacBook | Opus + orchestration |
-| Sub-agent coding | MacBook | devstral-24b (48GB RAM) |
-| Heartbeats | Mac Mini | Always-on, gpt-oss:20b (FREE) |
+| Main chat session | MacBook | Opus 4.5 (thinking=low) + orchestration |
+| Sub-agent coding | MacBook | qwen3:8b (reasoning=true), devstral-24b (48GB RAM) |
+| Heartbeats | Mac Mini | Always-on, qwen3:8b (reasoning=true, FREE) |
 | Game servers (Aphos) | Mac Mini | pm2, always-on |
-| Trading bot | Mac Mini | Persistent session |
+| **Trading bot (Shitcoin)** | **MacBook** | **48GB RAM for heavy models** |
 | iOS builds | Mac Mini | Xcode, simulators |
 | Bot dashboard | Mac Mini | clawd-monitor:9009 |
 | Windows tasks | Windows MSI | Only Windows machine |
-| Self-healing | MacBook + Mac Mini | event-watcher + cron bots |
+| Self-healing | MacBook + Mac Mini | event-watcher + Healer Bot v3 (swap monitoring) |
 
 ---
 

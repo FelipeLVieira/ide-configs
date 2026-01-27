@@ -30,16 +30,22 @@ Multi-bot architecture with specialized roles per project.
 
 **Bot Name**: 🧠💰 Degen Brain  
 **Repo**: `~/repos/shitcoin-bot`  
-**Tech Stack**: Python, LangChain, Web3
+**Tech Stack**: Python, LangChain, Web3  
+**Machine**: **MacBook Pro ONLY** (48GB RAM for heavy models)
+
+⚠️ **CRITICAL: Shitcoin team must run on MacBook!**
+- Mac Mini has only 16GB RAM — insufficient for simultaneous heavy models
+- MacBook has 48GB RAM — can run devstral-24b + qwen3:8b concurrently
+- Trading analysis needs heavy compute
 
 ### Team Roles
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Research Analyst** | News, trends, sentiment analysis | gpt-oss:20b |
-| **Quant Strategist** | Technical analysis, backtesting | devstral-small-2:24b |
-| **Risk Manager** | Position sizing, stop losses | gpt-oss:20b |
-| **Data Engineer** | API integration, data pipelines | qwen3:8b |
+| **Research Analyst** | News, trends, sentiment analysis | qwen3:8b (reasoning=true) |
+| **Quant Strategist** | Technical analysis, backtesting | devstral-small-2:24b (MacBook 48GB) |
+| **Risk Manager** | Position sizing, stop losses | qwen3:8b (reasoning=true) |
+| **Data Engineer** | API integration, data pipelines | qwen3:8b (reasoning=true) |
 
 ### Tools & APIs
 - **LunarCrush** — Social sentiment, Galaxy Score
@@ -204,34 +210,38 @@ Monitors **all 3 iOS apps** on App Store Connect:
 
 | Machine | Bots | Why |
 |---------|------|-----|
-| **MacBook Pro** | Orchestrator (main), sub-agent spawner, dev bots | 48GB RAM, primary compute, devstral-24b |
-| **Mac Mini** | Aphos, Shitcoin Bot, clawd-monitor | Always-on, persistent sessions, game servers |
+| **MacBook Pro** | Orchestrator (main), **Shitcoin Bot**, sub-agent spawner, dev bots | 48GB RAM, primary compute, devstral-24b for heavy models |
+| **Mac Mini** | Aphos, clawd-monitor | Always-on, persistent sessions, game servers, **16GB RAM (resource-constrained)** |
 | **Windows MSI** | Windows-specific tasks only | No persistent bots, on-demand only |
+
+⚠️ **Note**: Shitcoin Bot moved from Mac Mini → MacBook Pro due to RAM constraints. Mac Mini's 16GB insufficient for heavy trading models.
 
 ---
 
 ## 🤖 Model Assignment Matrix
 
+**Reasoning-first architecture** — All roles now use models with thinking enabled.
+
 ### By Task Complexity
 
 | Complexity | Model | Use Cases |
 |------------|-------|-----------|
-| **Simple** | qwen3:8b | QA, testing, quick fixes, research |
-| **Medium** | gpt-oss:20b | Feature dev, refactoring, design |
-| **Heavy** | devstral-small-2:24b | Architecture, backend systems, ML |
-| **Creative** | Claude Sonnet | Art direction, storytelling |
-| **Critical** | Claude Opus | Major refactors, security |
+| **Simple** | qwen3:8b (reasoning=true) | QA, testing, quick fixes, research |
+| **Medium** | qwen3:8b (reasoning=true) | Feature dev, refactoring, design |
+| **Heavy** | devstral-small-2:24b (MacBook 48GB) | Architecture, backend systems, ML |
+| **Creative** | Claude Sonnet 4.5 | Art direction, storytelling |
+| **Critical** | Claude Opus 4.5 | Major refactors, security |
 
 ### By Role Type
 
 | Role Type | Primary Model | Fallback |
 |-----------|---------------|----------|
-| **Frontend** | gpt-oss:20b | qwen3:8b |
-| **Backend** | devstral-small-2:24b | gpt-oss:20b |
-| **QA** | qwen3:8b | gpt-oss:20b |
-| **Design** | Claude Sonnet | gpt-oss:20b |
-| **Research** | gpt-oss:20b | Grok (free!) |
-| **Data/ML** | devstral-small-2:24b | gpt-oss:20b |
+| **Frontend** | qwen3:8b (reasoning=true) | gpt-oss:20b |
+| **Backend** | qwen3:8b (reasoning=true) | devstral-small-2:24b |
+| **QA** | qwen3:8b (reasoning=true) | gpt-oss:20b |
+| **Design** | Claude Sonnet 4.5 | qwen3:8b |
+| **Research** | Grok (free!) | qwen3:8b |
+| **Data/ML** | qwen3:8b (reasoning=true) | devstral-small-2:24b |
 
 ---
 
