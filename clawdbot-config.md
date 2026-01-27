@@ -65,6 +65,9 @@ models:
 | **Cleaner Bot** | Hourly | gpt-oss:20b / qwen3:8b | Deep cleanup (caches, temp, disk) |
 | **Healer Bot** | Hourly | gpt-oss:20b → Sonnet | Read event logs, diagnose, heal |
 | **Clear Sessions** | Weekly (Sunday midnight) | — | Clean stale Clawdbot sessions |
+| **App Store Manager** | 3x daily (9 AM, 3 PM, 9 PM EST) | gpt-oss:20b | Monitor iOS apps on App Store Connect |
+
+See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full App Store Manager docs.
 
 ### Configuration Example
 ```bash

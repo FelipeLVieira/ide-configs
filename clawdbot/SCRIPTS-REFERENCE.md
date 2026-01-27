@@ -16,6 +16,34 @@
 - Rogue iOS simulators on MacBook → `killall Simulator`
 - Zombie processes → `kill -9`
 
+**v2 Features (Event Watcher v2):**
+- **Health Probes** — HTTP health checks for services (Ollama, Gateway, clawd-monitor)
+- **Circuit Breakers** — Tracks consecutive failures per service; stops restart attempts after threshold to prevent restart loops
+- **Desired State** — Reads `desired-state.json` to know which services SHOULD be running
+
+**Key Files:**
+- **desired-state.json**: `/tmp/clawdbot/desired-state.json` — Declares which services should be running and their health endpoints
+- **Circuit breaker state**: `/tmp/clawdbot/circuit-breaker.json` — Tracks failure counts per service (auto-resets after cooldown)
+
+```json
+// desired-state.json example
+{
+  "services": {
+    "ollama": { "check": "http", "url": "http://localhost:11434/api/tags", "restart": "brew services restart ollama" },
+    "gateway": { "check": "process", "name": "clawdbot-gateway", "restart": "launchctl start com.clawdbot.gateway" },
+    "pm2": { "check": "process", "name": "pm2", "restart": "pm2 resurrect" }
+  }
+}
+```
+
+```json
+// circuit-breaker.json example
+{
+  "ollama": { "failures": 0, "lastFailure": null, "open": false },
+  "gateway": { "failures": 3, "lastFailure": "2025-07-30T12:00:00Z", "open": true }
+}
+```
+
 **Management:**
 ```bash
 # Check if running
@@ -23,6 +51,12 @@ launchctl list | grep event-watcher
 
 # View recent events
 tail -20 /tmp/clawdbot/events.jsonl | jq .
+
+# Check circuit breaker state
+cat /tmp/clawdbot/circuit-breaker.json | jq .
+
+# Check desired state
+cat /tmp/clawdbot/desired-state.json | jq .
 
 # Restart
 launchctl stop com.clawdbot.event-watcher
@@ -100,6 +134,9 @@ Bot-specific prompts in `~/clawd/prompts/`:
 | Cleaner Bot | Hourly | gpt-oss:20b / qwen3:8b | Deep cleanup |
 | Healer Bot | Hourly | gpt-oss:20b → Sonnet | Diagnose & heal |
 | Clear Sessions | Weekly (Sun midnight) | — | Session cleanup |
+| App Store Manager | 3x daily (9 AM, 3 PM, 9 PM EST) | gpt-oss:20b | iOS app monitoring |
+
+See [APP-STORE-MANAGER.md](APP-STORE-MANAGER.md) for full App Store Manager docs.
 
 ---
 

@@ -22,9 +22,10 @@ cd ~/repos/ide-configs
 ide-configs/
 ├── 🤖 clawdbot/              # Clawdbot Bot Factory
 │   ├── PERSISTENT-BOTS.md    # 9-bot architecture & management
-│   ├── HYBRID-HEALING.md     # 3-layer self-healing system (NEW!)
+│   ├── HYBRID-HEALING.md     # 3-layer self-healing system
 │   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
 │   ├── SCRIPTS-REFERENCE.md  # Scripts docs (event-watcher, cleanup)
+│   ├── APP-STORE-MANAGER.md  # iOS App Store monitoring cron
 │   ├── MONITOR-INTEGRATION.md # Dashboard setup
 │   ├── PREREQUISITES.md      # System requirements
 │   └── README.md             # Clawdbot overview
@@ -60,7 +61,8 @@ ide-configs/
 ├── ⚙️ vscode/                # VSCode settings
 ├── 🔧 git/                   # Git configs
 ├── 🏗️ infrastructure/         # Multi-machine architecture docs
-│   └── three-machine-architecture.md
+│   ├── three-machine-architecture.md
+│   └── port-assignments.md   # Master port registry
 └── 🔐 ssh/                   # SSH configs
 ```
 
@@ -84,6 +86,7 @@ Mechanical cleanup via launchd — zero LLM tokens.
 | Cleaner Bot | Hourly | Deep cleanup (caches, temp files, disk) |
 | Healer Bot | Hourly | Read event logs, diagnose, smart healing |
 | Clear Sessions | Sunday midnight | Weekly session cleanup |
+| App Store Manager | 3x daily (9/3/9 EST) | iOS app monitoring (reviews, builds, status) |
 
 ### Tier 4: Always-On Services (launchd)
 | Service | Purpose |
@@ -216,11 +219,13 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 - [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) - 3-layer self-healing system
 - [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies
 - [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) - Script documentation (event-watcher, cleanup)
+- [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) - iOS App Store monitoring cron
 - [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
 - [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 
 ### Infrastructure
 - [Three-Machine Architecture](infrastructure/three-machine-architecture.md) - **Full 3-machine overview** (MacBook, Mac Mini, Windows MSI)
+- [Port Assignments](infrastructure/port-assignments.md) - **Master port registry** (all services, all machines)
 
 ### Configuration
 - [clawdbot-config.md](clawdbot-config.md) - Model routing & Ollama configuration

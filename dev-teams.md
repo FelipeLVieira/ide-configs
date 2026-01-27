@@ -159,6 +159,28 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 ---
 
+## 🍎 App Store Manager (Cross-Cutting Cron)
+
+**Type**: Automated cron job (not a bot)
+**Machine**: MacBook Pro (main session)
+**Schedule**: 3x daily (9 AM, 3 PM, 9 PM EST)
+**Model**: gpt-oss:20b (local, FREE)
+
+Monitors **all 3 iOS apps** on App Store Connect:
+
+| App | Bundle ID | Version |
+|-----|-----------|---------|
+| BMI & Calorie Tracker | `com.felipevieira.bmicalculator` | v2.1.1 |
+| Bills Tracker | `com.fullstackdev1.bill-subscriptions-organizer-tracker` | v1.0.6 |
+| Offline Image Translator | `com.felipevieira.screentranslate` | v1.0.0 |
+
+**Checks**: Review status, ratings, screenshots, pricing/IAP, builds, policy compliance
+**Alerts**: Rejections → Felipe, bad reviews → dev team, expired builds → dev team
+
+📖 See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full details.
+
+---
+
 ## 📋 All Bots Summary
 
 | # | Project | Bot Name | Emoji | Roles | Machine | AGENTS.md | Special |
