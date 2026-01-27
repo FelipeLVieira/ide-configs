@@ -17,6 +17,7 @@ Multi-bot architecture with specialized roles per project.
 | **Frontend Dev** | Next.js UI, Three.js rendering | gpt-oss:20b |
 | **QA Engineer** | Testing, bug reports, playtesting | qwen3:8b |
 | **Art Director** | Asset generation prompts, visual style | Claude Sonnet |
+| **Sound Engineer** | SFX, music, ambient audio design. References: Ragnarok Online, Chrono Trigger | gpt-oss:20b |
 
 ### Current Focus
 - Combat enhancement system (TypeScript TS7053 fixes)
