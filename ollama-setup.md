@@ -117,8 +117,14 @@ Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** model (reasoning=true, safe for 16GB RAM) | ✅ Always loaded |
-| **gpt-oss:20b** | 13 GB | On-demand fallback (DeepSeek-V3) | ⚠️ NOT kept loaded |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — only safe model for auto-fallback (reasoning=true) | ✅ Always loaded |
+| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | ⚠️ NOT in auto-fallback |
+
+**Removed:**
+- ❌ qwen3-fast:8b — Deleted (duplicate of qwen3:8b, freed 5.2GB disk)
+
+**Future upgrade candidate:**
+- **qwen3:14b** (Q3_K_M) — ~9GB VRAM, fits 16GB with 7GB headroom. Nearly doubles reasoning quality. Not yet pulled.
 
 **Resource Limits (desired-state.json):**
 ```json
@@ -158,16 +164,18 @@ ollama pull gpt-oss:20b           # Fallback
 ```
 
 ### Removed Models
-- ❌ **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b (better reasoning) and gpt-oss:20b (better quality).
+- ❌ **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b and gpt-oss:20b.
+- ❌ **qwen3-fast:8b** — Deleted from Mac Mini (2026-01-27). Duplicate of qwen3:8b, freed 5.2GB disk.
 
-### Windows MSI — Remote Ollama via Mac Mini
+### Windows MSI — Remote Ollama via MacBook + Mac Mini
 - ❌ **No local Ollama** on Windows MSI
-- ✅ **Routes through Mac Mini** via Tailscale (`http://100.115.10.14:11434`)
-- Provider name: `ollama-macmini`
-- Available models: gpt-oss:20b, qwen3:8b (served by Mac Mini)
+- ✅ **Routes through both Macs** via Tailscale:
+  - `ollama-macbookpro` → `http://100.125.165.107:11434` (devstral-24b, gpt-oss:20b, qwen3:8b)
+  - `ollama-macmini` → `http://100.115.10.14:11434` (qwen3:8b ONLY)
 
 ### Future Models
-- **qwen2.5vl:32b** — Planned for Asset Forge (design vision model, Grok recommended)
+- **qwen3:14b** (Q3_K_M) — Best upgrade for Mac Mini: ~9GB, fits 16GB with headroom
+- **qwen2.5vl:32b** — Planned for Asset Forge (design vision model)
 
 ## 🌐 Mac Mini as Central Ollama Hub
 
@@ -192,7 +200,7 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 | Machine | Models | Total Size | Status |
 |---------|--------|-----------|--------|
 | **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | ✅ All loaded |
-| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand), qwen3-fast:8b (5.2GB) | ~23 GB | ⚠️ Only qwen3 kept loaded |
+| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand ONLY) | ~18 GB | ⚠️ Only qwen3:8b kept loaded |
 | **Windows MSI** | NONE (routes through Mac Mini) | 0 GB | ✅ Via Tailscale |
 
 ---
@@ -202,11 +210,12 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 **Reasoning-first architecture** — sub-agents cascade with thinking enabled:
 
 ```
-1. qwen3:8b (both machines, reasoning=true)  ← PRIMARY (FREE, smart)
-2. gpt-oss:20b (Mac Mini, on-demand)         ← Fallback (NOT kept loaded)
-3. devstral-small-2:24b (MacBook)            ← Heavy coding (48GB RAM)
-4. Claude Sonnet 4.5 (API)                   ← If all local fail
-5. Claude Opus 4.5 (API)                     ← Critical tasks only
+1. qwen3:8b (local, reasoning=true)         ← PRIMARY (FREE, smart)
+2. qwen3:8b (cross-machine via Tailscale)   ← If local Ollama fails
+3. devstral-small-2:24b (MacBook 48GB)      ← Heavy coding
+4. gpt-oss:20b (MacBook 48GB ONLY)          ← General fallback (NOT on Mac Mini!)
+5. Claude Sonnet 4.5 (API)                  ← If all local fail
+6. Claude Opus 4.5 (API)                    ← Critical tasks only
 ```
 
 ### Heartbeat Model
@@ -257,15 +266,15 @@ curl http://felipes-macbook-pro-2.local:11434/api/tags
 - `ollama` → Mac Mini (always-on)
 - `ollama-macbook` → MacBook Pro (coding-focused)
 
-**Mac Mini fallback chain (NEW):**
+**Mac Mini fallback chain:**
 ```
-qwen3 local → gpt-oss local → MacBook qwen3 → MacBook devstral → 
-MacBook gpt-oss → Sonnet → Opus
+qwen3:8b (local) → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus
 ```
+> ⚠️ No gpt-oss:20b in Mac Mini auto-fallback — goes to MacBook instead!
 
 **MacBook fallback chain:**
 ```
-qwen3 local → Mac Mini qwen3 → Mac Mini gpt-oss → Sonnet → Opus
+Opus → Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b (all local/safe on 48GB)
 ```
 
 This means: **if one machine's Ollama fails, the other catches it automatically**. Zero downtime.

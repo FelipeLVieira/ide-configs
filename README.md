@@ -1,6 +1,6 @@
 # IDE Configs
 
-Personal configuration files for Claude Code, Cursor, VSCode, Clawdbot, and Mac Mini bot factory.
+Personal configuration files for Claude Code, Cursor, VSCode, Clawdbot, and the multi-machine bot infrastructure.
 
 ## Quick Start
 
@@ -20,26 +20,30 @@ cd ~/repos/ide-configs
 
 ```
 ide-configs/
-├── clawdbot/                  # Clawdbot Bot Factory
-│   ├── PERSISTENT-BOTS.md     # 9-bot architecture & management
+├── clawd/                     # 🧠 Clawdbot WORKSPACE files
+│   │                          #    These define WHO the bot IS.
+│   │                          #    Deployed to ~/clawd/ on each machine.
+│   ├── AGENTS.md              # Behavior rules, memory, safety
+│   ├── SOUL.md                # Personality & tone
+│   ├── USER.md                # Human profile (Felipe)
+│   ├── IDENTITY.md            # Bot identity (name, emoji)
+│   ├── HEARTBEAT.md           # Periodic check tasks
+│   ├── adapter.js             # Multi-account failover adapter
+│   ├── scripts/               # Auto-resume, shutdown scripts
+│   └── docs/ARCHITECTURE.md   # Multi-account rate limit docs
+│
+├── clawdbot/                  # 🏭 Clawdbot OPERATIONS documentation
+│   │                          #    Docs about HOW the bot factory WORKS.
+│   │                          #    Architecture, healing, monitoring, research.
+│   ├── PERSISTENT-BOTS.md     # Bot architecture & management
 │   ├── HYBRID-HEALING.md      # 3-layer self-healing system
 │   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
 │   ├── SCRIPTS-REFERENCE.md   # Scripts docs (event-watcher, cleanup)
 │   ├── APP-STORE-MANAGER.md   # iOS App Store monitoring cron
-│   ├── GAME-DESIGN-REFERENCES.md # Game design & sound engineering research
+│   ├── GAME-DESIGN-REFERENCES.md # Game design & sound research
 │   ├── MONITOR-INTEGRATION.md # Dashboard setup
 │   ├── PREREQUISITES.md       # System requirements
 │   └── README.md              # Clawdbot overview
-│
-├── clawd/                     # Clawdbot workspace files
-│   ├── AGENTS.md              # Agent behavior rules
-│   ├── SOUL.md                # Personality & tone
-│   ├── USER.md                # Human profile
-│   ├── IDENTITY.md            # Bot identity
-│   ├── HEARTBEAT.md           # Periodic check tasks
-│   ├── adapter.js             # Multi-account failover
-│   ├── scripts/               # Auto-resume, shutdown scripts
-│   └── docs/ARCHITECTURE.md   # Multi-account rate limit docs
 │
 ├── claude/                    # Claude Code CLI configs
 │   ├── CLAUDE.md              # Per-project template
@@ -57,92 +61,118 @@ ide-configs/
 │   ├── launchagents/          # LaunchAgent plists
 │   └── scripts/               # Startup scripts
 │
-├── project-templates/         # Per-project CLAUDE.md
-├── homebrew/                  # Brewfiles
-├── vscode/                    # VSCode settings
-├── git/                       # Git configs
 ├── infrastructure/            # Multi-machine architecture docs
 │   ├── three-machine-architecture.md
 │   └── port-assignments.md    # Master port registry
-└── ssh/                       # SSH configs
+│
+├── project-templates/         # Per-project CLAUDE.md templates
+├── homebrew/                  # Brewfiles
+├── vscode/                    # VSCode settings
+├── git/                       # Git configs
+├── ssh/                       # SSH configs
+│
+├── clawdbot-config.md         # Model routing & Ollama configuration
+├── ollama-setup.md            # Local LLM setup guide
+├── dev-teams.md               # Bot roles & model assignments
+├── tailscale.md               # Private mesh VPN configuration
+├── ssh-config.md              # SSH setup across machines
+└── aphos-servers.md           # Game server setup (pm2)
 ```
 
-## Clawdbot Bot Factory (3-Tier Architecture)
+### `clawd/` vs `clawdbot/` — What's the Difference?
 
-The Mac Mini runs a cost-optimized bot factory with automated cleanup and monitoring.
+| Folder | Purpose | Analogy | Deployed to |
+|--------|---------|---------|-------------|
+| **`clawd/`** | **Workspace files** — AGENTS.md, SOUL.md, USER.md, HEARTBEAT.md, scripts | The bot's **identity & brain** | `~/clawd/` on each machine |
+| **`clawdbot/`** | **Operations docs** — architecture, healing, monitoring, research | The **operations manual** | Reference only (not deployed) |
 
-### Tier 1: Event Watcher (FREE, 60s loop, launchd)
-Instant healing via bash -- zero LLM tokens, 24/7.
-- event-watcher.sh monitors Ollama, pm2, zombies, simulators; auto-heals instantly
-- Logs to `/tmp/clawdbot/events.jsonl`
+Think of it this way: `clawd/` is **who the bot is** (personality, rules, memory). `clawdbot/` is **how the factory works** (documentation about the infrastructure, healing systems, and operational procedures).
 
-### Tier 2: Bash Cleanup Scripts (FREE, every 15 min)
-Mechanical cleanup via launchd -- zero LLM tokens.
-- mac-mini-cleanup.sh kills simulators, zombies, duplicates; checks health
-- macbook-cleanup.sh same for MacBook (no simulators allowed)
+---
 
-### Tier 3: AI Cron Jobs (local LLMs, hourly)
-| Job | Schedule | Purpose |
-|-----|----------|---------|
-| Cleaner Bot | Hourly | Deep cleanup (caches, temp files, disk) |
-| Healer Bot | Hourly | Read event logs, diagnose, smart healing |
-| Clear Sessions | Sunday midnight | Weekly session cleanup |
-| App Store Manager | 3x daily (9/3/9 EST) | iOS app monitoring (reviews, builds, status) |
+## 🏗️ Three-Machine Architecture
 
-### Tier 4: Always-On Services (launchd)
-| Service | Purpose |
+```
+┌─────────────────────────────────┐
+│   MacBook Pro (48GB) — MAIN     │
+│   Opus 4.5 + local Ollama       │
+│   3 models: qwen3:8b, devstral  │
+│   -24b, gpt-oss:20b             │
+│   Role: Orchestrator, heavy AI   │
+└──────────┬──────────────────────┘
+           │ local network + Tailscale
+┌──────────▼──────────────────────┐
+│   Mac Mini (16GB) — ALWAYS ON   │
+│   qwen3:8b ONLY (swap-safe)     │
+│   Role: Heartbeats, game server, │
+│   iOS builds, bot dashboard      │
+└──────────┬──────────────────────┘
+           │ Tailscale VPN
+┌──────────▼──────────────────────┐
+│   Windows MSI — SECONDARY       │
+│   No local models                │
+│   Routes to MacBook + Mac Mini   │
+│   Role: Windows-specific tasks   │
+└─────────────────────────────────┘
+```
+
+### Model Routing (Current — 2026-01-27)
+
+| Machine | Main Model | Heartbeat | Sub-agents | Fallback Chain |
+|---------|-----------|-----------|------------|----------------|
+| **MacBook Pro** | Opus 4.5 | qwen3:8b (local, FREE) | qwen3:8b (local) | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
+| **Mac Mini** | qwen3:8b (local, FREE) | qwen3:8b (local, FREE) | qwen3:8b (local) | MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
+| **Windows MSI** | Opus 4.5 | Mac Mini qwen3:8b (FREE) | Mac Mini qwen3:8b | Sonnet → MacBook devstral → MacBook gpt-oss → MacBook qwen3 → Mac Mini qwen3 |
+
+> ⚠️ **Mac Mini swap protection**: gpt-oss:20b (14GB) is NEVER in Mac Mini auto-fallbacks. It caused 15.6GB swap death on 16GB RAM. Only qwen3:8b (5GB) is safe.
+
+See [infrastructure/three-machine-architecture.md](infrastructure/three-machine-architecture.md) for full details.
+
+---
+
+## 🤖 Active Services
+
+### Mac Mini (Always-On)
+| Service | Port | Purpose |
+|---------|------|---------|
+| Clawdbot Gateway | 18789 | AI orchestrator |
+| Ollama | 11434 | Local LLM (qwen3:8b) |
+| clawd-monitor | 9009 | Bot dashboard |
+| Aphos prod server | 2567 | Game server |
+| Aphos dev server | 2568 | Game server |
+| Python trading bot | 8080 | Shitcoin bot |
+
+### Active tmux Sessions (Mac Mini)
+| Session | Project |
 |---------|---------|
-| Clawdbot Gateway | AI orchestrator (port 18789) |
-| Python Trading Bot | Polymarket trading (run_bots) |
-| Failover Watchdog | MacBook health monitor |
+| bot-aphos | Game server management |
+| bot-clawd-monitor | Dashboard |
+| bot-ios-bills | Bills Tracker builds |
+| bot-ios-bmi | BMI Calculator builds |
+| bot-ios-translator | Screen Translator builds |
 
-### Quick Commands
-```bash
-# Check event watcher
-launchctl list | grep event-watcher
-tail -20 /tmp/clawdbot/events.jsonl | jq .
+### Cron Jobs
+| Job | Schedule | Model | Purpose |
+|-----|----------|-------|---------|
+| Cleaner Bot | Hourly | Sonnet 4.5 | Deep cleanup (both machines) |
+| Healer Bot v3 | Hourly | Sonnet 4.5 | Self-healing + swap monitoring |
+| App Store Manager | 3x/day | Sonnet 4.5 | iOS app monitoring |
+| Clear Sessions | Weekly | — | Stale session cleanup |
 
-# Check cron jobs
-clawdbot cron list
+---
 
-# Check services
-ps aux | grep -E "clawdbot-gateway|run_bots" | grep -v grep
-
-# Check cleanup health
-cat /tmp/clawdbot/system-health.json
-```
-
-See [clawdbot/HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) for the full 3-layer architecture.
-See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for bot docs.
-
-## Credit Optimization
-
-3-tier architecture reduced daily costs from ~$15 to ~$5:
+## 💰 Cost Optimization
 
 | Tier | Tool | Cost | Purpose |
 |------|------|------|---------|
-| Bash scripts | launchd (15 min) | FREE | Cleanup, monitoring |
-| Sonnet cron | Clawdbot (30 min) | ~$0.05/run | Research, health |
-| Opus heartbeat | Clawdbot (60 min) | ~$0.10/run | Connectivity only |
+| Free research | Grok, Brave Search, web_fetch | $0 | Research before burning tokens |
+| Free local LLMs | Ollama (qwen3:8b, devstral, gpt-oss) | $0 | Heartbeats, sub-agents, cron |
+| Sonnet cron | Clawdbot isolated sessions | ~$0.05-0.15/run | Self-healing, monitoring |
+| Opus main | MacBook + Windows main chat | ~$0.10-0.50/turn | Complex reasoning, orchestration |
 
-See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
+**Estimated monthly**: $60-130 (down from $300+ before local LLMs)
 
-## Mac Mini Architecture
-
-```
-+------------------------------------------+
-|          MAC MINI BOT FACTORY            |
-+------------------------------------------+
-|  Clawdbot Gateway (port 18789)           |
-|  -- 9 Persistent Bots (tmux)            |
-|  -- Python Trading Bot                   |
-|  -- clawd-monitor Dashboard (:9009)      |
-+------------------------------------------+
-|  Scripts: ~/clawd/scripts/               |
-|  Memory: ~/clawd/memory/                 |
-|  Repos: ~/repos/                         |
-+------------------------------------------+
-```
+---
 
 ## Installation
 
@@ -151,11 +181,7 @@ See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
 ./install.sh
 ```
 
-Creates symlinks for:
-- `~/.claude/CLAUDE.md` -- Global Claude settings
-- `~/.claude/settings.json` -- Claude hooks
-- `~/.gitconfig` -- Git config
-- `~/.ssh/config` -- SSH config
+Creates symlinks for `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, `~/.gitconfig`, `~/.ssh/config`.
 
 ### Windows
 ```powershell
@@ -164,104 +190,55 @@ Creates symlinks for:
 
 ### Homebrew Packages
 ```bash
-# MacBook
-brew bundle --file=homebrew/Brewfile-macbook
-
-# Mac Mini
-brew bundle --file=homebrew/Brewfile-macmini
+brew bundle --file=homebrew/Brewfile-macbook   # MacBook
+brew bundle --file=homebrew/Brewfile-macmini   # Mac Mini
 ```
 
-## Configuration Files
-
-### Claude Code
-| File | Purpose |
-|------|---------|
-| `claude/CLAUDE.md` | Per-project rules template |
-| `claude/CLAUDE-global.md` | Global ~/.claude/CLAUDE.md |
-| `claude/settings.json` | Pre-commit hooks |
-| `claude/deslop.md` | Anti-slop writing guide |
-
-### Clawdbot Workspace
-| File | Purpose |
-|------|---------|
-| `clawd/AGENTS.md` | Bot behavior & memory rules |
-| `clawd/SOUL.md` | Personality & tone |
-| `clawd/USER.md` | Human profile |
-| `clawd/HEARTBEAT.md` | Periodic check tasks |
-| `clawd/adapter.js` | Multi-account rate limit adapter |
-
-### MCP Servers
-| File | IDEs |
-|------|------|
-| `mcp/claude-code-mcps.json` | Claude Code |
-| `mcp/cursor-mcps.json` | Cursor |
-| `mcp/vscode-mcps.json` | VSCode |
-
-## Syncing
-
-### MacBook to Mac Mini
-```bash
-./mac-mini/sync-to-mini.sh
-```
-
-### Pull latest on both
-```bash
-# MacBook
-cd ~/repos/ide-configs && git pull
-
-# Mac Mini (via SSH)
-ssh mac-mini 'cd ~/repos/ide-configs && git pull'
-```
+---
 
 ## Documentation Index
 
-### Clawdbot
-- [RESEARCH-2026-01-27.md](clawdbot/RESEARCH-2026-01-27.md) - Grok research: trading bot improvements, Clawdbot updates
-- [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) - Game design and sound engineering research for Aphos
-- [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) - Bot architecture & management
-- [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) - 3-layer self-healing system
-- [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies
-- [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) - Script documentation (event-watcher, cleanup)
-- [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) - iOS App Store monitoring cron
-- [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
-- [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
-
 ### Infrastructure
-- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) - Full 3-machine overview (MacBook, Mac Mini, Windows MSI)
-- [Port Assignments](infrastructure/port-assignments.md) - Master port registry (all services, all machines)
+- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) — Full 3-machine overview
+- [Port Assignments](infrastructure/port-assignments.md) — Master port registry
 
-### Configuration
-- [clawdbot-config.md](clawdbot-config.md) - Model routing & Ollama configuration
-- [ollama-setup.md](ollama-setup.md) - Local LLM setup (Mac Mini & MacBook)
-- [tailscale.md](tailscale.md) - Private mesh VPN configuration
-- [ssh-config.md](ssh-config.md) - SSH setup across all machines
+### Clawdbot Configuration
+- [clawdbot-config.md](clawdbot-config.md) — Model routing & Ollama config
+- [ollama-setup.md](ollama-setup.md) — Local LLM setup guide
+- [dev-teams.md](dev-teams.md) — Bot roles & model assignments per project
+- [tailscale.md](tailscale.md) — Private mesh VPN
+- [ssh-config.md](ssh-config.md) — SSH setup
 
-### Development
-- [dev-teams.md](dev-teams.md) - Bot roles & model assignments per project
-- [aphos-servers.md](aphos-servers.md) - Game server setup (pm2 on Mac Mini)
+### Clawdbot Operations (clawdbot/)
+- [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) — Bot architecture & management
+- [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) — 3-layer self-healing system
+- [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) — API savings strategies
+- [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) — Script documentation
+- [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) — iOS App Store monitoring
+- [GAME-DESIGN-REFERENCES.md](clawdbot/GAME-DESIGN-REFERENCES.md) — Game design & sound research
+- [RESEARCH-2026-01-27.md](clawdbot/RESEARCH-2026-01-27.md) — Grok research notes
 
-### Mac Mini
-- [mac-mini/README.md](mac-mini/README.md) - Server setup guide
-- [mac-mini/PERSISTENCE.md](mac-mini/PERSISTENCE.md) - Bot persistence strategy
+### Clawdbot Workspace (clawd/)
+- [AGENTS.md](clawd/AGENTS.md) — Bot behavior & memory rules
+- [SOUL.md](clawd/SOUL.md) — Personality & tone
+- [USER.md](clawd/USER.md) — Human profile
+- [HEARTBEAT.md](clawd/HEARTBEAT.md) — Periodic check tasks
+- [docs/ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) — Multi-account failover
 
 ### Claude Code
-- [claude/WORKING_PRINCIPLES.md](claude/WORKING_PRINCIPLES.md) - Dev principles
-- [claude/deslop.md](claude/deslop.md) - Writing quality guide
+- [claude/CLAUDE-global.md](claude/CLAUDE-global.md) — Global settings
+- [claude/WORKING_PRINCIPLES.md](claude/WORKING_PRINCIPLES.md) — Dev principles
+- [claude/deslop.md](claude/deslop.md) — Writing quality guide
 
-## Project Templates
+### Mac Mini
+- [mac-mini/README.md](mac-mini/README.md) — Server setup guide
+- [mac-mini/PERSISTENCE.md](mac-mini/PERSISTENCE.md) — Bot persistence
+- [aphos-servers.md](aphos-servers.md) — Game server setup (pm2)
 
-Pre-configured CLAUDE.md for each project:
+### Project Templates
+Pre-configured CLAUDE.md for: Aphos, EZ-CRM, LinkLounge, BMI Calculator, Bills Tracker, Screen Translator, Shitcoin Bot, clawd-monitor.
 
-| Template | Project |
-|----------|---------|
-| `game-project-CLAUDE.md` | Aphos MMORPG |
-| `crm-app-CLAUDE.md` | EZ-CRM |
-| `links-app-CLAUDE.md` | LinkLounge |
-| `health-app-CLAUDE.md` | BMI Calculator |
-| `finance-app-CLAUDE.md` | Bills Tracker |
-| `translator-app-CLAUDE.md` | Screen Translator |
-| `trading-bot-CLAUDE.md` | Shitcoin Bot |
-| `clawd-monitor-CLAUDE.md` | Bot Dashboard |
+---
 
 ## License
 

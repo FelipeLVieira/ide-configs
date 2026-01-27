@@ -210,11 +210,11 @@ Monitors **all 3 iOS apps** on App Store Connect:
 
 | Machine | Bots | Why |
 |---------|------|-----|
-| **MacBook Pro** | Orchestrator (main), **Shitcoin Bot**, sub-agent spawner, dev bots | 48GB RAM, primary compute, devstral-24b for heavy models |
-| **Mac Mini** | Aphos, clawd-monitor | Always-on, persistent sessions, game servers, **16GB RAM (resource-constrained)** |
+| **MacBook Pro** | Orchestrator (main), sub-agent spawner | 48GB RAM, primary compute, devstral-24b |
+| **Mac Mini** | Aphos, clawd-monitor, iOS bots, trading bot (Python) | Always-on, persistent sessions, game servers, **16GB RAM** |
 | **Windows MSI** | Windows-specific tasks only | No persistent bots, on-demand only |
 
-⚠️ **Note**: Shitcoin Bot moved from Mac Mini → MacBook Pro due to RAM constraints. Mac Mini's 16GB insufficient for heavy trading models.
+⚠️ **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-loading. gpt-oss:20b exists on disk but is NEVER in auto-fallback chains.
 
 ---
 
@@ -226,11 +226,14 @@ Monitors **all 3 iOS apps** on App Store Connect:
 
 | Complexity | Model | Use Cases |
 |------------|-------|-----------|
-| **Simple** | qwen3:8b (reasoning=true) | QA, testing, quick fixes, research |
+| **Simple** | qwen3:8b (reasoning=true, both Macs) | QA, testing, quick fixes, research |
 | **Medium** | qwen3:8b (reasoning=true) | Feature dev, refactoring, design |
-| **Heavy** | devstral-small-2:24b (MacBook 48GB) | Architecture, backend systems, ML |
+| **Heavy** | devstral-small-2:24b (MacBook 48GB ONLY) | Architecture, backend systems, ML |
+| **General** | gpt-oss:20b (MacBook 48GB ONLY) | Complex tasks needing bigger model |
 | **Creative** | Claude Sonnet 4.5 | Art direction, storytelling |
 | **Critical** | Claude Opus 4.5 | Major refactors, security |
+
+> ⚠️ devstral-24b and gpt-oss:20b are MacBook-only models. Mac Mini (16GB) can only safely auto-load qwen3:8b.
 
 ### By Role Type
 
@@ -257,13 +260,15 @@ Before using expensive models, check:
 
 ### Sub-Agent Cascade
 
-When spawning sub-agents:
-1. **devstral-small-2:24b** (MacBook Ollama, primary for coding)
-2. **gpt-oss:20b** (Mac Mini Ollama, always on)
-3. **gpt-oss:20b** (MacBook Ollama, fallback)
-4. **qwen3:8b** (both machines, fast fallback)
-5. **Claude Sonnet** (API, if local fails)
-6. **Claude Opus** (critical tasks only)
+When spawning sub-agents (reasoning-first, swap-safe):
+1. **qwen3:8b** (local, reasoning=true — PRIMARY, FREE)
+2. **qwen3:8b** (cross-machine via Tailscale — if local fails)
+3. **devstral-small-2:24b** (MacBook Ollama — heavy coding, 48GB safe)
+4. **gpt-oss:20b** (MacBook Ollama ONLY — NOT on Mac Mini auto-fallback!)
+5. **Claude Sonnet 4.5** (API, if all local fail)
+6. **Claude Opus 4.5** (critical tasks only)
+
+> ⚠️ gpt-oss:20b (14GB) is NEVER in Mac Mini auto-fallback chains — causes swap death on 16GB.
 
 ### Parallel Work
 

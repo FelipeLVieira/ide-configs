@@ -2,7 +2,7 @@
 
 Complete infrastructure documentation across all 3 machines in the Clawdbot ecosystem.
 
-> **Last updated**: January 2025 — Reasoning-first models, swap protection, cross-machine fallback
+> **Last updated**: 2026-01-27 — Config audit, swap protection enforced, Windows dual-provider, stale cleanup
 
 ---
 
@@ -21,145 +21,158 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 | Setting | Value |
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
-| **Fallbacks** | Sonnet → qwen3:8b → devstral-24b → gpt-oss:20b |
-| **Heartbeat** | `ollama/qwen3:8b` (reasoning=true, via Mac Mini, **FREE**) |
-| **Sub-agents** | `ollama/qwen3:8b` (reasoning=true) → `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → Sonnet → Opus |
-| **Thinking** | `thinkingDefault: "low"` (Opus always thinks) |
+| **Fallbacks** | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
+| **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
+| **Sub-agents** | `ollama/qwen3:8b` → `ollama-macbook/qwen3:8b` → `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → Sonnet → Opus |
+| **Thinking** | `thinkingDefault: "low"` (always) |
+
+### Ollama Providers
+| Provider | URL | Models |
+|----------|-----|--------|
+| `ollama` | `http://127.0.0.1:11434` (Mac Mini via config) | qwen3:8b, gpt-oss:20b |
+| `ollama-macbook` | `http://felipes-macbook-pro-2.local:11434` | qwen3:8b, devstral-24b, gpt-oss:20b |
 
 ### Services
-- **Clawdbot Gateway** — AI orchestrator (port 18789+)
+- **Clawdbot Gateway** — AI orchestrator (launchd)
 - **Ollama** — Local LLM inference (port 11434, launchd)
-- **event-watcher.sh** — Self-healing bash loop (launchd, 60s interval)
-- **Bash cleanup scripts** — macbook-cleanup.sh (launchd, 15 min)
-
-### Self-Healing
-- **event-watcher.sh** (60s loop) — Monitors Ollama, pm2, zombies, simulators
-- **Cleaner Bot** (hourly cron) — Deep cleanup (caches, temp files, disk)
-- **Healer Bot** (hourly cron) — Read event logs, diagnose, smart healing
+- **event-watcher.sh** — Self-healing bash loop (launchd, 60s)
+- **Tailscale** — Userspace networking mode (SOCKS5 on localhost:1055)
 
 ### Network
 - **Hostname**: `felipes-macbook-pro-2.local`
 - **Tailscale IP**: `100.125.165.107`
-- **Ollama URL**: `http://felipes-macbook-pro-2.local:11434`
-- **Ports**: 11434 (Ollama), 18789+ (Clawdbot)
+- **Ollama URL**: `http://100.125.165.107:11434` (Tailscale) or `http://felipes-macbook-pro-2.local:11434` (local)
 
 ---
 
 ## 🖥️ Machine 2: Mac Mini (16GB RAM) — Always-On Server
 
-**Role**: **CENTRAL BRAIN** — Always-on services, heartbeats, Ollama hub for all machines, game servers
+**Role**: Always-on services, heartbeats, game servers, iOS builds, bot dashboard
 
 ### Ollama Models
 
-⚠️ **CRITICAL: Mac Mini has only 16GB RAM!**
+⚠️ **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** model (reasoning=true, safe for 16GB RAM) | ✅ Always loaded |
-| gpt-oss:20b | 13 GB | On-demand fallback (DeepSeek-V3, causes swap) | ⚠️ NOT kept loaded |
-| qwen3-fast:8b | 5.2 GB | Faster variant for quick responses | Optional |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — only model safe for auto-fallback (reasoning=true) | ✅ Always loaded |
+| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | ⚠️ NOT in auto-fallback |
 
-**Swap Protection:**
-- gpt-oss:20b (14GB) was causing **15.6GB swap** — SWAP DEATH
-- Primary changed to qwen3:8b (5GB) — safe for 16GB
-- Healer Bot v3 monitors swap and auto-unloads heavy models
-- desired-state.json has resource_limits: swap_warn_gb=8, critical=12, max_loaded_model_gb=6
+**Swap Protection Rules:**
+- gpt-oss:20b (14GB) was causing **15.6GB swap** — system grinding to a halt
+- gpt-oss:20b is **NEVER** in any automatic fallback chain on Mac Mini
+- Only qwen3:8b (5GB) is in auto-fallbacks — leaves 11GB for OS + services
+- Healer Bot v3 monitors swap hourly; auto-unloads heavy models if swap >8GB
+- desired-state.json limits: swap_warn=8GB, swap_critical=12GB, max_loaded_model=6GB
+
+**Removed models:**
+- ❌ qwen3-fast:8b — Deleted (duplicate of qwen3:8b, wasted 5.2GB disk)
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
-| **Main model** | `ollama/qwen3:8b` (reasoning=true, **FREE**) |
-| **Fallbacks** | `ollama/gpt-oss:20b` (on-demand) → `ollama-macbook/qwen3:8b` → Sonnet → Opus |
-| **Heartbeat** | `ollama/qwen3:8b` (reasoning=true, **FREE**) |
-| **Sub-agents** | `ollama/qwen3:8b` (reasoning=true) → `ollama/gpt-oss:20b` → Sonnet → Opus |
-| **Thinking** | `thinkingDefault: "low"` (qwen3:8b with reasoning=true) |
+| **Main model** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
+| **Fallbacks** | MacBook qwen3:8b → MacBook devstral-24b → MacBook gpt-oss:20b → Sonnet → Opus |
+| **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
+| **Sub-agents** | `ollama/qwen3:8b` → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
+| **Thinking** | `thinkingDefault: "low"` |
+
+> ⚠️ **No gpt-oss:20b in any auto-fallback chain.** If Mac Mini local fails, it goes to MacBook, NOT to a bigger local model.
+
+### Ollama Providers
+| Provider | URL | Models |
+|----------|-----|--------|
+| `ollama` | `http://127.0.0.1:11434` | qwen3:8b |
+| `ollama-macbook` | `http://100.125.165.107:11434` (Tailscale IP) | qwen3:8b, devstral-24b, gpt-oss:20b |
 
 ### Services
-- **Clawdbot Gateway** — AI orchestrator (port 18789)
-- **Ollama** — Local LLM inference (port 11434, Homebrew service)
-- **pm2** — Process manager for game servers
-- **clawd-monitor** — Bot dashboard (port 9009)
+| Service | Port | Purpose |
+|---------|------|---------|
+| Clawdbot Gateway | 18789 | AI orchestrator (launchd) |
+| Ollama | 11434 | Local LLM inference (Homebrew service) |
+| clawd-monitor | 9009 | Bot dashboard |
+| Aphos prod server | 2567 | Game server (pm2) |
+| Aphos dev server | 2568 | Game server (pm2) |
+| Python trading bot | 8080 | Shitcoin bot (run_bots) |
 
-### pm2 Processes
-| Process | Port | Description |
-|---------|------|-------------|
-| aphos-server-prod | 2567 | Aphos game server (production) |
-| aphos-server-dev | 2568 | Aphos game server (development) |
+### Active tmux Sessions
+| Session | Project |
+|---------|---------|
+| bot-aphos | Game server management |
+| bot-clawd-monitor | Dashboard dev |
+| bot-ios-bills | Bills Tracker iOS builds |
+| bot-ios-bmi | BMI Calculator iOS builds |
+| bot-ios-translator | Screen Translator iOS builds |
 
-### Agents
-- **main** — Primary Clawdbot agent
-- **aphos** — Game server management bot
-- **shitcoin-bot** — Trading research bot
-
-### Session Data
-- **64 session files** — Persistent sessions for all projects
-- Sessions survive reboots via pm2 and tmux
+**Cleaned up (2026-01-27):** Killed 5 stale tmux sessions: bot-ez-crm, bot-linklounge, bot-game-assets, bot-swarm-reviewer, bot-swarm-tester. These are now handled by cron jobs / isolated sessions.
 
 ### Network
 - **Hostname**: `felipes-mac-mini.local`
 - **Tailscale IP**: `100.115.10.14`
-- **Ollama URL**: `http://felipes-mac-mini.local:11434`
-- **Ports**: 11434 (Ollama), 18789 (Clawdbot), 9009 (clawd-monitor), 2567-2568 (Aphos)
+- **Ollama URL**: `http://100.115.10.14:11434` (Tailscale) or `http://felipes-mac-mini.local:11434` (local)
 
 ---
 
-## 🖥️ Machine 3: Windows MSI — Dedicated Windows Bot
+## 🖥️ Machine 3: Windows MSI — Secondary Bot
 
-**Role**: Windows-specific automation tasks  
+**Role**: Windows-specific automation tasks
 **Identity**: "Clawdbot Master Windows" 🖥️
 
 ### Ollama Models
-- ❌ **No local Ollama** — Routes ALL inference through Mac Mini via Tailscale
+- ❌ **No local Ollama** — Routes ALL inference through MacBook Pro + Mac Mini via Tailscale
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
-| **Fallbacks** | `ollama-macmini/qwen3:8b` (reasoning=true) → Sonnet → Opus |
-| **Heartbeat** | `ollama-macmini/qwen3:8b` (reasoning=true, via Mac Mini, **FREE**) |
-| **Sub-agents** | `ollama-macmini/qwen3:8b` (reasoning=true) → Sonnet → Opus |
-| **Ollama provider** | `ollama-macmini` → `http://100.115.10.14:11434` |
-| **Auto-start** | Windows Scheduled Task "ClawdbotGateway" (runs on login) |
-| **Thinking** | `thinkingDefault: "low"` (Opus always thinks) |
+| **Fallbacks** | Sonnet → MacBook devstral-24b → MacBook gpt-oss:20b → MacBook qwen3:8b → Mac Mini qwen3:8b |
+| **Heartbeat** | `ollama-macmini/qwen3:8b` (via Tailscale, reasoning=true, **FREE**) |
+| **Sub-agents** | Mac Mini qwen3:8b → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
+| **Thinking** | `thinkingDefault: "low"` |
 
-### Architecture Flow
-```
-Windows MSI → Mac Mini Ollama (100.115.10.14:11434)
-                    ↓ (if needed)
-              MacBook Ollama (felipes-macbook-pro-2.local:11434)
-                    ↓ (last resort)
-              Claude API (Sonnet → Opus)
-```
+### Ollama Providers (TWO remote providers)
+| Provider | URL | Models |
+|----------|-----|--------|
+| `ollama-macbookpro` | `http://100.125.165.107:11434` | devstral-24b, gpt-oss:20b, qwen3:8b |
+| `ollama-macmini` | `http://100.115.10.14:11434` | qwen3:8b ONLY |
 
-### ✅ Credit Leak FIXED
-Previously 100% Claude-powered. Now routes through Mac Mini's Ollama via Tailscale — **FREE local inference** for most tasks.
+> Windows has access to both Macs' Ollama — MacBook for heavy models, Mac Mini for always-on qwen3:8b.
 
 ### Network
 - **Tailscale IP**: `100.67.241.32`
 - **SSH**: `ssh msi` from both Macs (SOCKS proxy through Tailscale)
 - **User**: `felip`
-- **Note**: Both Macs use Tailscale in userspace-networking mode (SOCKS5 on `localhost:1055`)
 
 ---
 
 ## 🌐 Network Topology
 
 ```
-MacBook Pro (48GB) ←──local network──→ Mac Mini (16GB) ← CENTRAL BRAIN
-       ↕                                    ↕
-    Tailscale                           Tailscale
-       ↕                                    ↕
-Windows MSI ───Ollama via Tailscale───→ Mac Mini (100.115.10.14:11434)
+┌──────────────────────────────────────────────────┐
+│          MacBook Pro (48GB) — ORCHESTRATOR        │
+│  Main: Opus 4.5 | Local: qwen3, devstral, gpt-oss│
+│  Tailscale: 100.125.165.107                       │
+└─────────┬──────────────────────────┬─────────────┘
+          │ local + Tailscale        │ Tailscale
+          ▼                          │
+┌─────────────────────────────┐     │
+│  Mac Mini (16GB) — ALWAYS ON │     │
+│  Local: qwen3:8b ONLY (safe) │     │
+│  Tailscale: 100.115.10.14    │     │
+└─────────┬───────────────────┘     │
+          │ Tailscale                │
+          ▼                          ▼
+┌──────────────────────────────────────────────────┐
+│          Windows MSI — SECONDARY                  │
+│  No local models                                  │
+│  Routes to MacBook (heavy) + Mac Mini (heartbeat) │
+│  Tailscale: 100.67.241.32                         │
+└──────────────────────────────────────────────────┘
 
-Heartbeat routing (reasoning-first):
-  MacBook  → Mac Mini Ollama (qwen3:8b, reasoning=true)
-  Mac Mini → Local Ollama (qwen3:8b, reasoning=true)
-  Windows  → Mac Mini Ollama via Tailscale (qwen3:8b, reasoning=true)
-
-Cross-machine fallback (NEW):
-  Mac Mini Ollama fails → MacBook Ollama catches it
-  MacBook Ollama fails → Mac Mini Ollama catches it
-  Automatic failover, zero downtime
+Cross-machine failover:
+  Mac Mini local fails → MacBook catches it (via Tailscale)
+  MacBook Ollama fails → Mac Mini catches it (via local/Tailscale)
+  Automatic failover, zero manual intervention
 ```
 
 ### Tailscale IPs
@@ -176,22 +189,11 @@ Cross-machine fallback (NEW):
 # MacBook → Mac Mini
 ssh felipemacmini@felipes-mac-mini.local
 
-# MacBook → Windows MSI
-ssh msi  # Uses SOCKS proxy through Tailscale
+# MacBook → Windows MSI (SOCKS proxy)
+ssh msi
 
-# Mac Mini → Windows MSI
-ssh msi  # Same SOCKS proxy config
-```
-
-### Cross-Machine Ollama Access
-```bash
-# MacBook → Mac Mini Ollama
-curl http://felipes-mac-mini.local:11434/api/tags
-curl http://100.115.10.14:11434/api/tags  # Tailscale
-
-# Mac Mini → MacBook Ollama
-curl http://felipes-macbook-pro-2.local:11434/api/tags
-curl http://100.125.165.107:11434/api/tags  # Tailscale
+# Mac Mini → Windows MSI (SOCKS proxy)
+ssh msi
 ```
 
 ---
@@ -200,11 +202,11 @@ curl http://100.125.165.107:11434/api/tags  # Tailscale
 
 | Machine | Local Models | API Usage | Monthly Estimate |
 |---------|-------------|-----------|-----------------|
-| MacBook Pro | ✅ 3 models (FREE compute) | Opus for main session | $50-100 |
-| Mac Mini | ✅ 3 models (FREE compute) | Minimal API (fallback only) | $5-15 |
-| Windows MSI | ✅ Via Mac Mini Ollama (FREE) | Sonnet/Opus fallback only | $5-15 |
+| MacBook Pro | ✅ 3 models (FREE) | Opus for main session | $50-100 |
+| Mac Mini | ✅ qwen3:8b (FREE) | Minimal API (fallback only) | $5-15 |
+| Windows MSI | Via MacBook + Mac Mini (FREE) | Opus main + Sonnet fallback | $10-25 |
 
-**Total estimated**: $60-130/month (down from $300+ before local LLMs)
+**Total estimated**: $65-140/month (down from $300+ before local LLMs)
 
 ---
 
@@ -212,15 +214,37 @@ curl http://100.125.165.107:11434/api/tags  # Tailscale
 
 | Task | Machine | Why |
 |------|---------|-----|
-| Main chat session | MacBook | Opus 4.5 (thinking=low) + orchestration |
-| Sub-agent coding | MacBook | qwen3:8b (reasoning=true), devstral-24b (48GB RAM) |
-| Heartbeats | Mac Mini | Always-on, qwen3:8b (reasoning=true, FREE) |
+| Main chat session | MacBook | Opus 4.5 + orchestration |
+| Sub-agent coding | MacBook | devstral-24b (48GB RAM) |
+| Heartbeats | Mac Mini (local) or MacBook (local) | Always-on, qwen3:8b, FREE |
 | Game servers (Aphos) | Mac Mini | pm2, always-on |
-| **Trading bot (Shitcoin)** | **MacBook** | **48GB RAM for heavy models** |
+| Trading bot (Shitcoin) | Mac Mini (Python) | Always-on, run_bots |
 | iOS builds | Mac Mini | Xcode, simulators |
 | Bot dashboard | Mac Mini | clawd-monitor:9009 |
 | Windows tasks | Windows MSI | Only Windows machine |
-| Self-healing | MacBook + Mac Mini | event-watcher + Healer Bot v3 (swap monitoring) |
+| Self-healing | Both Macs | event-watcher + Healer Bot v3 |
+
+---
+
+## 🔄 Change Log
+
+### 2026-01-27: Config Audit & Swap Protection
+- **gpt-oss:20b removed from ALL Mac Mini auto-fallbacks** (was causing 15.6GB swap death)
+- **Windows MSI: added MacBook Pro as second Ollama provider** (was only Mac Mini before)
+- **Mac Mini: MacBook URL changed to Tailscale IP** (100.125.165.107 instead of .local hostname)
+- **Deleted qwen3-fast:8b** from Mac Mini (duplicate, freed 5.2GB disk)
+- **Killed 5 stale tmux sessions** on Mac Mini (ez-crm, linklounge, game-assets, swarm-reviewer, swarm-tester)
+- **Cleaned 15GB** across all machines (node_modules, brew packages, stale builds, _archive)
+
+### 2026-01-27: Reasoning-First Architecture
+- All machines now use `thinkingDefault: "low"`
+- qwen3:8b (reasoning=true) is PRIMARY for all sub-agents and heartbeats
+- gpt-oss:20b changed from primary to on-demand fallback on Mac Mini
+
+### 2026-01-27: Windows MSI Dual-Provider
+- Windows now routes to BOTH MacBook (heavy models) and Mac Mini (heartbeats)
+- Main model: Opus 4.5 (unchanged)
+- Subagents: Mac Mini qwen3:8b (free) → MacBook models → API fallback
 
 ---
 
