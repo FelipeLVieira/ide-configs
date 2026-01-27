@@ -206,6 +206,16 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 - [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
 - [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 
+### Infrastructure & Configuration
+- [clawdbot-config.md](clawdbot-config.md) - Model routing & Ollama configuration
+- [ollama-setup.md](ollama-setup.md) - Local LLM setup (Mac Mini & MacBook)
+- [tailscale.md](tailscale.md) - Private mesh VPN configuration
+- [ssh-config.md](ssh-config.md) - SSH setup across all machines
+
+### Development
+- [dev-teams.md](dev-teams.md) - Bot roles & model assignments per project
+- [aphos-servers.md](aphos-servers.md) - Game server setup (pm2 on Mac Mini)
+
 ### Mac Mini
 - [mac-mini/README.md](mac-mini/README.md) - Server setup guide
 - [mac-mini/PERSISTENCE.md](mac-mini/PERSISTENCE.md) - Bot persistence strategy
