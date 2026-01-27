@@ -5,57 +5,57 @@ Documentation for migrating to new Mac Mini.
 ## Overview
 
 ```
-
-                    CLAWDBOT GATEWAY
-                   (Main Orchestrator)
-
-  Main Session (telegram:main)
-   Orchestrator Bot (monitors swarm)
-   Sub-Agents:
-       aphos-rebuild (game dev)
-       ez-crm-tester (CRM testing)
-       bmi-calculator (iOS app)
-       bills-tracker-v2 (iOS app)
-       screen-translator-v2 (iOS app)
-       shitcoin-bot (crypto monitoring)
-       orchestration-research (research tasks)
-
+┌─────────────────────────────────────────────────────────────┐
+│                    CLAWDBOT GATEWAY                         │
+│                   (Main Orchestrator)                       │
+├─────────────────────────────────────────────────────────────┤
+│  Main Session (telegram:main)                               │
+│  └── Orchestrator Bot (monitors swarm)                      │
+│  └── Sub-Agents:                                            │
+│      ├── aphos-rebuild (game dev)                           │
+│      ├── ez-crm-tester (CRM testing)                        │
+│      ├── bmi-calculator (iOS app)                           │
+│      ├── bills-tracker-v2 (iOS app)                         │
+│      ├── screen-translator-v2 (iOS app)                     │
+│      ├── shitcoin-bot (crypto monitoring)                   │
+│      └── orchestration-research (research tasks)            │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Directory Structure
 
 ```
-~/clawd/ # Main workspace
- AGENTS.md # Bot rules & guidelines
- SOUL.md # Bot personality
- USER.md # User info
- TOOLS.md # Tool notes
- HEARTBEAT.md # Periodic check tasks
- MEMORY.md # Long-term memory
- memory/ # Daily session notes
-    YYYY-MM-DD.md
- docs/
-     ARCHITECTURE.md # This file
+~/clawd/                          # Main workspace
+├── AGENTS.md                     # Bot rules & guidelines
+├── SOUL.md                       # Bot personality
+├── USER.md                       # User info
+├── TOOLS.md                      # Tool notes
+├── HEARTBEAT.md                  # Periodic check tasks
+├── MEMORY.md                     # Long-term memory
+├── memory/                       # Daily session notes
+│   └── YYYY-MM-DD.md
+└── docs/
+    └── ARCHITECTURE.md           # This file
 
-~/repos/ # Project repositories
- aphos/ # Game project
- ez-crm/ # CRM project
- clawd-monitor/ # Dashboard
- shitcoin-bot/ # Crypto bot
- bmi-calculator/ # iOS app
- bill-subscriptions-organizer-tracker/ # iOS app
- simple-screen-translator/ # iOS app
- ide-configs/ # Shared configs
+~/repos/                          # Project repositories
+├── aphos/                        # Game project
+├── ez-crm/                       # CRM project
+├── clawd-monitor/                # Dashboard
+├── shitcoin-bot/                 # Crypto bot
+├── bmi-calculator/               # iOS app
+├── bill-subscriptions-organizer-tracker/  # iOS app
+├── simple-screen-translator/     # iOS app
+└── ide-configs/                  # Shared configs
 
-~/.clawdbot/ # Clawdbot state
- agents/
-    main/
-        agent/
-           auth-profiles.json
-        sessions/ # Session transcripts
- config.json # Gateway config
- logs/
-     gateway.log
+~/.clawdbot/                      # Clawdbot state
+├── agents/
+│   └── main/
+│       ├── agent/
+│       │   └── auth-profiles.json
+│       └── sessions/             # Session transcripts
+├── config.json                   # Gateway config
+└── logs/
+    └── gateway.log
 ```
 
 ## Port Assignments

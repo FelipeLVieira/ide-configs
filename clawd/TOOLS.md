@@ -2,30 +2,30 @@
 
 Skills define *how* tools work. This file is for *your* specifics — the stuff that's unique to your setup.
 
-## WARNING: CRITICAL: Cloud Storage
+## ⚠️ CRITICAL: Cloud Storage
 
 **Felipe uses MEGA, NOT Google Drive.**
-- [NO] NEVER access Google Drive
-- [NO] NEVER suggest Google Drive
-- [OK] Use MEGA for all cloud storage needs
+- ❌ NEVER access Google Drive
+- ❌ NEVER suggest Google Drive
+- ✅ Use MEGA for all cloud storage needs
 
-## WARNING: CRITICAL: iOS Work on Mac Mini ONLY
+## ⚠️ CRITICAL: iOS Work on Mac Mini ONLY
 
 **All iOS simulator/Xcode work must happen on Mac Mini!**
-- [NO] NEVER open simulators on MacBook
-- [NO] NEVER run xcodebuild on MacBook
-- [OK] Use SSH: `ssh felipemacmini@felipes-mac-mini.local '<command>'`
-- [OK] Use nodes.run: `nodes.run(mac-mini, [...])`
+- ❌ NEVER open simulators on MacBook
+- ❌ NEVER run xcodebuild on MacBook
+- ✅ Use SSH: `ssh felipemacmini@felipes-mac-mini.local '<command>'`
+- ✅ Use nodes.run: `nodes.run(mac-mini, [...])`
 - MacBook = orchestration only, Mac Mini = iOS builds
 
-## WARNING: CRITICAL: iOS Builds - LOCAL ONLY, NO EAS CLOUD
+## ⚠️ CRITICAL: iOS Builds - LOCAL ONLY, NO EAS CLOUD
 
 **Build iOS apps LOCALLY with Xcode, NOT EAS Cloud!**
-- [NO] NEVER use `eas build` for iOS
-- [NO] NEVER use EAS cloud builds
-- [OK] Use `xcodebuild` locally on Mac Mini
-- [OK] Use `npx expo run:ios` for dev builds
-- [OK] Archive with Xcode for App Store submission
+- ❌ NEVER use `eas build` for iOS
+- ❌ NEVER use EAS cloud builds
+- ✅ Use `xcodebuild` locally on Mac Mini
+- ✅ Use `npx expo run:ios` for dev builds
+- ✅ Archive with Xcode for App Store submission
 
 **Why:** EAS Cloud has build quotas and costs money. Local builds are free and faster.
 
@@ -40,7 +40,7 @@ xcodebuild -workspace ios/AppName.xcworkspace -scheme AppName -configuration Rel
 xcodebuild -exportArchive -archivePath build/AppName.xcarchive -exportPath build/AppStore -exportOptionsPlist ios/ExportOptions.plist
 ```
 
-## Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
+## 🤖 Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
 
 Felipe is logged into his X account with Grok access. **Use Grok for:**
 - Research tasks (market analysis, news, trends)
@@ -59,7 +59,7 @@ Felipe is logged into his X account with Grok access. **Use Grok for:**
 
 This saves money AND gives you diverse perspectives!
 
-## Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
+## 🤖 Grok (X/Twitter AI) - USE THIS TO SAVE CREDITS!
 
 Felipe is logged into his X account with Grok access. **Use Grok for:**
 - Research tasks (market analysis, news, trends)
@@ -78,19 +78,19 @@ Felipe is logged into his X account with Grok access. **Use Grok for:**
 
 This saves money AND gives you diverse perspectives!
 
-## Mac Mini Remote Control (Full Access)
-- **Screen capture**: `screencapture -x /tmp/screen.png` via nodes.run [OK]
-- **Peekaboo**: Screen Recording permission granted [OK]
-- **Mouse control**: `cliclick` installed, Accessibility granted [OK]
+## 🖥️ Mac Mini Remote Control (Full Access)
+- **Screen capture**: `screencapture -x /tmp/screen.png` via nodes.run ✅
+- **Peekaboo**: Screen Recording permission granted ✅
+- **Mouse control**: `cliclick` installed, Accessibility granted ✅
   - Click: `cliclick c:x,y`
   - Type: `cliclick t:text`
   - Move: `cliclick m:x,y`
   - Position: `cliclick p`
-- **AppleScript**: `osascript` works [OK] (dialogs, app control, UI scripting)
-- **Keyboard**: via cliclick [OK]
-- **File system**: full read/write [OK]
-- **SSH**: MacBook -> Mac Mini (passwordless) [OK]
-- **SSH**: Mac Mini -> MacBook: NOT working (MacBook Remote Login disabled)
+- **AppleScript**: `osascript` works ✅ (dialogs, app control, UI scripting)
+- **Keyboard**: via cliclick ✅
+- **File system**: full read/write ✅
+- **SSH**: MacBook → Mac Mini (passwordless) ✅
+- **SSH**: Mac Mini → MacBook: NOT working (MacBook Remote Login disabled)
 - **Code sync**: Mac Mini pushes to git, MacBook pulls
 - **Felipe's remote access**: Chrome Remote Desktop (internet)
 
@@ -109,25 +109,25 @@ nodes.run(mac-mini, ["bash", "-c", "cd /tmp && /usr/sbin/screencapture -x screen
 nodes.run(mac-mini, ["cliclick", "c:500,400"])
 ```
 
-## Windows MSI (via Tailscale SSH)
+## 🖥️ Windows MSI (via Tailscale SSH)
 - **SSH**: `ssh msi` (configured in ~/.ssh/config with SOCKS proxy)
 - **User**: felip
 - **Tailscale IP**: 100.67.241.32
 - **Note**: Both Macs use Tailscale in userspace-networking mode (SOCKS5 on localhost:1055)
 - **From Mac Mini**: same `ssh msi` works
 
-## QWEN Local LLM (Mac Mini)
+## 🤖 QWEN Local LLM (Mac Mini)
 - **Model**: qwen2.5-coder:7b-instruct-q5_K_M (5.4 GB)
 - **Ollama**: http://localhost:11434 on Mac Mini
 - **Cost**: FREE — use for all automated/cron tasks
-- **Mac Mini Clawdbot config**: Primary model = QWEN, fallback = Sonnet -> Opus
+- **Mac Mini Clawdbot config**: Primary model = QWEN, fallback = Sonnet → Opus
 - **Cron jobs on Mac Mini**: Shitcoin Brain (10min), Quant (15min), Health (30min) — all QWEN
 
 ## What Goes Here
 
 Things like:
 - Camera names and locations
-- SSH hosts and aliases
+- SSH hosts and aliases  
 - Preferred voices for TTS
 - Speaker/room names
 - Device nicknames
@@ -137,11 +137,11 @@ Things like:
 
 ```markdown
 ### Cameras
-- living-room -> Main area, 180° wide angle
-- front-door -> Entrance, motion-triggered
+- living-room → Main area, 180° wide angle
+- front-door → Entrance, motion-triggered
 
 ### SSH
-- home-server -> 192.168.1.100, user: admin
+- home-server → 192.168.1.100, user: admin
 
 ### TTS
 - Preferred voice: "Nova" (warm, slightly British)
