@@ -136,7 +136,12 @@ ollama pull qwen3:8b
 ```
 
 ### Removed Models
-- ❌ **qwen2.5-coder:7b** — Outdated, replaced by qwen3:8b (better reasoning)
+- ❌ **qwen2.5-coder:7b** — Deleted from both machines (2025-07-27). Was causing credit leaks when configs referenced it after removal. Replaced by qwen3:8b (better reasoning) and gpt-oss:20b (better quality).
+
+### Windows MSI — NO Ollama
+- ❌ **No Ollama installed** on Windows MSI
+- All tasks run 100% on Claude API (credit leak risk)
+- **Future**: Install Ollama or route through Mac Mini (`http://100.115.10.14:11434`)
 
 ## 🎯 Sub-Agent Priority Chain
 
@@ -175,6 +180,24 @@ curl http://100.115.10.14:11434/api/tags
 # MacBook
 curl http://100.125.165.107:11434/api/tags
 ```
+
+### Cross-Machine Ollama Access (Bidirectional)
+
+Both Macs can use each other's Ollama instances for load balancing and failover:
+
+```bash
+# MacBook → Mac Mini (always-on, heartbeats)
+curl http://felipes-mac-mini.local:11434/api/tags
+
+# Mac Mini → MacBook (coding models, devstral-24b)
+curl http://felipes-macbook-pro-2.local:11434/api/tags
+```
+
+**In Clawdbot config**, two providers are defined:
+- `ollama` → Mac Mini (always-on)
+- `ollama-macbook` → MacBook Pro (coding-focused)
+
+Sub-agents cascade across both machines automatically.
 
 ### Tailscale CLI Fix
 

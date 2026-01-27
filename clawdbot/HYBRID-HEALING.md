@@ -212,8 +212,92 @@ The event watcher handles 95% of issues for free. The AI layers handle the remai
 
 ---
 
+## 🆕 Hybrid Healing v2 — Enhanced Features
+
+### Health Probes (HTTP, not PID)
+
+**v1** checked if processes were running (PID exists). **v2** checks if services are actually responding:
+
+```bash
+# v1 (PID-based) — unreliable, process could be hung
+pgrep -f "clawdbot-gateway" > /dev/null
+
+# v2 (HTTP health probe) — checks actual responsiveness
+curl -sf http://localhost:18789/health --max-time 5 > /dev/null
+curl -sf http://localhost:11434/api/tags --max-time 5 > /dev/null
+```
+
+**Why**: A process can be alive but unresponsive (deadlocked, OOM, hung connection). HTTP probes catch these cases.
+
+### Circuit Breakers
+
+Prevents restart loops when a service is fundamentally broken:
+
+```
+State file: /tmp/clawdbot/healer_circuit.json
+```
+
+```json
+{
+  "ollama_macbook": {
+    "failures": 0,
+    "state": "closed",
+    "lastFailure": null,
+    "openedAt": null
+  },
+  "clawdbot_gateway": {
+    "failures": 0,
+    "state": "closed",
+    "lastFailure": null,
+    "openedAt": null
+  }
+}
+```
+
+**States:**
+| State | Meaning | Behavior |
+|-------|---------|----------|
+| `closed` | Healthy | Normal monitoring, restart on failure |
+| `open` | Broken (3+ failures) | **Stop restarting**, alert Felipe |
+| `half-open` | Cooling down (after 10 min) | Try one restart, go closed or open |
+
+**Why**: Without circuit breakers, a fundamentally broken service triggers endless restart loops, filling logs and burning resources.
+
+### Reconciler Pattern
+
+Instead of reactive "fix when broken", v2 uses a **desired-state reconciler**:
+
+```
+Desired state: /tmp/clawdbot/desired-state.json
+```
+
+```json
+{
+  "services": {
+    "ollama_macbook": { "state": "running", "probe": "http://localhost:11434/api/tags" },
+    "ollama_macmini": { "state": "running", "probe": "http://felipes-mac-mini.local:11434/api/tags" },
+    "clawdbot_gateway": { "state": "running", "probe": "http://localhost:18789/health" },
+    "pm2_aphos_prod": { "state": "running", "port": 2567 },
+    "pm2_aphos_dev": { "state": "running", "port": 2568 }
+  }
+}
+```
+
+**How it works:**
+1. Read desired state from `desired-state.json`
+2. Probe each service
+3. Compare actual vs desired
+4. Reconcile: restart services that should be running but aren't
+5. Check circuit breaker before restarting
+6. Log all actions to `events.jsonl`
+
+**Why**: Declarative > imperative. Add/remove services by editing a JSON file, not bash scripts.
+
+---
+
 ## 📚 References
 
+- [Three-Machine Architecture](../infrastructure/three-machine-architecture.md) — Full infrastructure overview
 - [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) — All script documentation
 - [PERSISTENT-BOTS.md](PERSISTENT-BOTS.md) — Bot architecture
 - [Clawdbot Config](../clawdbot-config.md) — Cron job configuration

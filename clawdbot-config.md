@@ -204,8 +204,50 @@ lsof -i :11434
 brew services restart ollama
 ```
 
+## 🖥️ Windows MSI Config
+
+The Windows MSI machine runs Clawdbot with **no local models** — 100% Claude API.
+
+### Configuration
+```yaml
+main: anthropic/claude-opus-4-5
+fallback: anthropic/claude-sonnet-4-5
+heartbeat: none
+ollama: not installed
+```
+
+### ⚠️ Credit Leak Warning
+Every task on Windows burns API credits. No local fallback exists.
+
+**Future fix options:**
+1. Install Ollama on Windows (gpt-oss:20b or qwen3:8b)
+2. Route through Mac Mini's Ollama via Tailscale (`http://100.115.10.14:11434`)
+
+---
+
+## 🔧 Fix History
+
+### 2025-07-27: Credit Leak Fix (qwen2.5-coder removal)
+
+**Problem**: `qwen2.5-coder:7b` was deleted from both machines but still referenced in configs. Clawdbot would try to use it, fail, and fall back to expensive Claude API models — burning credits unnecessarily.
+
+**What was wrong:**
+- Mac Mini config referenced `qwen2.5-coder:7b` as primary model
+- MacBook config had it in fallback chains
+- Model had been removed via `ollama rm qwen2.5-coder:7b` but configs weren't updated
+- Every failed local model attempt = wasted time + API fallback = money burned
+
+**What was changed:**
+- Mac Mini primary model: `qwen2.5-coder:7b` → `gpt-oss:20b` (20B params, better quality, FREE)
+- All fallback chains updated to remove qwen2.5-coder references
+- MacBook sub-agent chain: Added `devstral-small-2:24b` as primary coding model
+- Verified all referenced models actually exist on their target machines
+
+---
+
 ## 📚 References
 
+- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) — Full infrastructure overview
 - [Ollama Setup](ollama-setup.md) — Installation & configuration
 - [Tailscale](tailscale.md) — Network configuration for multi-machine access
 - [Dev Teams](dev-teams.md) — Model assignment per project/bot

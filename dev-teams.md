@@ -161,19 +161,27 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 ## 📋 All Bots Summary
 
-| # | Project | Bot Name | Emoji | Roles | Special |
-|---|---------|----------|-------|-------|---------|
-| 1 | Aphos | Aphos Dev | 🎮 | 5 | Game studio |
-| 2 | Shitcoin Bot | Degen Brain | 🧠💰 | 4 | Trading intelligence |
-| 3 | LinkLounge | LinkLounge Dev | 🔗 | 4 | Web app team |
-| 4 | EZ-CRM | EZ-CRM Dev | 📇 | 4 | CRM team |
-| 5 | game-asset-tool | Asset Forge | 🎨🔨 | 5 | Shared design studio (serves ALL) |
-| 6 | clawd-monitor | Monitor Bot | 📊 | 3 | DevOps team |
-| 7 | BMI Calculator | BMI App Dev | ⚖️ | 3 | iOS mobile |
-| 8 | Bills Tracker | Bills Tracker Dev | 💳 | 4 | iOS mobile |
-| 9 | Screen Translator | Translator Dev | 🌐 | 4 | iOS mobile + ML |
+| # | Project | Bot Name | Emoji | Roles | Machine | Special |
+|---|---------|----------|-------|-------|---------|---------|
+| 1 | Aphos | Aphos Dev | 🎮 | 5 | **Mac Mini** | Game studio, persistent session |
+| 2 | Shitcoin Bot | Degen Brain | 🧠💰 | 4 | **Mac Mini** | Trading intelligence, persistent session |
+| 3 | LinkLounge | LinkLounge Dev | 🔗 | 4 | MacBook | Web app team |
+| 4 | EZ-CRM | EZ-CRM Dev | 📇 | 4 | MacBook | CRM team |
+| 5 | game-asset-tool | Asset Forge | 🎨🔨 | 5 | MacBook | Shared design studio (serves ALL) |
+| 6 | clawd-monitor | Monitor Bot | 📊 | 3 | **Mac Mini** | DevOps team |
+| 7 | BMI Calculator | BMI App Dev | ⚖️ | 3 | MacBook | iOS mobile |
+| 8 | Bills Tracker | Bills Tracker Dev | 💳 | 4 | MacBook | iOS mobile |
+| 9 | Screen Translator | Translator Dev | 🌐 | 4 | MacBook | iOS mobile + ML |
 
 **Total**: 9 project bots, 36 specialized roles
+
+### Machine Assignment
+
+| Machine | Bots | Why |
+|---------|------|-----|
+| **MacBook Pro** | Orchestrator (main), sub-agent spawner, dev bots | 48GB RAM, primary compute, devstral-24b |
+| **Mac Mini** | Aphos, Shitcoin Bot, clawd-monitor | Always-on, persistent sessions, game servers |
+| **Windows MSI** | Windows-specific tasks only | No persistent bots, on-demand only |
 
 ---
 

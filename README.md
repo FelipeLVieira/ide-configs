@@ -59,6 +59,8 @@ ide-configs/
 ├── 🍺 homebrew/              # Brewfiles
 ├── ⚙️ vscode/                # VSCode settings
 ├── 🔧 git/                   # Git configs
+├── 🏗️ infrastructure/         # Multi-machine architecture docs
+│   └── three-machine-architecture.md
 └── 🔐 ssh/                   # SSH configs
 ```
 
@@ -217,7 +219,10 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 - [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
 - [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 
-### Infrastructure & Configuration
+### Infrastructure
+- [Three-Machine Architecture](infrastructure/three-machine-architecture.md) - **Full 3-machine overview** (MacBook, Mac Mini, Windows MSI)
+
+### Configuration
 - [clawdbot-config.md](clawdbot-config.md) - Model routing & Ollama configuration
 - [ollama-setup.md](ollama-setup.md) - Local LLM setup (Mac Mini & MacBook)
 - [tailscale.md](tailscale.md) - Private mesh VPN configuration
