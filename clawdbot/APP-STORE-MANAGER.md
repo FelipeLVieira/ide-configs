@@ -30,12 +30,12 @@ Clawdbot cron job that monitors all 3 iOS apps on App Store Connect. Checks revi
 |-------|-------|
 | **Team ID** | `824F44HKCD` |
 | **API Keys** | `~/.private_keys/AuthKey_*.p8` |
-| **Issuer ID** | ⚠️ **MISSING** — Felipe needs to provide |
+| **Issuer ID** | WARNING: **MISSING** — Felipe needs to provide |
 
 ### Getting the Issuer ID
 
 1. Go to [App Store Connect](https://appstoreconnect.apple.com)
-2. Navigate to **Users and Access** → **Integrations** → **App Store Connect API**
+2. Navigate to **Users and Access** -> **Integrations** -> **App Store Connect API**
 3. Copy the **Issuer ID** from the top of the page
 4. Provide it to the bot for configuration
 
@@ -43,9 +43,9 @@ Clawdbot cron job that monitors all 3 iOS apps on App Store Connect. Checks revi
 
 | App | Fastlane Configured | Notes |
 |-----|---------------------|-------|
-| BMI Calculator | ✅ Yes | Full pipeline (build, upload, metadata) |
-| Bills Tracker | ✅ Yes | Full pipeline |
-| Screen Translator | ❌ Not yet | Needs Fastlane init |
+| BMI Calculator | [OK] Yes | Full pipeline (build, upload, metadata) |
+| Bills Tracker | [OK] Yes | Full pipeline |
+| Screen Translator | [NO] Not yet | Needs Fastlane init |
 
 ## Checks Performed
 
@@ -84,12 +84,12 @@ Each run performs these checks via App Store Connect API:
 
 | Event | Severity | Notify | Channel |
 |-------|----------|--------|---------|
-| **App Rejected** | 🔴 Critical | Felipe directly | Telegram DM |
-| **Bad Review (1-2 stars)** | 🟡 Warning | Dev team | Telegram group |
-| **Build Expired** | 🟡 Warning | Dev team | Telegram group |
-| **Rating Below 4.0** | 🟡 Warning | Felipe + dev team | Telegram group |
-| **Review Status Change** | 🔵 Info | Dev team | Telegram group |
-| **Policy Update Required** | 🟠 Important | Felipe | Telegram DM |
+| **App Rejected** | [CRITICAL] Critical | Felipe directly | Telegram DM |
+| **Bad Review (1-2 stars)** | [WARNING] Warning | Dev team | Telegram group |
+| **Build Expired** | [WARNING] Warning | Dev team | Telegram group |
+| **Rating Below 4.0** | [WARNING] Warning | Felipe + dev team | Telegram group |
+| **Review Status Change** | Info | Dev team | Telegram group |
+| **Policy Update Required** | Important | Felipe | Telegram DM |
 
 ## API Usage
 
@@ -122,7 +122,7 @@ clawdbot cron add \
 
 ## TODO
 
-- [ ] Get Issuer ID from Felipe (App Store Connect → Users → Integrations → API)
+- [ ] Get Issuer ID from Felipe (App Store Connect -> Users -> Integrations -> API)
 - [ ] Set up Fastlane for Screen Translator
 - [ ] Configure webhook for real-time rejection alerts (instead of polling)
 - [ ] Add App Store Connect metrics to clawd-monitor dashboard

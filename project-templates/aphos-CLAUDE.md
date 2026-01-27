@@ -53,8 +53,8 @@ Real Earth MMORPG with fantasy/modern elements. Channel-based social auto-battle
 
 ## Game Systems
 - **Stats**: STR/AGI/VIT/INT/DEX/LUK (Ragnarok Online inspired)
-- **Classes**: 20+ classes (Novice → Advanced)
-- **Combat**: Skill queue preparation → auto-execution
+- **Classes**: 20+ classes (Novice -> Advanced)
+- **Combat**: Skill queue preparation -> auto-execution
 - **Channels**: Real world cities (Tokyo, New York, London, etc.)
 - **Elements**: Neutral, Fire, Water, Earth, Wind, Holy, Dark, Poison, Ghost, Undead
 
@@ -67,13 +67,13 @@ Real Earth MMORPG with fantasy/modern elements. Channel-based social auto-battle
 
 ## Key Commands
 ```bash
-pnpm dev               # Start all (web + server prod)
-pnpm dev:server:prod   # Production server (2567)
-pnpm dev:server:dev    # Development server (2568)
-pnpm dev:web           # Web frontend (4000)
-pnpm build             # Production build
-pnpm test              # Run tests
-pnpm db:sync prod dev  # Sync database schema
+pnpm dev # Start all (web + server prod)
+pnpm dev:server:prod # Production server (2567)
+pnpm dev:server:dev # Development server (2568)
+pnpm dev:web # Web frontend (4000)
+pnpm build # Production build
+pnpm test # Run tests
+pnpm db:sync prod dev # Sync database schema
 ```
 
 ## Port Assignments

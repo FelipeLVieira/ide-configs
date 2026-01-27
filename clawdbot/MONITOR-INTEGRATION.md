@@ -5,32 +5,32 @@
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    MONITORING SYSTEM                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Option A: General Status (JSON)                            │
-│  └── ~/clawd/monitor/bot-status.json                        │
-│      Updated: Every minute via cron                         │
-│      Contains: Bot status, last activity                    │
-│                                                             │
-│  Option B: Real-time Data                                   │
-│  ├── ~/clawd/monitor/realtime-resources.json                │
-│  │   Updated: Every minute                                  │
-│  │   Contains: CPU, memory, PIDs per bot                    │
-│  └── ~/clawd/monitor/realtime-events.jsonl                  │
-│      Updated: On each event                                 │
-│      Contains: Start/stop/actions/errors (last 1000)        │
-│                                                             │
-│  Option C: SQLite Database                                  │
-│  └── ~/clawd/monitor/bot-logs.db                            │
-│      Tables:                                                │
-│      - bot_events (crashes, errors, warnings)               │
-│      - bot_actions (commits, builds, deploys)               │
-│      - bot_communications (inter-bot messages)              │
-│      - resource_usage (historical data)                     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+
+                    MONITORING SYSTEM
+
+                                                             
+  Option A: General Status (JSON)
+   ~/clawd/monitor/bot-status.json
+      Updated: Every minute via cron
+      Contains: Bot status, last activity
+                                                             
+  Option B: Real-time Data
+   ~/clawd/monitor/realtime-resources.json
+     Updated: Every minute
+     Contains: CPU, memory, PIDs per bot
+   ~/clawd/monitor/realtime-events.jsonl
+      Updated: On each event
+      Contains: Start/stop/actions/errors (last 1000)
+                                                             
+  Option C: SQLite Database
+   ~/clawd/monitor/bot-logs.db
+      Tables:
+      - bot_events (crashes, errors, warnings)
+      - bot_actions (commits, builds, deploys)
+      - bot_communications (inter-bot messages)
+      - resource_usage (historical data)
+                                                             
+
 ```
 
 ## Security
@@ -117,7 +117,7 @@ export async function GET() {
   
   const db = new Database(~/clawd/monitor/bot-logs.db);
   const recentEvents = db.prepare(`
-    SELECT * FROM bot_events 
+    SELECT * FROM bot_events
     ORDER BY timestamp DESC LIMIT 20
   `).all();
   

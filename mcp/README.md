@@ -17,17 +17,17 @@ Shared MCP (Model Context Protocol) server configs across all IDEs and machines.
 
 | Machine | Claude Code | Cursor | VSCode | Clawdbot |
 |---------|-------------|--------|--------|----------|
-| MacBook Pro | ✅ 6 MCPs | ✅ 5 MCPs | ❌ (no MCP) | Built-in tools |
-| Mac Mini | ✅ 6 MCPs | ✅ 5 MCPs | ✅ 5 MCPs | Built-in tools |
+| MacBook Pro | [OK] 6 MCPs | [OK] 5 MCPs | [NO] (no MCP) | Built-in tools |
+| Mac Mini | [OK] 6 MCPs | [OK] 5 MCPs | [OK] 5 MCPs | Built-in tools |
 
 ## Config Files Per IDE
 
 | IDE | Config Location | Template |
 |-----|-----------------|----------|
-| Claude Code CLI | `~/.claude.json` → `mcpServers` | `claude-code-mcps.json` |
-| Claude Code (per-project) | `~/.claude/settings.json` → hooks | `../claude/settings.json` |
-| Cursor | `~/.cursor/mcp.json` → `mcpServers` | `cursor-mcps.json` |
-| VSCode | User Settings → `mcp.servers` | `vscode-mcps.json` |
+| Claude Code CLI | `~/.claude.json` -> `mcpServers` | `claude-code-mcps.json` |
+| Claude Code (per-project) | `~/.claude/settings.json` -> hooks | `../claude/settings.json` |
+| Cursor | `~/.cursor/mcp.json` -> `mcpServers` | `cursor-mcps.json` |
+| VSCode | User Settings -> `mcp.servers` | `vscode-mcps.json` |
 | Clawdbot | N/A (has browser, exec, etc. built-in) | — |
 
 ## Adding a New MCP

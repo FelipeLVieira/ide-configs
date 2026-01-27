@@ -9,7 +9,7 @@ Tonight we set up a full autonomous infrastructure. Here's what you need to know
 
 ---
 
-## 🔒 SECURITY (DO THIS FIRST)
+## [LOCKED] SECURITY (DO THIS FIRST)
 
 **923 Clawdbot gateways found exposed on Shodan with zero auth.**
 
@@ -32,7 +32,7 @@ Required fixes:
 }
 ```
 
-## ⚙️ Gateway Config Fixes
+## Gateway Config Fixes
 
 If you see **0-token sub-agents** (spawned but never execute), increase concurrency:
 ```json
@@ -46,10 +46,10 @@ If you see **0-token sub-agents** (spawned but never execute), increase concurre
 }
 ```
 
-## 📋 BOOTSTRAP.md — DELETE IT
+## BOOTSTRAP.md — DELETE IT
 If `BOOTSTRAP.md` exists in the workspace root, **delete it immediately**. It causes all agents to show as "bootstrapping" and never fully initialize.
 
-## ⏰ Cron Jobs (Persistent Automation)
+## Cron Jobs (Persistent Automation)
 
 Mac is running 5 cron jobs every 30 minutes:
 
@@ -63,7 +63,7 @@ Mac is running 5 cron jobs every 30 minutes:
 
 All deliver reports to Felipe on Telegram. Claude Max = unlimited tokens = no cost.
 
-## 🎮 Project Status
+## Project Status
 
 ### Aphos (MMORPG)
 - Game servers on Mac Mini: prod (2567/4000), dev (2568/4001)
@@ -90,7 +90,7 @@ All deliver reports to Felipe on Telegram. Claude Max = unlimited tokens = no co
 - Port 9000 (Next.js)
 - Shows all bot sessions, Claude usage, system health
 
-## 🖥️ Mac Mini Server
+## Mac Mini Server
 
 | Property | Value |
 |----------|-------|
@@ -99,13 +99,13 @@ All deliver reports to Felipe on Telegram. Claude Max = unlimited tokens = no co
 | Services | Aphos, Shitcoin Bot, Clawdbot Gateway, Failover Watchdog |
 | Telegram | Disabled (standby — auto-enables if MacBook goes down) |
 
-## 🔌 Useful ClawdHub Skills to Install
+## Useful ClawdHub Skills to Install
 1. **Search-X** — real-time X/Twitter search via Grok API
 2. **xAI (Grok API)** — programmatic Grok chat
 3. **Parallel.ai** — research with citations
 4. **Browser Use** — cloud browsers, anti-bot bypass
 
-## 📂 ide-configs Repo
+## ide-configs Repo
 All knowledge is synced to `github.com/FelipeLVieira/ide-configs`. Pull it:
 ```bash
 cd ~/repos/ide-configs && git pull
@@ -117,7 +117,7 @@ Key docs:
 - `project-templates/` — CLAUDE.md for each project
 - `clawd/` — workspace template files
 
-## 🤝 Inter-Bot Communication
+## Inter-Bot Communication
 Currently: no direct connection between Mac and Windows Clawdbots.
 
 Options to set up:

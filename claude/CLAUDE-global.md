@@ -214,24 +214,24 @@ npx react-native init ProjectName --template react-native-template-typescript
 
 **Web**:
 ```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run lint         # ESLint check
-npm run format       # Prettier format
-npm test            # Run tests
+npm run dev # Development server
+npm run build # Production build
+npm run lint # ESLint check
+npm run format # Prettier format
+npm test # Run tests
 ```
 
 **Mobile**:
 ```bash
-flutter run          # Development
-flutter build apk    # Android release
-flutter build ios    # iOS release
-flutter test         # Run tests
+flutter run # Development
+flutter build apk # Android release
+flutter build ios # iOS release
+flutter test # Run tests
 ```
 
 **Game**:
-- Unity: Build via File → Build Settings
-- Godot: Project → Export
+- Unity: Build via File -> Build Settings
+- Godot: Project -> Export
 - Test on target platform before release
 
 ### Testing & Quality
@@ -296,37 +296,37 @@ flutter test         # Run tests
 **Web Projects**:
 ```
 src/
-  components/     # Reusable UI components
-  pages/         # Route pages
-  hooks/         # Custom React hooks
-  utils/         # Helper functions
-  types/         # TypeScript types
-  api/           # API integration
-  styles/        # Global styles
-  assets/        # Images, fonts, etc.
+  components/ # Reusable UI components
+  pages/ # Route pages
+  hooks/ # Custom React hooks
+  utils/ # Helper functions
+  types/ # TypeScript types
+  api/ # API integration
+  styles/ # Global styles
+  assets/ # Images, fonts, etc.
 ```
 
 **Mobile (Flutter)**:
 ```
 lib/
-  models/        # Data models
-  screens/       # UI screens
-  widgets/       # Reusable widgets
-  services/      # API, storage services
-  providers/     # State management
-  utils/         # Helpers
+  models/ # Data models
+  screens/ # UI screens
+  widgets/ # Reusable widgets
+  services/ # API, storage services
+  providers/ # State management
+  utils/ # Helpers
 ```
 
 **Game Projects**:
 ```
 Assets/
-  Scripts/       # Game logic
-  Prefabs/       # Reusable objects
-  Scenes/        # Game levels
-  Materials/     # Shaders, materials
-  Audio/         # Sound effects, music
-  Sprites/       # 2D graphics
-  Models/        # 3D models
+  Scripts/ # Game logic
+  Prefabs/ # Reusable objects
+  Scenes/ # Game levels
+  Materials/ # Shaders, materials
+  Audio/ # Sound effects, music
+  Sprites/ # 2D graphics
+  Models/ # 3D models
 ```
 
 ---
@@ -624,14 +624,14 @@ For detailed working principles and best practices:
 
 #### Quick Diagnostic Checklist
 When writing or reviewing code, watch for these symptoms:
-- Functions > 50 lines → Extract smaller functions
-- Deep nesting (3+ levels) → Use guard clauses, exit early
-- Copy-pasted code (3+ times) → Apply DRY (Rule of Three)
-- Magic numbers/strings → Use named constants
-- Class doing many things → Apply Single Responsibility Principle
-- Long parameter lists (5+) → Consider config object or builder pattern
-- Message chains (`a.b().c().d()`) → Law of Demeter violation
-- Silent failures → Add fail-fast behavior, proper logging
+- Functions > 50 lines -> Extract smaller functions
+- Deep nesting (3+ levels) -> Use guard clauses, exit early
+- Copy-pasted code (3+ times) -> Apply DRY (Rule of Three)
+- Magic numbers/strings -> Use named constants
+- Class doing many things -> Apply Single Responsibility Principle
+- Long parameter lists (5+) -> Consider config object or builder pattern
+- Message chains (`a.b().c().d()`) -> Law of Demeter violation
+- Silent failures -> Add fail-fast behavior, proper logging
 
 #### Principle Tensions (When Rules Conflict)
 - **DRY vs. Coupling**: Duplication is cheaper than wrong abstraction (wait for Rule of Three)
@@ -709,9 +709,9 @@ When user asks for autonomous execution:
 
 1. **Identify the task scope** - Is it a single feature, bug fix, or ongoing improvement?
 2. **Choose the mode**:
-   - Single task → `clawd --non-interactive "task"`
-   - Interactive planning → `clawd`
-   - Continuous improvement → `clawd --perpetual "task"`
+   - Single task -> `clawd --non-interactive "task"`
+   - Interactive planning -> `clawd`
+   - Continuous improvement -> `clawd --perpetual "task"`
 3. **Run in tmux** for long-running tasks:
    ```bash
    tmux new -s clawd-session

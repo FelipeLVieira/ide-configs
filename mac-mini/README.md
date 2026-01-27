@@ -35,24 +35,24 @@ The Windows MSI has a **Scheduled Task "ClawdbotGateway"** that auto-starts the 
 ## Architecture
 
 ```
-MacBook (PRIMARY)                Mac Mini (STANDBY)
-┌────────────────────┐          ┌────────────────────┐
-│ Clawdbot Gateway   │◄─health──│ Failover Watchdog  │
-│ Telegram Bot ✅    │  check   │ (every 30s)        │
-│ All bots running   │  (TCP)   │                    │
-│                    │          │ Clawdbot Gateway   │
-│                    │          │ Telegram Bot ❌    │
-│                    │          │ All bots running   │
-└────────────────────┘          └────────────────────┘
-        │                              │
-        │  MacBook goes down           │
-        └──────────────────────────────┘
-                                       │
-                                ┌──────▼─────────────┐
-                                │ Clawdbot Gateway   │
-                                │ Telegram Bot ✅    │
-                                │ All bots ACTIVE    │
-                                └────────────────────┘
+MacBook (PRIMARY) Mac Mini (STANDBY)
+          
+ Clawdbot Gateway health Failover Watchdog
+ Telegram Bot [OK] check (every 30s)
+ All bots running (TCP)
+                               Clawdbot Gateway
+                               Telegram Bot [NO]
+                               All bots running
+          
+                                      
+          MacBook goes down
+        
+                                       
+                                
+                                 Clawdbot Gateway
+                                 Telegram Bot [OK]
+                                 All bots ACTIVE
+                                
 ```
 
 | Machine | Role | Telegram | When Active |
@@ -163,7 +163,7 @@ exec host=node node=mac-mini command="ls ~/repos"
 ### Re-pair if needed:
 ```bash
 # On MacBook
-clawdbot devices list        # Check pending
+clawdbot devices list # Check pending
 clawdbot devices approve <requestId>
 ```
 
@@ -236,10 +236,10 @@ LunarCrush pricing became prohibitive. **Perception.to** provides equivalent soc
 
 | Mode | auto_invest | copy_trading | manual_trading | Description |
 |------|:-----------:|:------------:|:--------------:|-------------|
-| **Research Only** | ❌ | ❌ | ✅ | Scans whales & markets, logs opportunities to `data/research_opportunities.json`. Clawdbot reviews & approves. |
-| **Conservative** | ✅ | ✅ | ✅ | Copy trading ON, momentum OFF. Small positions ($3 max). |
-| **Full Auto** | ✅ | ✅ | ✅ | All strategies enabled. Use with caution. |
-| **Emergency Stop** | ❌ | ❌ | ❌ | All trading halted. |
+| **Research Only** | [NO] | [NO] | [OK] | Scans whales & markets, logs opportunities to `data/research_opportunities.json`. Clawdbot reviews & approves. |
+| **Conservative** | [OK] | [OK] | [OK] | Copy trading ON, momentum OFF. Small positions ($3 max). |
+| **Full Auto** | [OK] | [OK] | [OK] | All strategies enabled. Use with caution. |
+| **Emergency Stop** | [NO] | [NO] | [NO] | All trading halted. |
 
 Current mode: **Research Only** (set 2026-01-26)
 
@@ -259,10 +259,10 @@ Bot threads (Price Lag, Cross-Arb, LP, etc.) now auto-restart up to 10 times whe
 
 ### Lessons Learned (Jan 2026)
 
-- ❌ **15-min crypto Up/Down markets**: Coin flips with 3.15% dynamic fees. Strategy dead.
-- ❌ **Sports bets via copy trading**: Whales inconsistent on sports. All losses.
-- ✅ **Political/geopolitical "NO" bets**: High-conviction unlikely events. Best performers.
-- ✅ **Research-first approach**: Let bot scan, human/AI reviews before trading.
+- [NO] **15-min crypto Up/Down markets**: Coin flips with 3.15% dynamic fees. Strategy dead.
+- [NO] **Sports bets via copy trading**: Whales inconsistent on sports. All losses.
+- [OK] **Political/geopolitical "NO" bets**: High-conviction unlikely events. Best performers.
+- [OK] **Research-first approach**: Let bot scan, human/AI reviews before trading.
 
 ## Game Server Game (Dual Environment)
 
@@ -273,10 +273,10 @@ Bot threads (Price Lag, Cross-Arb, LP, etc.) now auto-restart up to 10 times whe
 
 ```bash
 # Commands
-pnpm dev:server:prod    # Start prod server (2567)
-pnpm dev:server:dev     # Start dev server (2568)
-pnpm db:sync prod dev   # Sync schema prod → dev
-pnpm db:sync dev prod   # Sync schema dev → prod
+pnpm dev:server:prod # Start prod server (2567)
+pnpm dev:server:dev # Start dev server (2568)
+pnpm db:sync prod dev # Sync schema prod -> dev
+pnpm db:sync dev prod # Sync schema dev -> prod
 ```
 
 See `~/repos/game-server/docs/DUAL-ENVIRONMENT.md` for full details.
@@ -331,7 +331,7 @@ ssh username@hostname.local 'osascript -e "tell application \"Terminal\" to do s
 | `p` | Print position | `cliclick p` |
 
 **Accessibility permissions required:**
-- System Settings → Privacy & Security → Accessibility
+- System Settings -> Privacy & Security -> Accessibility
 - Must have: Terminal (and/or sshd, node)
 - cliclick installed at: `/opt/homebrew/bin/cliclick`
 
@@ -350,11 +350,11 @@ ssh username@hostname.local 'osascript -e "tell application \"Terminal\" to do s
 
 ## SSH Keys
 
-| From → To | Key | Purpose |
+| From -> To | Key | Purpose |
 |-----------|-----|---------|
-| MacBook → Mac Mini | `~/.ssh/id_ed25519` | SSH access |
-| Mac Mini → GitHub | `~/.ssh/id_ed25519` | Git push/pull |
-| Mac Mini → MacBook | `~/.ssh/id_ed25519` | (not working yet - uses TCP health check instead) |
+| MacBook -> Mac Mini | `~/.ssh/id_ed25519` | SSH access |
+| Mac Mini -> GitHub | `~/.ssh/id_ed25519` | Git push/pull |
+| Mac Mini -> MacBook | `~/.ssh/id_ed25519` | (not working yet - uses TCP health check instead) |
 
 ## Clawdbot Config
 
@@ -367,7 +367,7 @@ Key differences from MacBook config:
 - Same bot token as MacBook (for failover)
 - Same agents list (main, trading-bot, game-server)
 
-**⚠️ ALWAYS ensure auth token is set.** Without it, anyone on the network has full shell access.
+**WARNING: ALWAYS ensure auth token is set.** Without it, anyone on the network has full shell access.
 
 ## Troubleshooting
 

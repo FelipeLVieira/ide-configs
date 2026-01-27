@@ -8,7 +8,7 @@ Maximize local compute, minimize API token usage.
 
 ## Local Resources vs API Calls
 
-| Task | ❌ Token-Heavy | ✅ Local-First |
+| Task | [NO] Token-Heavy | [OK] Local-First |
 |------|---------------|----------------|
 | Bot status | Ask Claude to check | `tmux list-sessions` |
 | File reading | Include in prompt | Read file, extract needed parts |
@@ -22,24 +22,24 @@ Maximize local compute, minimize API token usage.
 ### Tiered Memory System
 ```
 ~/clawd/
-├── memory/
-│   ├── YYYY-MM-DD.md          # Daily notes (raw)
-│   ├── bot-states/            # Per-bot state (JSON)
-│   │   ├── ez-crm.json
-│   │   ├── ios-bmi.json
-│   │   └── ...
-│   └── summaries/             # Compressed weekly summaries
-│       └── week-YYYY-WW.md
-├── MEMORY.md                  # Curated long-term (human reviews)
-└── context-cache/             # Pre-computed context snippets
-    ├── project-summaries.json
-    └── recent-changes.json
+ memory/
+    YYYY-MM-DD.md # Daily notes (raw)
+    bot-states/ # Per-bot state (JSON)
+       ez-crm.json
+       ios-bmi.json
+       ...
+    summaries/ # Compressed weekly summaries
+        week-YYYY-WW.md
+ MEMORY.md # Curated long-term (human reviews)
+ context-cache/ # Pre-computed context snippets
+     project-summaries.json
+     recent-changes.json
 ```
 
 ### Memory Rules
 1. **Daily files:** Raw logs, auto-cleanup after 7 days
 2. **Bot states:** Current context, JSON for fast parsing
-3. **Weekly summaries:** Compress daily → weekly automatically
+3. **Weekly summaries:** Compress daily -> weekly automatically
 4. **MEMORY.md:** Only significant learnings, human-curated
 
 ### Auto-Summarization (Cron Job)
@@ -63,7 +63,7 @@ Instead of loading everything each session:
     "currentFocus": "authentication flow"
   },
   "aphos": {
-    "status": "feature development", 
+    "status": "feature development",
     "stack": "Next.js, Three.js, WebSocket",
     "lastCommit": "def456",
     "currentFocus": "combat system"
@@ -193,10 +193,10 @@ bird read <error-related-tweet>
 ```bash
 # Build local docs cache
 ~/clawd/docs-cache/
-├── react-native.md     # Key concepts
-├── expo.md             # Common issues
-├── supabase.md         # API patterns
-└── threejs.md          # 3D patterns
+ react-native.md # Key concepts
+ expo.md # Common issues
+ supabase.md # API patterns
+ threejs.md # 3D patterns
 ```
 
 ## Token Tracking

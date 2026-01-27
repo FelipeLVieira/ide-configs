@@ -2,7 +2,7 @@
 
 Private mesh VPN connecting all devices.
 
-## 🌐 Network Overview
+## Network Overview
 
 | Device | IP | OS | Mode |
 |--------|-----|-----|------|
@@ -13,7 +13,7 @@ Private mesh VPN connecting all devices.
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ### macOS (MacBook & Mac Mini)
 ```bash
@@ -39,7 +39,7 @@ tailscale status
 
 ---
 
-## 🔧 Userspace Networking Mode
+## Userspace Networking Mode
 
 Both Macs run Tailscale in **userspace networking mode**.
 
@@ -53,14 +53,14 @@ Both Macs run Tailscale in **userspace networking mode**.
 - **HTTP**: `localhost:1056`
 
 ### Why Userspace?
-- ✅ No need for root/admin privileges
-- ✅ Doesn't interfere with local network
-- ✅ Easier to debug connection issues
-- ❌ Requires proxy configuration for apps
+- [OK] No need for root/admin privileges
+- [OK] Doesn't interfere with local network
+- [OK] Easier to debug connection issues
+- [NO] Requires proxy configuration for apps
 
 ---
 
-## 🧑‍💻 CLI Alias Fix
+## CLI Alias Fix
 
 Tailscale CLI in userspace mode requires a socket flag.
 
@@ -83,38 +83,38 @@ tailscale status
 
 ---
 
-## 🌍 Network Topology
+## Network Topology
 
 ```
-┌─────────────────────────────────────────┐
-│         Tailscale Mesh VPN              │
-├─────────────────────────────────────────┤
-│  MacBook Pro (100.125.165.107)          │
-│  ├── Ollama: port 11434                 │
-│  └── SSH: port 22 (disabled)            │
-├─────────────────────────────────────────┤
-│  Mac Mini (100.115.10.14)               │
-│  ├── Ollama: port 11434                 │
-│  ├── SSH: port 22 ✅                    │
-│  ├── Aphos Prod: port 2567              │
-│  └── Aphos Dev: port 2568               │
-├─────────────────────────────────────────┤
-│  iPhone (100.89.50.26)                  │
-│  └── Aphos game client                  │
-├─────────────────────────────────────────┤
-│  MSI (100.67.241.32)                    │
-│  └── SSH: port 22 ✅                    │
-└─────────────────────────────────────────┘
+
+         Tailscale Mesh VPN
+
+  MacBook Pro (100.125.165.107)
+   Ollama: port 11434
+   SSH: port 22 (disabled)
+
+  Mac Mini (100.115.10.14)
+   Ollama: port 11434
+   SSH: port 22 [OK]
+   Aphos Prod: port 2567
+   Aphos Dev: port 2568
+
+  iPhone (100.89.50.26)
+   Aphos game client
+
+  MSI (100.67.241.32)
+   SSH: port 22 [OK]
+
 ```
 
 ---
 
-## 🚀 Usage Examples
+## Usage Examples
 
 ### Ping Device
 ```bash
-ping 100.115.10.14  # Mac Mini
-ping 100.67.241.32  # MSI
+ping 100.115.10.14 # Mac Mini
+ping 100.67.241.32 # MSI
 ```
 
 ### SSH via Tailscale
@@ -128,10 +128,10 @@ ssh -o "ProxyCommand nc -X 5 -x localhost:1055 %h %p" felip@100.67.241.32
 
 ### Access Ollama Remotely
 ```bash
-# MacBook → Mac Mini Ollama
+# MacBook -> Mac Mini Ollama
 curl http://100.115.10.14:11434/api/tags
 
-# Mac Mini → MacBook Ollama
+# Mac Mini -> MacBook Ollama
 curl http://100.125.165.107:11434/api/generate -d '{
   "model": "devstral-small-2:24b",
   "prompt": "Hello"
@@ -145,7 +145,7 @@ http://100.115.10.14:2567
 
 ---
 
-## 🔥 Firewall & Security
+## Firewall & Security
 
 ### macOS Firewall
 ```bash
@@ -162,7 +162,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /Applications/
 
 ---
 
-## 🧪 Testing Connectivity
+## Testing Connectivity
 
 ### Check Tailscale Status
 ```bash
@@ -180,15 +180,15 @@ curl --proxy localhost:1056 http://100.115.10.14:11434/api/tags
 
 ### Ping All Devices
 ```bash
-ping -c 3 100.125.165.107  # MacBook
-ping -c 3 100.115.10.14    # Mac Mini
-ping -c 3 100.89.50.26     # iPhone
-ping -c 3 100.67.241.32    # MSI
+ping -c 3 100.125.165.107 # MacBook
+ping -c 3 100.115.10.14 # Mac Mini
+ping -c 3 100.89.50.26 # iPhone
+ping -c 3 100.67.241.32 # MSI
 ```
 
 ---
 
-## 🛠️ Advanced Configuration
+## Advanced Configuration
 
 ### Exit Node (Optional)
 Route all internet traffic through a device:
@@ -224,7 +224,7 @@ curl http://mac-mini:11434/api/tags
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Cannot Connect to Device
 ```bash
@@ -276,7 +276,7 @@ source ~/.zshrc
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 ### Check Connection Quality
 ```bash
@@ -299,7 +299,7 @@ brew upgrade tailscale
 
 ---
 
-## 🧹 Maintenance
+## Maintenance
 
 ### Update Tailscale
 ```bash
@@ -326,7 +326,7 @@ sudo tailscale up --reset
 
 ---
 
-## 📚 References
+## References
 
 - [Tailscale Docs](https://tailscale.com/kb/)
 - [WireGuard Protocol](https://www.wireguard.com/)

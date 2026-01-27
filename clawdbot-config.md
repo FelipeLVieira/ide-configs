@@ -4,7 +4,7 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 
 > **Last updated**: 2026-01-27 — Config audit, swap protection enforced, Windows dual-provider
 
-## 🤖 Model Routing Strategy
+## Model Routing Strategy
 
 ### Architecture Philosophy: Reasoning-First, Swap-Safe, Cost-Second
 
@@ -31,23 +31,23 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 
 | Model | Params | Disk | RAM | Reasoning | Machines |
 |-------|--------|------|-----|-----------|----------|
-| **qwen3:8b** | 8B | 5.2 GB | ~6 GB | ✅ true | Both Macs |
-| **devstral-small-2:24b** | 24B | 15 GB | ~18 GB | ❌ | MacBook ONLY (48GB) |
-| **gpt-oss:20b** | 20B (DeepSeek-V3) | 13 GB | ~14 GB | ❌ | MacBook (safe), Mac Mini (on-demand ONLY) |
+| **qwen3:8b** | 8B | 5.2 GB | ~6 GB | [OK] true | Both Macs |
+| **devstral-small-2:24b** | 24B | 15 GB | ~18 GB | [NO] | MacBook ONLY (48GB) |
+| **gpt-oss:20b** | 20B (DeepSeek-V3) | 13 GB | ~14 GB | [NO] | MacBook (safe), Mac Mini (on-demand ONLY) |
 
 **Removed:**
-- ❌ qwen3-fast:8b — Deleted from Mac Mini (duplicate of qwen3:8b, freed 5.2GB disk)
+- [NO] qwen3-fast:8b — Deleted from Mac Mini (duplicate of qwen3:8b, freed 5.2GB disk)
 
-## 🗺️ Model Routing Table (All 3 Machines)
+## Model Routing Table (All 3 Machines)
 
 ### MacBook Pro (48GB RAM) — Orchestrator
 
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b | All safe on 48GB |
+| **Fallbacks** | Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b | All safe on 48GB |
 | **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` → macbook qwen3 → macbook devstral → gpt-oss → Sonnet → Opus | Local-first cascade |
+| **Sub-agents** | `ollama/qwen3:8b` -> macbook qwen3 -> macbook devstral -> gpt-oss -> Sonnet -> Opus | Local-first cascade |
 | **Thinking** | `thinkingDefault: "low"` | Always |
 
 ### Mac Mini (16GB RAM) — Always-On Server
@@ -55,75 +55,75 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Fallbacks** | MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus | ⚠️ NO local gpt-oss! |
+| **Fallbacks** | MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | WARNING: NO local gpt-oss! |
 | **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus | Cross-machine fallback |
+| **Sub-agents** | `ollama/qwen3:8b` -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Cross-machine fallback |
 | **Thinking** | `thinkingDefault: "low"` | Always |
 
-> ⚠️ **gpt-oss:20b is NOT in any Mac Mini auto-fallback chain.** If local qwen3:8b fails, it goes to MacBook, not to a bigger local model.
+> WARNING: **gpt-oss:20b is NOT in any Mac Mini auto-fallback chain.** If local qwen3:8b fails, it goes to MacBook, not to a bigger local model.
 
 ### Windows MSI (No local Ollama)
 
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet → MacBook devstral → MacBook gpt-oss → MacBook qwen3 → Mac Mini qwen3 | Dual-provider |
+| **Fallbacks** | Sonnet -> MacBook devstral -> MacBook gpt-oss -> MacBook qwen3 -> Mac Mini qwen3 | Dual-provider |
 | **Heartbeat** | `ollama-macmini/qwen3:8b` | FREE, via Tailscale |
-| **Sub-agents** | Mac Mini qwen3 → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus | Mac Mini first (always-on) |
+| **Sub-agents** | Mac Mini qwen3 -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Mac Mini first (always-on) |
 | **Thinking** | `thinkingDefault: "low"` | Always |
 
-## 🖥️ Ollama Providers
+## Ollama Providers
 
 ### Provider: `ollama` (Mac Mini — always-on)
 ```yaml
-baseUrl: http://127.0.0.1:11434    # local on Mac Mini
-tailscaleUrl: http://100.115.10.14:11434  # remote access
+baseUrl: http://127.0.0.1:11434 # local on Mac Mini
+tailscaleUrl: http://100.115.10.14:11434 # remote access
 models:
-  - qwen3:8b         # PRIMARY (5GB, reasoning=true, SAFE for 16GB)
+  - qwen3:8b # PRIMARY (5GB, reasoning=true, SAFE for 16GB)
 note: gpt-oss:20b exists on disk but is NOT registered as auto-fallback
 ```
 
 ### Provider: `ollama-macbook` (MacBook Pro — heavy compute)
 ```yaml
-baseUrl: http://100.125.165.107:11434   # Tailscale IP (reliable)
+baseUrl: http://100.125.165.107:11434 # Tailscale IP (reliable)
 # Alternative: http://felipes-macbook-pro-2.local:11434
 models:
-  - qwen3:8b              # PRIMARY for sub-agents (reasoning=true)
-  - devstral-small-2:24b  # Heavy coding (48GB RAM safe)
-  - gpt-oss:20b           # General fallback (48GB RAM safe)
+  - qwen3:8b # PRIMARY for sub-agents (reasoning=true)
+  - devstral-small-2:24b # Heavy coding (48GB RAM safe)
+  - gpt-oss:20b # General fallback (48GB RAM safe)
 ```
 
 ### Windows-specific providers
 ```yaml
 ollama-macbookpro:
-  baseUrl: http://100.125.165.107:11434  # MacBook via Tailscale
+  baseUrl: http://100.125.165.107:11434 # MacBook via Tailscale
   models: [devstral-24b, gpt-oss:20b, qwen3:8b]
 
 ollama-macmini:
-  baseUrl: http://100.115.10.14:11434    # Mac Mini via Tailscale
-  models: [qwen3:8b]  # ONLY qwen3:8b (swap protection)
+  baseUrl: http://100.115.10.14:11434 # Mac Mini via Tailscale
+  models: [qwen3:8b] # ONLY qwen3:8b (swap protection)
 ```
 
-## 🔄 Cross-Machine Fallback
+## Cross-Machine Fallback
 
 Both Macs have **bidirectional Ollama fallback** — if one machine's Ollama fails, the other catches it automatically.
 
-### Mac Mini → MacBook fallback
+### Mac Mini -> MacBook fallback
 ```
-qwen3:8b (local) → MacBook qwen3:8b → MacBook devstral-24b →
-MacBook gpt-oss:20b → Sonnet → Opus
+qwen3:8b (local) -> MacBook qwen3:8b -> MacBook devstral-24b ->
+MacBook gpt-oss:20b -> Sonnet -> Opus
 ```
 
-### MacBook → Mac Mini fallback
+### MacBook -> Mac Mini fallback
 ```
-Opus → Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b (local) →
+Opus -> Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b (local) ->
 Mac Mini qwen3:8b (remote)
 ```
 
-### Windows → Both Macs
+### Windows -> Both Macs
 ```
-Opus → Sonnet → MacBook devstral → MacBook gpt-oss →
-MacBook qwen3 → Mac Mini qwen3
+Opus -> Sonnet -> MacBook devstral -> MacBook gpt-oss ->
+MacBook qwen3 -> Mac Mini qwen3
 ```
 
 **Why it matters:** Zero downtime. If Mac Mini Ollama crashes, MacBook picks up. If MacBook sleeps, Mac Mini keeps heartbeats alive.
@@ -202,11 +202,11 @@ Rate limiting and backoff for API authentication failures and billing issues.
 **Why Sonnet for cron?** Self-healing requires reasoning, diagnostics, web research. ~$0.05-0.15 per run.
 
 **Cleaned up (removed):**
-- ❌ iOS App Store Monitor (old) — Replaced by App Store Manager
-- ❌ Project Health Monitor — Replaced by Healer Bot v3
-- ❌ EZ-CRM / LinkLounge / Aphos Continuous — Disabled
+- [NO] iOS App Store Monitor (old) — Replaced by App Store Manager
+- [NO] Project Health Monitor — Replaced by Healer Bot v3
+- [NO] EZ-CRM / LinkLounge / Aphos Continuous — Disabled
 
-## 🩺 Event Watcher (Launchd)
+## Event Watcher (Launchd)
 
 24/7 self-healing bash loop — zero LLM tokens.
 
@@ -216,17 +216,17 @@ Rate limiting and backoff for API authentication failures and billing issues.
 - **Logs**: `/tmp/clawdbot/events.jsonl`
 - **Monitors**: Ollama, pm2, zombies, simulators; auto-heals instantly
 
-## ⚙️ Ollama Performance Tuning
+## Ollama Performance Tuning
 
 Both machines run with optimized settings:
 
 ```bash
-OLLAMA_HOST=0.0.0.0              # Listen on all interfaces
-OLLAMA_FLASH_ATTENTION=1          # 2-3x faster, 40% less memory
-OLLAMA_KV_CACHE_TYPE=q8_0         # 4x memory reduction vs f16
+OLLAMA_HOST=0.0.0.0 # Listen on all interfaces
+OLLAMA_FLASH_ATTENTION=1 # 2-3x faster, 40% less memory
+OLLAMA_KV_CACHE_TYPE=q8_0 # 4x memory reduction vs f16
 ```
 
-## 💰 Cost Savings
+## Cost Savings
 
 | Task | Before | After | Savings |
 |------|--------|-------|---------|
@@ -238,31 +238,31 @@ OLLAMA_KV_CACHE_TYPE=q8_0         # 4x memory reduction vs f16
 
 **Estimated monthly savings**: $150-200 USD
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Model Not Found
 ```bash
-ollama list                    # Check available models
-ollama pull qwen3:8b           # Pull missing model
+ollama list # Check available models
+ollama pull qwen3:8b # Pull missing model
 ```
 
 ### Mac Mini Swap Issues
 ```bash
-sysctl vm.swapusage            # Check swap usage
-ollama ps                      # Check loaded models
+sysctl vm.swapusage # Check swap usage
+ollama ps # Check loaded models
 # If swap > 8GB, unload heavy models:
 curl -X DELETE http://localhost:11434/api/generate -d '{"model":"gpt-oss:20b"}'
 ```
 
 ### Connection Refused (Remote)
 ```bash
-echo $OLLAMA_HOST              # Should be 0.0.0.0
-curl http://localhost:11434/api/tags     # Local
+echo $OLLAMA_HOST # Should be 0.0.0.0
+curl http://localhost:11434/api/tags # Local
 curl http://100.115.10.14:11434/api/tags # Tailscale (Mac Mini)
 curl http://100.125.165.107:11434/api/tags # Tailscale (MacBook)
 ```
 
-## 🔧 Fix History
+## Fix History
 
 ### 2026-01-27: Config Audit & Swap Protection Enforcement
 **Problem**: gpt-oss:20b (14GB) in Mac Mini auto-fallback chains was causing 15.6GB swap death. Windows only had Mac Mini as Ollama provider. qwen3-fast:8b was a dead reference.
@@ -270,7 +270,7 @@ curl http://100.125.165.107:11434/api/tags # Tailscale (MacBook)
 **Fixed:**
 - Removed gpt-oss:20b from ALL Mac Mini auto-fallback chains (all 3 machines' configs)
 - Windows MSI: Added MacBook Pro as second Ollama provider (ollama-macbookpro)
-- Mac Mini: Changed MacBook URL from .local hostname → Tailscale IP (100.125.165.107)
+- Mac Mini: Changed MacBook URL from .local hostname -> Tailscale IP (100.125.165.107)
 - Mac Mini: Added qwen3:8b to local ollama models array (was empty)
 - Deleted qwen3-fast:8b model (freed 5.2GB disk)
 - Deleted unnecessary files: CONTEXT_BUFFER.md, OPTIMIZATION_RULES.md, model-recovery.ps1
@@ -289,18 +289,18 @@ curl http://100.125.165.107:11434/api/tags # Tailscale (MacBook)
 
 **Fixed:**
 - Added `ollama-macmini` provider pointing to Mac Mini Tailscale IP
-- Windows primary heartbeats → Mac Mini qwen3:8b (FREE)
+- Windows primary heartbeats -> Mac Mini qwen3:8b (FREE)
 
 ### 2025-07-27: Credit Leak Fix (legacy model removal)
-**Problem**: Legacy 7B model deleted but still referenced in configs → fallback to expensive Claude API.
+**Problem**: Legacy 7B model deleted but still referenced in configs -> fallback to expensive Claude API.
 
 **Fixed:**
 - Removed all dead model references
-- Mac Mini primary → gpt-oss:20b (later changed to qwen3:8b for swap safety)
+- Mac Mini primary -> gpt-oss:20b (later changed to qwen3:8b for swap safety)
 
 ---
 
-## 📚 References
+## References
 
 - [Three-Machine Architecture](infrastructure/three-machine-architecture.md) — Full infrastructure overview
 - [Ollama Setup](ollama-setup.md) — Installation & configuration

@@ -2,10 +2,10 @@
 
 Multi-bot architecture with specialized roles per project.
 
-## 🎮 Aphos MMORPG
+## Aphos MMORPG
 
-**Bot Name**: 🎮 Aphos Dev  
-**Repo**: `~/repos/aphos`  
+**Bot Name**: Aphos Dev
+**Repo**: `~/repos/aphos`
 **Tech Stack**: Next.js, Three.js, Colyseus, TypeScript
 
 ### Team Roles
@@ -26,14 +26,14 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 🧠💰 Shitcoin Bot (Trading Research)
+## Shitcoin Bot (Trading Research)
 
-**Bot Name**: 🧠💰 Degen Brain  
-**Repo**: `~/repos/shitcoin-bot`  
-**Tech Stack**: Python, LangChain, Web3  
+**Bot Name**: Degen Brain
+**Repo**: `~/repos/shitcoin-bot`
+**Tech Stack**: Python, LangChain, Web3
 **Machine**: **MacBook Pro ONLY** (48GB RAM for heavy models)
 
-⚠️ **CRITICAL: Shitcoin team must run on MacBook!**
+WARNING: **CRITICAL: Shitcoin team must run on MacBook!**
 - Mac Mini has only 16GB RAM — insufficient for simultaneous heavy models
 - MacBook has 48GB RAM — can run devstral-24b + qwen3:8b concurrently
 - Trading analysis needs heavy compute
@@ -56,10 +56,10 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 🔗 LinkLounge
+## LinkLounge
 
-**Bot Name**: 🔗 LinkLounge Dev  
-**Repo**: `~/repos/linklounge`  
+**Bot Name**: LinkLounge Dev
+**Repo**: `~/repos/linklounge`
 **Tech Stack**: Next.js, Supabase, TypeScript
 
 ### Team Roles
@@ -73,10 +73,10 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 📇 EZ-CRM
+## EZ-CRM
 
-**Bot Name**: 📇 EZ-CRM Dev  
-**Repo**: `~/repos/ez-crm`  
+**Bot Name**: EZ-CRM Dev
+**Repo**: `~/repos/ez-crm`
 **Tech Stack**: Next.js, Supabase, TypeScript
 
 ### Team Roles
@@ -90,11 +90,11 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 🎨🔨 Game Asset Tool (Shared Design Studio)
+## Game Asset Tool (Shared Design Studio)
 
-**Bot Name**: 🎨🔨 Asset Forge  
-**Repo**: `~/repos/game-asset-tool`  
-**Tech Stack**: Python, AI image generation  
+**Bot Name**: Asset Forge
+**Repo**: `~/repos/game-asset-tool`
+**Tech Stack**: Python, AI image generation
 **Special**: Serves ALL projects — shared asset pipeline
 
 ### Team Roles
@@ -109,10 +109,10 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 📊 clawd-monitor (Bot Dashboard)
+## clawd-monitor (Bot Dashboard)
 
-**Bot Name**: 📊 Monitor Bot  
-**Repo**: `~/repos/clawd-monitor`  
+**Bot Name**: Monitor Bot
+**Repo**: `~/repos/clawd-monitor`
 **Tech Stack**: React, Express, WebSockets
 
 ### Team Roles
@@ -125,13 +125,13 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 📱 iOS Apps
+## iOS Apps
 
 All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
-### ⚖️ BMI Calculator
+### BMI Calculator
 
-**Bot Name**: ⚖️ BMI App Dev  
+**Bot Name**: BMI App Dev
 **Repo**: `~/repos/bmi-calculator`
 
 | Role | Responsibilities | Model |
@@ -140,9 +140,9 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 | **UI Designer** | Health-focused design, animations | qwen3:8b |
 | **QA Engineer** | Device testing, edge cases | qwen3:8b |
 
-### 💳 Bills Tracker
+### Bills Tracker
 
-**Bot Name**: 💳 Bills Tracker Dev  
+**Bot Name**: Bills Tracker Dev
 **Repo**: `~/repos/bills-tracker`
 
 | Role | Responsibilities | Model |
@@ -152,9 +152,9 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 | **Product Designer** | Feature planning, user flows | gpt-oss:20b |
 | **QA Engineer** | Testing, data validation | qwen3:8b |
 
-### 🌐 Screen Translator
+### Screen Translator
 
-**Bot Name**: 🌐 Translator Dev  
+**Bot Name**: Translator Dev
 **Repo**: `~/repos/screen-translator`
 
 | Role | Responsibilities | Model |
@@ -166,7 +166,7 @@ All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 ---
 
-## 🍎 App Store Manager (Cross-Cutting Cron)
+## App Store Manager (Cross-Cutting Cron)
 
 **Type**: Automated cron job (not a bot)
 **Machine**: MacBook Pro (main session)
@@ -182,25 +182,25 @@ Monitors **all 3 iOS apps** on App Store Connect:
 | Offline Image Translator | `com.felipevieira.screentranslate` | v1.0.0 |
 
 **Checks**: Review status, ratings, screenshots, pricing/IAP, builds, policy compliance
-**Alerts**: Rejections → Felipe, bad reviews → dev team, expired builds → dev team
+**Alerts**: Rejections -> Felipe, bad reviews -> dev team, expired builds -> dev team
 
-📖 See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full details.
+ See [APP-STORE-MANAGER.md](clawdbot/APP-STORE-MANAGER.md) for full details.
 
 ---
 
-## 📋 All Bots Summary
+## All Bots Summary
 
 | # | Project | Bot Name | Emoji | Roles | Machine | AGENTS.md | Special |
 |---|---------|----------|-------|-------|---------|-----------|---------|
-| 1 | Aphos | Aphos Dev | 🎮 | 6 | **Mac Mini** | ✅ | Game studio, persistent session |
-| 2 | Shitcoin Bot | Degen Brain | 🧠💰 | 4 | **Mac Mini** | ✅ | Trading intelligence, persistent session |
-| 3 | LinkLounge | LinkLounge Dev | 🔗 | 4 | MacBook | ❌ | Web app team |
-| 4 | EZ-CRM | EZ-CRM Dev | 📇 | 4 | MacBook | ❌ | CRM team |
-| 5 | game-asset-tool | Asset Forge | 🎨🔨 | 5 | MacBook | ❌ | Shared design studio (serves ALL) |
-| 6 | clawd-monitor | Monitor Bot | 📊 | 3 | **Mac Mini** | ❌ | DevOps team |
-| 7 | BMI Calculator | BMI App Dev | ⚖️ | 3 | MacBook | ❌ | iOS mobile |
-| 8 | Bills Tracker | Bills Tracker Dev | 💳 | 4 | MacBook | ❌ | iOS mobile |
-| 9 | Screen Translator | Translator Dev | 🌐 | 4 | MacBook | ❌ | iOS mobile + ML |
+| 1 | Aphos | Aphos Dev | | 6 | **Mac Mini** | [OK] | Game studio, persistent session |
+| 2 | Shitcoin Bot | Degen Brain | | 4 | **Mac Mini** | [OK] | Trading intelligence, persistent session |
+| 3 | LinkLounge | LinkLounge Dev | | 4 | MacBook | [NO] | Web app team |
+| 4 | EZ-CRM | EZ-CRM Dev | | 4 | MacBook | [NO] | CRM team |
+| 5 | game-asset-tool | Asset Forge | | 5 | MacBook | [NO] | Shared design studio (serves ALL) |
+| 6 | clawd-monitor | Monitor Bot | | 3 | **Mac Mini** | [NO] | DevOps team |
+| 7 | BMI Calculator | BMI App Dev | | 3 | MacBook | [NO] | iOS mobile |
+| 8 | Bills Tracker | Bills Tracker Dev | | 4 | MacBook | [NO] | iOS mobile |
+| 9 | Screen Translator | Translator Dev | | 4 | MacBook | [NO] | iOS mobile + ML |
 
 **Total**: 9 project bots, 37 specialized roles
 
@@ -214,11 +214,11 @@ Monitors **all 3 iOS apps** on App Store Connect:
 | **Mac Mini** | Aphos, clawd-monitor, iOS bots, trading bot (Python) | Always-on, persistent sessions, game servers, **16GB RAM** |
 | **Windows MSI** | Windows-specific tasks only | No persistent bots, on-demand only |
 
-⚠️ **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-loading. gpt-oss:20b exists on disk but is NEVER in auto-fallback chains.
+WARNING: **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-loading. gpt-oss:20b exists on disk but is NEVER in auto-fallback chains.
 
 ---
 
-## 🤖 Model Assignment Matrix
+## Model Assignment Matrix
 
 **Reasoning-first architecture** — All roles now use models with thinking enabled.
 
@@ -233,7 +233,7 @@ Monitors **all 3 iOS apps** on App Store Connect:
 | **Creative** | Claude Sonnet 4.5 | Art direction, storytelling |
 | **Critical** | Claude Opus 4.5 | Major refactors, security |
 
-> ⚠️ devstral-24b and gpt-oss:20b are MacBook-only models. Mac Mini (16GB) can only safely auto-load qwen3:8b.
+> WARNING: devstral-24b and gpt-oss:20b are MacBook-only models. Mac Mini (16GB) can only safely auto-load qwen3:8b.
 
 ### By Role Type
 
@@ -248,7 +248,7 @@ Monitors **all 3 iOS apps** on App Store Connect:
 
 ---
 
-## 🔄 Workflow Patterns
+## Workflow Patterns
 
 ### Research-First Approach
 
@@ -268,7 +268,7 @@ When spawning sub-agents (reasoning-first, swap-safe):
 5. **Claude Sonnet 4.5** (API, if all local fail)
 6. **Claude Opus 4.5** (critical tasks only)
 
-> ⚠️ gpt-oss:20b (14GB) is NEVER in Mac Mini auto-fallback chains — causes swap death on 16GB.
+> WARNING: gpt-oss:20b (14GB) is NEVER in Mac Mini auto-fallback chains — causes swap death on 16GB.
 
 ### Parallel Work
 
@@ -279,7 +279,7 @@ When spawning sub-agents (reasoning-first, swap-safe):
 
 ---
 
-## 💰 Cost Optimization
+## Cost Optimization
 
 ### Free Resources (Use First!)
 1. **Grok** — X/Twitter AI (Felipe's account)
@@ -297,7 +297,7 @@ When spawning sub-agents (reasoning-first, swap-safe):
 
 ---
 
-## 📊 Bot Performance Metrics
+## Bot Performance Metrics
 
 Track in `clawd-monitor` dashboard:
 - **API calls per bot** (Claude vs Ollama)
@@ -308,7 +308,7 @@ Track in `clawd-monitor` dashboard:
 
 ---
 
-## 🚀 Adding a New Bot
+## Adding a New Bot
 
 1. Create bot in `~/clawd/scripts/manage-bots.sh`
 2. Define roles in this file
@@ -318,7 +318,7 @@ Track in `clawd-monitor` dashboard:
 
 ---
 
-## 📚 References
+## References
 
 - [Clawdbot Config](clawdbot-config.md) — Model routing details
 - [Ollama Setup](ollama-setup.md) — Local LLM configuration

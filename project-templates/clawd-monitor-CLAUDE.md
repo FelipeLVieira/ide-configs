@@ -41,9 +41,9 @@ Real-time dashboard for monitoring Clawdbot sessions, sub-agents, and system res
 
 ## Key Commands
 ```bash
-npm run dev    # Start dev server (port 9000)
-npm run build  # Production build
-npm run lint   # Lint code
+npm run dev # Start dev server (port 9000)
+npm run build # Production build
+npm run lint # Lint code
 ```
 
 ## Port Assignment

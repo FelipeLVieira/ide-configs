@@ -37,7 +37,7 @@ Polymarket trading bot that copies trades from successful whale wallets using Ke
 ## Risk Management
 - Copy trading: 25% Kelly fraction
 - Politics: 1.0x multiplier
-- Sports: 0.7x multiplier  
+- Sports: 0.7x multiplier
 - Crypto: 0.5x multiplier (high variance)
 
 ## Key Commands

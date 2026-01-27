@@ -73,14 +73,14 @@
 | **P4** | Optional | Formatting, comment cleanup | Boy Scout Rule |
 
 #### Quick Diagnostic Checklist
-38. Functions > 50 lines → Extract smaller functions
-39. Deep nesting (3+ levels) → Use guard clauses, exit early
-40. Copy-pasted code (3+ times) → Apply DRY (Rule of Three)
-41. Magic numbers/strings → Use named constants
-42. Class doing many things → Apply Single Responsibility Principle
-43. Long parameter lists (5+) → Consider config object or builder pattern
-44. Message chains (`a.b().c().d()`) → Law of Demeter violation
-45. Silent failures → Add fail-fast behavior, proper logging
+38. Functions > 50 lines -> Extract smaller functions
+39. Deep nesting (3+ levels) -> Use guard clauses, exit early
+40. Copy-pasted code (3+ times) -> Apply DRY (Rule of Three)
+41. Magic numbers/strings -> Use named constants
+42. Class doing many things -> Apply Single Responsibility Principle
+43. Long parameter lists (5+) -> Consider config object or builder pattern
+44. Message chains (`a.b().c().d()`) -> Law of Demeter violation
+45. Silent failures -> Add fail-fast behavior, proper logging
 
 #### Principle Tensions (When Rules Conflict)
 - **DRY vs. Coupling**: Duplication is cheaper than wrong abstraction (wait for Rule of Three)
@@ -108,9 +108,9 @@
 
 ### Commands
 ```bash
-clawd                                    # Interactive mode
-clawd --non-interactive "task"           # Single task
-clawd --perpetual "task"                 # Continuous (runs until Ctrl+C)
+clawd # Interactive mode
+clawd --non-interactive "task" # Single task
+clawd --perpetual "task" # Continuous (runs until Ctrl+C)
 ```
 
 ### Configured Projects

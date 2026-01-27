@@ -2,7 +2,7 @@
 
 Local LLM inference on Mac Mini and MacBook Pro via Ollama.
 
-## 🖥️ Hardware Overview
+## Hardware Overview
 
 ### Mac Mini (24/7 Server)
 - **RAM**: 16 GB
@@ -20,7 +20,7 @@ Local LLM inference on Mac Mini and MacBook Pro via Ollama.
 - **Ollama URL**: http://felipes-macbook-pro-2.local:11434
 - **Role**: Primary for coding sub-agents (devstral-24b)
 
-## 📦 Installation
+## Installation
 
 Both machines use Homebrew:
 
@@ -28,7 +28,7 @@ Both machines use Homebrew:
 brew install ollama
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -36,9 +36,9 @@ Add to `~/.zshrc` or `~/.bash_profile`:
 
 ```bash
 # Ollama Server Config
-export OLLAMA_HOST=0.0.0.0              # Listen on all interfaces
-export OLLAMA_FLASH_ATTENTION=1          # Enable flash attention
-export OLLAMA_KV_CACHE_TYPE=q8_0         # 8-bit quantized KV cache
+export OLLAMA_HOST=0.0.0.0 # Listen on all interfaces
+export OLLAMA_FLASH_ATTENTION=1 # Enable flash attention
+export OLLAMA_KV_CACHE_TYPE=q8_0 # 8-bit quantized KV cache
 ```
 
 Then reload:
@@ -145,7 +145,7 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
 
 # 3. Verify it's running and bound to 0.0.0.0
 curl http://localhost:11434/api/tags
-curl http://felipes-mac-mini.local:11434/api/tags  # from another machine
+curl http://felipes-mac-mini.local:11434/api/tags # from another machine
 ```
 
 **Why not Homebrew services?** Homebrew's `brew services` creates an ephemeral launchd config that does not include custom environment variables. Setting `OLLAMA_HOST` in `~/.zshrc` only works for interactive shells, not launchd-spawned processes. The custom plist embeds environment variables directly, guaranteeing they persist across reboots. This was discovered after the Healer Bot detected 5 consecutive cross-machine failures (see [HYBRID-HEALING.md incident log](clawdbot/HYBRID-HEALING.md)).
@@ -166,11 +166,11 @@ tail -f /tmp/ollama.out.log
 tail -f /tmp/ollama.err.log
 ```
 
-## 🤖 Models
+## Models
 
 ### Mac Mini (16 GB RAM) — RESOURCE-CONSTRAINED!
 
-⚠️ **CRITICAL: Swap Protection**
+WARNING: **CRITICAL: Swap Protection**
 
 Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 - **gpt-oss:20b (14GB)** was causing **15.6GB swap** — system grinding to a halt
@@ -178,11 +178,11 @@ Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** — only safe model for auto-fallback (reasoning=true) | ✅ Always loaded |
-| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | ⚠️ NOT in auto-fallback |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — only safe model for auto-fallback (reasoning=true) | [OK] Always loaded |
+| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | WARNING: NOT in auto-fallback |
 
 **Removed:**
-- ❌ qwen3-fast:8b — Deleted (duplicate of qwen3:8b, freed 5.2GB disk)
+- [NO] qwen3-fast:8b — Deleted (duplicate of qwen3:8b, freed 5.2GB disk)
 
 **Future upgrade candidate:**
 - **qwen3:14b** (Q3_K_M) — ~9GB VRAM, fits 16GB with 7GB headroom. Nearly doubles reasoning quality. Not yet pulled.
@@ -205,8 +205,8 @@ Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 
 **Pull models:**
 ```bash
-ollama pull qwen3:8b      # Keep loaded (5GB, safe)
-ollama pull gpt-oss:20b   # On-demand only (14GB, dangerous)
+ollama pull qwen3:8b # Keep loaded (5GB, safe)
+ollama pull gpt-oss:20b # On-demand only (14GB, dangerous)
 ```
 
 ### MacBook Pro (48 GB RAM)
@@ -219,26 +219,26 @@ ollama pull gpt-oss:20b   # On-demand only (14GB, dangerous)
 
 **Pull models:**
 ```bash
-ollama pull qwen3:8b              # PRIMARY (reasoning-first)
-ollama pull devstral-small-2:24b  # Heavy coding
-ollama pull gpt-oss:20b           # Fallback
+ollama pull qwen3:8b # PRIMARY (reasoning-first)
+ollama pull devstral-small-2:24b # Heavy coding
+ollama pull gpt-oss:20b # Fallback
 ```
 
 ### Removed Models
-- ❌ **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b and gpt-oss:20b.
-- ❌ **qwen3-fast:8b** — Deleted from Mac Mini (2026-01-27). Duplicate of qwen3:8b, freed 5.2GB disk.
+- [NO] **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b and gpt-oss:20b.
+- [NO] **qwen3-fast:8b** — Deleted from Mac Mini (2026-01-27). Duplicate of qwen3:8b, freed 5.2GB disk.
 
 ### Windows MSI — Remote Ollama via MacBook + Mac Mini
-- ❌ **No local Ollama** on Windows MSI
-- ✅ **Routes through both Macs** via Tailscale:
-  - `ollama-macbookpro` → `http://100.125.165.107:11434` (devstral-24b, gpt-oss:20b, qwen3:8b)
-  - `ollama-macmini` → `http://100.115.10.14:11434` (qwen3:8b ONLY)
+- [NO] **No local Ollama** on Windows MSI
+- [OK] **Routes through both Macs** via Tailscale:
+  - `ollama-macbookpro` -> `http://100.125.165.107:11434` (devstral-24b, gpt-oss:20b, qwen3:8b)
+  - `ollama-macmini` -> `http://100.115.10.14:11434` (qwen3:8b ONLY)
 
 ### Future Models
 - **qwen3:14b** (Q3_K_M) — Best upgrade for Mac Mini: ~9GB, fits 16GB with headroom
 - **qwen2.5vl:32b** — Planned for Asset Forge (design vision model)
 
-## 🌐 Mac Mini as Central Ollama Hub
+## Mac Mini as Central Ollama Hub
 
 The Mac Mini serves as the **central Ollama inference hub** for all machines in the ecosystem.
 
@@ -260,23 +260,23 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 
 | Machine | Models | Total Size | Status |
 |---------|--------|-----------|--------|
-| **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | ✅ All loaded |
-| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand ONLY) | ~18 GB | ⚠️ Only qwen3:8b kept loaded |
-| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB | ✅ Via Tailscale |
+| **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | [OK] All loaded |
+| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand ONLY) | ~18 GB | WARNING: Only qwen3:8b kept loaded |
+| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB | [OK] Via Tailscale |
 
 ---
 
-## 🎯 Sub-Agent Priority Chain
+## Sub-Agent Priority Chain
 
 **Reasoning-first architecture** — sub-agents cascade with thinking enabled:
 
 ```
-1. qwen3:8b (local, reasoning=true)         ← PRIMARY (FREE, smart)
-2. qwen3:8b (cross-machine via Tailscale)   ← If local Ollama fails
-3. devstral-small-2:24b (MacBook 48GB)      ← Heavy coding
-4. gpt-oss:20b (MacBook 48GB ONLY)          ← General fallback (NOT on Mac Mini!)
-5. Claude Sonnet 4.5 (API)                  ← If all local fail
-6. Claude Opus 4.5 (API)                    ← Critical tasks only
+1. qwen3:8b (local, reasoning=true) <- PRIMARY (FREE, smart)
+2. qwen3:8b (cross-machine via Tailscale) <- If local Ollama fails
+3. devstral-small-2:24b (MacBook 48GB) <- Heavy coding
+4. gpt-oss:20b (MacBook 48GB ONLY) <- General fallback (NOT on Mac Mini!)
+5. Claude Sonnet 4.5 (API) <- If all local fail
+6. Claude Opus 4.5 (API) <- Critical tasks only
 ```
 
 ### Heartbeat Model
@@ -289,7 +289,7 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 - **Fast**: Quick inference for most tasks
 - **Quality**: Qwen3.1 8B with reasoning rivals larger models
 
-## 🌐 Network Access
+## Network Access
 
 Both machines reachable via **hostname** or **Tailscale IP**.
 
@@ -316,26 +316,26 @@ curl http://100.125.165.107:11434/api/tags
 Both Macs can use each other's Ollama instances for **automatic failover** and load balancing:
 
 ```bash
-# MacBook → Mac Mini (always-on, heartbeats)
+# MacBook -> Mac Mini (always-on, heartbeats)
 curl http://felipes-mac-mini.local:11434/api/tags
 
-# Mac Mini → MacBook (coding models, devstral-24b)
+# Mac Mini -> MacBook (coding models, devstral-24b)
 curl http://felipes-macbook-pro-2.local:11434/api/tags
 ```
 
 **In Clawdbot config**, two providers are defined:
-- `ollama` → Mac Mini (always-on)
-- `ollama-macbook` → MacBook Pro (coding-focused)
+- `ollama` -> Mac Mini (always-on)
+- `ollama-macbook` -> MacBook Pro (coding-focused)
 
 **Mac Mini fallback chain:**
 ```
-qwen3:8b (local) → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus
+qwen3:8b (local) -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus
 ```
-> ⚠️ No gpt-oss:20b in Mac Mini auto-fallback — goes to MacBook instead!
+> WARNING: No gpt-oss:20b in Mac Mini auto-fallback — goes to MacBook instead!
 
 **MacBook fallback chain:**
 ```
-Opus → Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b (all local/safe on 48GB)
+Opus -> Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b (all local/safe on 48GB)
 ```
 
 This means: **if one machine's Ollama fails, the other catches it automatically**. Zero downtime.
@@ -349,7 +349,7 @@ Tailscale userspace mode requires a socket flag for CLI:
 alias tailscale='tailscale --socket=~/.tailscale/tailscaled.sock'
 ```
 
-## ⚡ Performance Tuning
+## Performance Tuning
 
 ### Flash Attention
 - **What**: Optimized attention mechanism for Transformers
@@ -366,7 +366,7 @@ alias tailscale='tailscale --socket=~/.tailscale/tailscaled.sock'
 - **Mac Mini (16 GB)**: Can run gpt-oss:20b (13 GB) with headroom
 - **MacBook (48 GB)**: Can run devstral-small-2:24b (15 GB) + multiple contexts
 
-## 🛠️ Management Commands
+## Management Commands
 
 ### List Models
 ```bash
@@ -380,7 +380,7 @@ ollama pull gpt-oss:20b
 
 ### Remove Models
 ```bash
-ollama rm <model-name>  # Remove unused models to free disk space
+ollama rm <model-name> # Remove unused models to free disk space
 ```
 
 ### Check Running Models
@@ -395,7 +395,7 @@ curl http://localhost:11434/api/tags
 brew services restart ollama
 ```
 
-## 🔥 Firewall & Security
+## Firewall & Security
 
 ### Allow Ollama Port
 
@@ -412,7 +412,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /opt/homebrew/
 - No public internet exposure
 - All traffic encrypted end-to-end
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Service Not Starting
 ```bash
@@ -423,8 +423,8 @@ tail -f /tmp/ollama.err.log
 brew services info ollama
 
 # Restart
-launchctl stop com.ollama.serve && launchctl start com.ollama.serve  # MacBook
-brew services restart ollama  # Mac Mini
+launchctl stop com.ollama.serve && launchctl start com.ollama.serve # MacBook
+brew services restart ollama # Mac Mini
 ```
 
 ### Port Already in Use
@@ -459,7 +459,7 @@ brew services restart ollama
 ### Connection Refused (Remote)
 ```bash
 # Verify Ollama is listening on 0.0.0.0
-echo $OLLAMA_HOST  # Should be 0.0.0.0
+echo $OLLAMA_HOST # Should be 0.0.0.0
 
 # Test local
 curl http://localhost:11434/api/tags
@@ -474,7 +474,7 @@ curl http://100.115.10.14:11434/api/tags
 tailscale status
 ```
 
-## 📊 Monitoring
+## Monitoring
 
 ### Check Inference Speed
 ```bash
@@ -498,7 +498,7 @@ vm_stat
 sudo powermetrics --samplers gpu_power -i 1000 -n 1
 ```
 
-## 📚 References
+## References
 
 - [Ollama Docs](https://ollama.ai/docs)
 - [Flash Attention Paper](https://arxiv.org/abs/2205.14135)

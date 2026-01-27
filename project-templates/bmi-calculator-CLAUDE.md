@@ -49,7 +49,7 @@ Health tracking mobile app combining BMI calculation with comprehensive calorie/
 
 ## Key Commands
 ```bash
-npm start              # Start Expo dev server
-npm test               # Run Jest tests
-npx expo build         # Build for production
+npm start # Start Expo dev server
+npm test # Run Jest tests
+npx expo build # Build for production
 ```

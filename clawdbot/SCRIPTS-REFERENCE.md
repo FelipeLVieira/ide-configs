@@ -3,18 +3,18 @@
 ## Automated Cleanup & Healing Scripts
 
 ### event-watcher.sh (Layer 1 — Instant Healing)
-**Location**: `/Users/felipevieira/clawd/scripts/event-watcher.sh`  
-**Runs**: 24/7 via launchd (`com.clawdbot.event-watcher`)  
-**Interval**: Every 60 seconds  
-**Output**: `/tmp/clawdbot/events.jsonl`  
+**Location**: `/Users/felipevieira/clawd/scripts/event-watcher.sh`
+**Runs**: 24/7 via launchd (`com.clawdbot.event-watcher`)
+**Interval**: Every 60 seconds
+**Output**: `/tmp/clawdbot/events.jsonl`
 **Cost**: FREE (pure bash)
 
 **Monitors & Auto-Heals:**
-- Ollama health on both machines → auto-restart via `brew services`
-- pm2 processes on Mac Mini → `pm2 resurrect`
-- Mac Mini connectivity → log alert (can't self-heal network)
-- Rogue iOS simulators on MacBook → `killall Simulator`
-- Zombie processes → `kill -9`
+- Ollama health on both machines -> auto-restart via `brew services`
+- pm2 processes on Mac Mini -> `pm2 resurrect`
+- Mac Mini connectivity -> log alert (can't self-heal network)
+- Rogue iOS simulators on MacBook -> `killall Simulator`
+- Zombie processes -> `kill -9`
 
 **v2 Features (Event Watcher v2):**
 - **Health Probes** — HTTP health checks for services (Ollama, Gateway, clawd-monitor)
@@ -72,8 +72,8 @@ See [HYBRID-HEALING.md](HYBRID-HEALING.md) for full architecture.
 ---
 
 ### mac-mini-cleanup.sh
-**Location**: `~/clawd/scripts/mac-mini-cleanup.sh`  
-**Runs**: Every 15 min via launchd (`com.clawdbot.system-cleanup`)  
+**Location**: `~/clawd/scripts/mac-mini-cleanup.sh`
+**Runs**: Every 15 min via launchd (`com.clawdbot.system-cleanup`)
 **Output**: `/tmp/clawdbot/system-health.json`
 
 **Actions:**
@@ -87,8 +87,8 @@ See [HYBRID-HEALING.md](HYBRID-HEALING.md) for full architecture.
 ---
 
 ### macbook-cleanup.sh
-**Location**: `~/clawd/scripts/macbook-cleanup.sh`  
-**Runs**: Every 15 min via launchd (`com.clawdbot.macbook-cleanup`)  
+**Location**: `~/clawd/scripts/macbook-cleanup.sh`
+**Runs**: Every 15 min via launchd (`com.clawdbot.macbook-cleanup`)
 **Output**: `/tmp/clawdbot/macbook-health.json`
 
 **Actions:**
@@ -132,7 +132,7 @@ Bot-specific prompts in `~/clawd/prompts/`:
 | Job | Schedule | Model | Purpose |
 |-----|----------|-------|---------|
 | Cleaner Bot | Hourly | gpt-oss:20b / qwen3:8b | Deep cleanup |
-| Healer Bot | Hourly | gpt-oss:20b → Sonnet | Diagnose & heal |
+| Healer Bot | Hourly | gpt-oss:20b -> Sonnet | Diagnose & heal |
 | Clear Sessions | Weekly (Sun midnight) | — | Session cleanup |
 | App Store Manager | 3x daily (9 AM, 3 PM, 9 PM EST) | gpt-oss:20b | iOS app monitoring |
 
@@ -141,7 +141,7 @@ See [APP-STORE-MANAGER.md](APP-STORE-MANAGER.md) for full App Store Manager docs
 ---
 
 ## Deprecated (Removed 2026-01-26)
-- ❌ `run-shitcoin-brain.sh` — replaced by Clawdbot cron
-- ❌ `run-shitcoin-quant.sh` — replaced by Clawdbot cron
-- ❌ `manage-bots.sh` — replaced by cron + launchd
-- ❌ `run-persistent-bot.sh` — replaced by cron jobs
+- [NO] `run-shitcoin-brain.sh` — replaced by Clawdbot cron
+- [NO] `run-shitcoin-quant.sh` — replaced by Clawdbot cron
+- [NO] `manage-bots.sh` — replaced by cron + launchd
+- [NO] `run-persistent-bot.sh` — replaced by cron jobs

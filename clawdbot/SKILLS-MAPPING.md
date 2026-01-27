@@ -118,9 +118,9 @@ See `skill-creator` skill for templates.
 Skill structure:
 ```
 my-skill/
-├── SKILL.md          # Instructions for the bot
-├── package.json      # Dependencies (optional)
-└── scripts/          # Helper scripts (optional)
+ SKILL.md # Instructions for the bot
+ package.json # Dependencies (optional)
+ scripts/ # Helper scripts (optional)
 ```
 
 ## Recommended Community Skills

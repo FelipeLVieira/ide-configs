@@ -50,7 +50,7 @@ Offline-first mobile app for tracking and organizing bill subscriptions. All dat
 
 ## Key Commands
 ```bash
-npm start              # Start Expo dev server
-npm test               # Run Jest tests (103 tests)
-npx expo build         # Build for production
+npm start # Start Expo dev server
+npm test # Run Jest tests (103 tests)
+npx expo build # Build for production
 ```

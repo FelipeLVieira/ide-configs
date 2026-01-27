@@ -40,11 +40,11 @@ Legal case management system for law firms with comprehensive case, client, docu
 
 ## Key Commands
 ```bash
-npm run dev              # Development server
-npm run build            # Production build
-npm run test:all         # All checks (type-check, lint, tests)
-npm run type-check       # TypeScript validation
-npm run audit:translations  # Check translation coverage
+npm run dev # Development server
+npm run build # Production build
+npm run test:all # All checks (type-check, lint, tests)
+npm run type-check # TypeScript validation
+npm run audit:translations # Check translation coverage
 ```
 
 ## Documentation

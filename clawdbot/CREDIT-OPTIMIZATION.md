@@ -11,18 +11,18 @@ Strategies to reduce Claude API usage while maintaining productivity.
 | 3 | Opus heartbeat | ~$0.10/run | Every 60 min | Quick connectivity only |
 
 ### Key Insight: Separate Mechanical from Intelligent Work
-- **Mechanical** (kill processes, clean files) → bash scripts (zero tokens)
-- **Research** (analyze data, write strategies) → Sonnet cron (cheap)
-- **Orchestration** (talk to human, complex decisions) → Opus (expensive, minimal)
+- **Mechanical** (kill processes, clean files) -> bash scripts (zero tokens)
+- **Research** (analyze data, write strategies) -> Sonnet cron (cheap)
+- **Orchestration** (talk to human, complex decisions) -> Opus (expensive, minimal)
 
 ## Cron vs Persistent Sessions
 
 | Approach | Cost/Run | Context | Model |
 |----------|----------|---------|-------|
-| Fresh cron session ✅ | Flat ~$0.05 | Fresh each run | Sonnet |
-| Persistent session ❌ | Growing | Accumulates | Opus |
-| Multi-agent swarm ❌ | 5-20x more | Per-agent | Any |
-| sessions_spawn ⚠️ | Low per-run | Fresh | Configurable |
+| Fresh cron session [OK] | Flat ~$0.05 | Fresh each run | Sonnet |
+| Persistent session [NO] | Growing | Accumulates | Opus |
+| Multi-agent swarm [NO] | 5-20x more | Per-agent | Any |
+| sessions_spawn WARNING: | Low per-run | Fresh | Configurable |
 
 **Winner:** Fresh isolated cron sessions with file-based persistence.
 Confirmed by both Claude and Grok research (2026-01-26).
@@ -30,9 +30,9 @@ Confirmed by both Claude and Grok research (2026-01-26).
 ## File-Based Memory (Zero Cost Between Runs)
 
 ```
-Session Start → Read Files → Work → Write Results → Session End
-     ↑                                                    |
-     └────── Markdown files persist for free ─────────────┘
+Session Start -> Read Files -> Work -> Write Results -> Session End
+     ^ |
+      Markdown files persist for free
 ```
 
 - Goals: Static prompt files (~/clawd/prompts/*.md)
@@ -59,7 +59,7 @@ Before asking Claude:
 - **Fallback**: `anthropic/claude-sonnet-4-5` — cron jobs, automated tasks
 
 **Fallback Chain**:
-1. Sonnet 4.5 → 2. devstral-24b (MacBook) → 3. gpt-oss:20b (MacBook) → 4. qwen3:8b (Mac Mini)
+1. Sonnet 4.5 -> 2. devstral-24b (MacBook) -> 3. gpt-oss:20b (MacBook) -> 4. qwen3:8b (Mac Mini)
 
 ## Model Selection Guide
 
@@ -85,7 +85,7 @@ Total: ~$3.42/day (90% reduction from $15+)
 ```
 
 **Key Savings**:
-- Heartbeats: $0.48 → FREE (qwen3:8b local)
-- Sub-agents: $2.00+ → FREE (qwen3:8b local) 
-- App monitoring: $0.60 → FREE (qwen3:8b local)
+- Heartbeats: $0.48 -> FREE (qwen3:8b local)
+- Sub-agents: $2.00+ -> FREE (qwen3:8b local)
+- App monitoring: $0.60 -> FREE (qwen3:8b local)
 - Total local compute: ~$3+ daily savings

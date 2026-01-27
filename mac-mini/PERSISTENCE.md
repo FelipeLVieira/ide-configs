@@ -5,49 +5,49 @@ How to keep bots running 24/7 without burning tokens.
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   ALWAYS-ON LAYER                    │
-│  (OS-level, zero token cost)                         │
-│                                                     │
-│  LaunchAgents:                                      │
-│  • Aphos game servers (2567, 2568, 4000, 4001)     │
-│  • Shitcoin bot (Polymarket trading)                │
-│  • Clawdbot gateway                                 │
-│  • Failover watchdog                                │
-│  • Node service                                     │
-└─────────────────────────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────┐
-│                 PERIODIC AI LAYER                    │
-│  (Token-efficient, scheduled)                        │
-│                                                     │
-│  Heartbeat (every 30m):                             │
-│  • Check bot health                                 │
-│  • Monitor positions/trades                         │
-│  • Review calendar/inbox                            │
-│  • Proactive check-ins                              │
-│                                                     │
-│  Cron (exact times):                                │
-│  • Daily trading summary (9am)                      │
-│  • Weekly game review (Monday)                      │
-│  • One-shot reminders                               │
-└─────────────────────────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────┐
-│                 ON-DEMAND AI LAYER                   │
-│  (Only when needed)                                  │
-│                                                     │
-│  Sub-agents:                                        │
-│  • Heavy coding tasks                               │
-│  • Research/analysis                                │
-│  • Multi-step workflows                             │
-│                                                     │
-│  Direct messages:                                   │
-│  • User requests via Telegram                       │
-│  • Alerts from monitoring                           │
-└─────────────────────────────────────────────────────┘
+
+                   ALWAYS-ON LAYER
+  (OS-level, zero token cost)
+                                                     
+  LaunchAgents:
+  - Aphos game servers (2567, 2568, 4000, 4001)
+  - Shitcoin bot (Polymarket trading)
+  - Clawdbot gateway
+  - Failover watchdog
+  - Node service
+
+                        
+                        
+
+                 PERIODIC AI LAYER
+  (Token-efficient, scheduled)
+                                                     
+  Heartbeat (every 30m):
+  - Check bot health
+  - Monitor positions/trades
+  - Review calendar/inbox
+  - Proactive check-ins
+                                                     
+  Cron (exact times):
+  - Daily trading summary (9am)
+  - Weekly game review (Monday)
+  - One-shot reminders
+
+                        
+                        
+
+                 ON-DEMAND AI LAYER
+  (Only when needed)
+                                                     
+  Sub-agents:
+  - Heavy coding tasks
+  - Research/analysis
+  - Multi-step workflows
+                                                     
+  Direct messages:
+  - User requests via Telegram
+  - Alerts from monitoring
+
 ```
 
 ## Why NOT Ralph Wiggum for Always-On

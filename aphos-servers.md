@@ -2,21 +2,21 @@
 
 Colyseus game servers running on Mac Mini via pm2.
 
-## 🎮 Server Overview
+## Server Overview
 
-**Host**: Mac Mini (24/7)  
-**Manager**: pm2 (process manager)  
+**Host**: Mac Mini (24/7)
+**Manager**: pm2 (process manager)
 **Location**: `~/repos/aphos/`
 
 ### Why Mac Mini?
-- ✅ Always on (24/7 uptime)
-- ✅ 16GB RAM (enough for game servers)
-- ✅ Local network access for testing
-- ❌ MacBook (orchestration only, not for servers)
+- [OK] Always on (24/7 uptime)
+- [OK] 16GB RAM (enough for game servers)
+- [OK] Local network access for testing
+- [NO] MacBook (orchestration only, not for servers)
 
 ---
 
-## 🔧 pm2 Configuration
+## pm2 Configuration
 
 **File**: `~/repos/aphos/ecosystem.config.cjs`
 
@@ -58,7 +58,7 @@ module.exports = {
 
 ---
 
-## 🚀 Port Assignment
+## Port Assignment
 
 | Server | Port | Purpose |
 |--------|------|---------|
@@ -71,7 +71,7 @@ module.exports = {
 
 ---
 
-## 🛠️ Management Commands
+## Management Commands
 
 ### Start Servers
 ```bash
@@ -112,7 +112,7 @@ pm2 delete aphos-prod aphos-dev
 
 ---
 
-## 🔄 Auto-Start on Boot
+## Auto-Start on Boot
 
 pm2 can auto-start servers on Mac Mini reboot.
 
@@ -139,7 +139,7 @@ pm2 save
 sudo reboot
 
 # After reboot, check pm2
-pm2 list  # Should show aphos-prod and aphos-dev running
+pm2 list # Should show aphos-prod and aphos-dev running
 ```
 
 ### Disable Auto-Start
@@ -149,7 +149,7 @@ pm2 unstartup launchd
 
 ---
 
-## 🐛 TypeScript Fixes
+## TypeScript Fixes
 
 ### TS7053 Error (EnhancementSystem.ts)
 
@@ -188,11 +188,11 @@ if (isPlayerStat(statKey)) {
 
 ---
 
-## 🌐 Network Access
+## Network Access
 
 ### Local Network
-- **MacBook → Mac Mini**: `http://felipes-mac-mini.local:2567`
-- **iPhone → Mac Mini**: `http://100.115.10.14:2567` (Tailscale)
+- **MacBook -> Mac Mini**: `http://felipes-mac-mini.local:2567`
+- **iPhone -> Mac Mini**: `http://100.115.10.14:2567` (Tailscale)
 
 ### Firewall Rules
 ```bash
@@ -203,7 +203,7 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /opt/homebrew/
 
 ---
 
-## 📊 Monitoring
+## Monitoring
 
 ### pm2 Monitoring
 ```bash
@@ -234,7 +234,7 @@ curl http://localhost:2568/
 
 ---
 
-## 🧹 Maintenance
+## Maintenance
 
 ### Update Dependencies
 ```bash
@@ -257,7 +257,7 @@ pm2 restart aphos-prod
 
 ---
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### Port Already in Use
 ```bash
@@ -288,7 +288,7 @@ npm run build
 pm2 status
 
 # Increase max memory (in ecosystem.config.cjs)
-max_memory_restart: '2G'  # Default is 1G
+max_memory_restart: '2G' # Default is 1G
 
 # Restart
 pm2 restart aphos-prod aphos-dev
@@ -309,7 +309,7 @@ sudo reboot
 
 ---
 
-## 📚 References
+## References
 
 - [pm2 Docs](https://pm2.keymetrics.io/docs/usage/quick-start/)
 - [Colyseus Docs](https://docs.colyseus.io/)

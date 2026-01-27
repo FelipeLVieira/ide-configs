@@ -6,7 +6,7 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 
 ---
 
-## 🖥️ Machine 1: MacBook Pro (48GB RAM) — Orchestrator
+## Machine 1: MacBook Pro (48GB RAM) — Orchestrator
 
 **Role**: Main session (Claude Opus), heavy sub-agent compute, orchestration
 
@@ -21,9 +21,9 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 | Setting | Value |
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
-| **Fallbacks** | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
+| **Fallbacks** | Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b |
 | **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
-| **Sub-agents** | `ollama/qwen3:8b` → `ollama-macbook/qwen3:8b` → `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → Sonnet → Opus |
+| **Sub-agents** | `ollama/qwen3:8b` -> `ollama-macbook/qwen3:8b` -> `ollama-macbook/devstral-small-2:24b` -> `ollama/gpt-oss:20b` -> Sonnet -> Opus |
 | **Thinking** | `thinkingDefault: "low"` (always) |
 
 ### Ollama Providers
@@ -45,18 +45,18 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 
 ---
 
-## 🖥️ Machine 2: Mac Mini (16GB RAM) — Always-On Server
+## Machine 2: Mac Mini (16GB RAM) — Always-On Server
 
 **Role**: Always-on services, heartbeats, game servers, iOS builds, bot dashboard
 
 ### Ollama Models
 
-⚠️ **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
+WARNING: **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** — only model safe for auto-fallback (reasoning=true) | ✅ Always loaded |
-| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | ⚠️ NOT in auto-fallback |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — only model safe for auto-fallback (reasoning=true) | [OK] Always loaded |
+| gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | WARNING: NOT in auto-fallback |
 
 **Swap Protection Rules:**
 - gpt-oss:20b (14GB) was causing **15.6GB swap** — system grinding to a halt
@@ -66,18 +66,18 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 - desired-state.json limits: swap_warn=8GB, swap_critical=12GB, max_loaded_model=6GB
 
 **Removed models:**
-- ❌ qwen3-fast:8b — Deleted (duplicate of qwen3:8b, wasted 5.2GB disk)
+- [NO] qwen3-fast:8b — Deleted (duplicate of qwen3:8b, wasted 5.2GB disk)
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
 | **Main model** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
-| **Fallbacks** | MacBook qwen3:8b → MacBook devstral-24b → MacBook gpt-oss:20b → Sonnet → Opus |
+| **Fallbacks** | MacBook qwen3:8b -> MacBook devstral-24b -> MacBook gpt-oss:20b -> Sonnet -> Opus |
 | **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
-| **Sub-agents** | `ollama/qwen3:8b` → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
+| **Sub-agents** | `ollama/qwen3:8b` -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
 | **Thinking** | `thinkingDefault: "low"` |
 
-> ⚠️ **No gpt-oss:20b in any auto-fallback chain.** If Mac Mini local fails, it goes to MacBook, NOT to a bigger local model.
+> WARNING: **No gpt-oss:20b in any auto-fallback chain.** If Mac Mini local fails, it goes to MacBook, NOT to a bigger local model.
 
 ### Ollama Providers
 | Provider | URL | Models |
@@ -113,21 +113,21 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 
 ---
 
-## 🖥️ Machine 3: Windows MSI — Secondary Bot
+## Machine 3: Windows MSI — Secondary Bot
 
 **Role**: Windows-specific automation tasks
-**Identity**: "Clawdbot Master Windows" 🖥️
+**Identity**: "Clawdbot Master Windows"
 
 ### Ollama Models
-- ❌ **No local Ollama** — Routes ALL inference through MacBook Pro + Mac Mini via Tailscale
+- [NO] **No local Ollama** — Routes ALL inference through MacBook Pro + Mac Mini via Tailscale
 
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
-| **Fallbacks** | Sonnet → MacBook devstral-24b → MacBook gpt-oss:20b → MacBook qwen3:8b → Mac Mini qwen3:8b |
+| **Fallbacks** | Sonnet -> MacBook devstral-24b -> MacBook gpt-oss:20b -> MacBook qwen3:8b -> Mac Mini qwen3:8b |
 | **Heartbeat** | `ollama-macmini/qwen3:8b` (via Tailscale, reasoning=true, **FREE**) |
-| **Sub-agents** | Mac Mini qwen3:8b → MacBook qwen3 → MacBook devstral → MacBook gpt-oss → Sonnet → Opus |
+| **Sub-agents** | Mac Mini qwen3:8b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
 | **Thinking** | `thinkingDefault: "low"` |
 
 ### Ollama Providers (TWO remote providers)
@@ -145,33 +145,33 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 
 ---
 
-## 🌐 Network Topology
+## Network Topology
 
 ```
-┌──────────────────────────────────────────────────┐
-│          MacBook Pro (48GB) — ORCHESTRATOR        │
-│  Main: Opus 4.5 | Local: qwen3, devstral, gpt-oss│
-│  Tailscale: 100.125.165.107                       │
-└─────────┬──────────────────────────┬─────────────┘
-          │ local + Tailscale        │ Tailscale
-          ▼                          │
-┌─────────────────────────────┐     │
-│  Mac Mini (16GB) — ALWAYS ON │     │
-│  Local: qwen3:8b ONLY (safe) │     │
-│  Tailscale: 100.115.10.14    │     │
-└─────────┬───────────────────┘     │
-          │ Tailscale                │
-          ▼                          ▼
-┌──────────────────────────────────────────────────┐
-│          Windows MSI — SECONDARY                  │
-│  No local models                                  │
-│  Routes to MacBook (heavy) + Mac Mini (heartbeat) │
-│  Tailscale: 100.67.241.32                         │
-└──────────────────────────────────────────────────┘
+
+          MacBook Pro (48GB) — ORCHESTRATOR
+  Main: Opus 4.5 | Local: qwen3, devstral, gpt-oss
+  Tailscale: 100.125.165.107
+
+           local + Tailscale Tailscale
+                                    
+     
+  Mac Mini (16GB) — ALWAYS ON
+  Local: qwen3:8b ONLY (safe)
+  Tailscale: 100.115.10.14
+     
+           Tailscale
+                                    
+
+          Windows MSI — SECONDARY
+  No local models
+  Routes to MacBook (heavy) + Mac Mini (heartbeat)
+  Tailscale: 100.67.241.32
+
 
 Cross-machine failover:
-  Mac Mini local fails → MacBook catches it (via Tailscale)
-  MacBook Ollama fails → Mac Mini catches it (via local/Tailscale)
+  Mac Mini local fails -> MacBook catches it (via Tailscale)
+  MacBook Ollama fails -> Mac Mini catches it (via local/Tailscale)
   Automatic failover, zero manual intervention
 ```
 
@@ -186,31 +186,31 @@ Cross-machine failover:
 
 ### SSH Access
 ```bash
-# MacBook → Mac Mini
+# MacBook -> Mac Mini
 ssh felipemacmini@felipes-mac-mini.local
 
-# MacBook → Windows MSI (SOCKS proxy)
+# MacBook -> Windows MSI (SOCKS proxy)
 ssh msi
 
-# Mac Mini → Windows MSI (SOCKS proxy)
+# Mac Mini -> Windows MSI (SOCKS proxy)
 ssh msi
 ```
 
 ---
 
-## 💰 Cost Analysis by Machine
+## Cost Analysis by Machine
 
 | Machine | Local Models | API Usage | Monthly Estimate |
 |---------|-------------|-----------|-----------------|
-| MacBook Pro | ✅ 3 models (FREE) | Opus for main session | $50-100 |
-| Mac Mini | ✅ qwen3:8b (FREE) | Minimal API (fallback only) | $5-15 |
+| MacBook Pro | [OK] 3 models (FREE) | Opus for main session | $50-100 |
+| Mac Mini | [OK] qwen3:8b (FREE) | Minimal API (fallback only) | $5-15 |
 | Windows MSI | Via MacBook + Mac Mini (FREE) | Opus main + Sonnet fallback | $10-25 |
 
 **Total estimated**: $65-140/month (down from $300+ before local LLMs)
 
 ---
 
-## 📋 Quick Reference: Which Machine for What?
+## Quick Reference: Which Machine for What?
 
 | Task | Machine | Why |
 |------|---------|-----|
@@ -226,7 +226,7 @@ ssh msi
 
 ---
 
-## 🔄 Change Log
+## Change Log
 
 ### 2026-01-27: Config Audit & Swap Protection
 - **gpt-oss:20b removed from ALL Mac Mini auto-fallbacks** (was causing 15.6GB swap death)
@@ -244,11 +244,11 @@ ssh msi
 ### 2026-01-27: Windows MSI Dual-Provider
 - Windows now routes to BOTH MacBook (heavy models) and Mac Mini (heartbeats)
 - Main model: Opus 4.5 (unchanged)
-- Subagents: Mac Mini qwen3:8b (free) → MacBook models → API fallback
+- Subagents: Mac Mini qwen3:8b (free) -> MacBook models -> API fallback
 
 ---
 
-## 📚 References
+## References
 
 - [Clawdbot Config](../clawdbot-config.md) — Model routing details
 - [Ollama Setup](../ollama-setup.md) — Local LLM configuration

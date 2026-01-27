@@ -39,7 +39,7 @@ Cross-platform mobile app that extracts and translates text from images using on
 - Smooth gesture interactions
 
 ## Key Features
-- Image → OCR → Translation workflow
+- Image -> OCR -> Translation workflow
 - Auto-detect source language
 - 39 target languages
 - Zoomable/draggable image view
@@ -49,8 +49,8 @@ Cross-platform mobile app that extracts and translates text from images using on
 
 ## Key Commands
 ```bash
-npm start              # Start Metro bundler
-npm test               # Run Jest tests (218 tests)
-npm run ios            # Run on iOS simulator
-npm run android        # Run on Android emulator
+npm start # Start Metro bundler
+npm test # Run Jest tests (218 tests)
+npm run ios # Run on iOS simulator
+npm run android # Run on Android emulator
 ```

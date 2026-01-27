@@ -71,11 +71,11 @@ Before editing:
 
 ```
 src/
-  core/        - Core logic
-  components/  - Reusable UI
-  services/    - External integrations
-  utils/       - Helper functions
-  types/       - TypeScript definitions
+  core/ - Core logic
+  components/ - Reusable UI
+  services/ - External integrations
+  utils/ - Helper functions
+  types/ - TypeScript definitions
 ```
 
 ### Documentation
@@ -180,7 +180,7 @@ refactor(api): simplify error handling
 
 ### Workflow
 
-**Textures**: ComfyUI/SD WebUI → "seamless [material] texture, 4k, tileable, PBR"
+**Textures**: ComfyUI/SD WebUI -> "seamless [material] texture, 4k, tileable, PBR"
 **Sprites**: "2D game sprite, [style], transparent background"
 **Icons**: "game UI icon, [item], clean design, 512x512"
 

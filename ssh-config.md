@@ -2,7 +2,7 @@
 
 Multi-machine SSH setup for seamless remote access.
 
-## 🖥️ Machine Overview
+## Machine Overview
 
 | Machine | Hostname | User | IP (Tailscale) |
 |---------|----------|------|----------------|
@@ -13,7 +13,7 @@ Multi-machine SSH setup for seamless remote access.
 
 ---
 
-## 📝 SSH Config File
+## NOTE: SSH Config File
 
 **Location**: `~/.ssh/config`
 
@@ -62,7 +62,7 @@ Host msi
 
 ---
 
-## 🔐 SSH Key Setup
+## SSH Key Setup
 
 ### Generate SSH Key (if needed)
 ```bash
@@ -71,10 +71,10 @@ ssh-keygen -t ed25519 -C "your_email@example.com"
 
 ### Copy Public Key to Remote Machine
 ```bash
-# Mac Mini → MacBook
+# Mac Mini -> MacBook
 ssh-copy-id felipevieira@felipes-macbook-pro.local
 
-# MacBook → Mac Mini
+# MacBook -> Mac Mini
 ssh-copy-id felipemacmini@felipes-mac-mini.local
 
 # To MSI (Windows, via Tailscale)
@@ -88,7 +88,7 @@ ssh-add ~/.ssh/id_ed25519
 
 ---
 
-## 🌐 Tailscale SOCKS Proxy
+## Tailscale SOCKS Proxy
 
 Both Macs use **Tailscale in userspace networking mode**, which requires a SOCKS proxy for SSH.
 
@@ -108,14 +108,14 @@ This routes SSH traffic through the Tailscale SOCKS proxy.
 
 ---
 
-## ✅ Connection Status
+## [OK] Connection Status
 
 | From | To | Status | Method |
 |------|-----|--------|--------|
-| MacBook | Mac Mini | ✅ Working | Local (.local) or Tailscale |
-| Mac Mini | MacBook | ❌ Not Working | MacBook Remote Login disabled |
-| MacBook | MSI | ✅ Working | Tailscale SOCKS proxy |
-| Mac Mini | MSI | ✅ Working | Tailscale SOCKS proxy |
+| MacBook | Mac Mini | [OK] Working | Local (.local) or Tailscale |
+| Mac Mini | MacBook | [NO] Not Working | MacBook Remote Login disabled |
+| MacBook | MSI | [OK] Working | Tailscale SOCKS proxy |
+| Mac Mini | MSI | [OK] Working | Tailscale SOCKS proxy |
 
 ### MacBook Remote Login Disabled
 - Mac Mini **cannot** SSH into MacBook
@@ -124,7 +124,7 @@ This routes SSH traffic through the Tailscale SOCKS proxy.
 
 ---
 
-## 🚀 Usage Examples
+## Usage Examples
 
 ### SSH into Mac Mini
 ```bash
@@ -161,7 +161,7 @@ scp ~/file.txt msi:~/
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Permission Denied (Public Key)
 ```bash
@@ -205,15 +205,15 @@ nc -zv -X 5 -x localhost:1055 100.67.241.32 22
 
 ---
 
-## 🧹 Removed Configurations
+## Removed Configurations
 
 ### Duplicate Entry (Fixed)
-- ❌ Removed duplicate `windows-msi` entry
-- ✅ Now only `msi` entry exists
+- [NO] Removed duplicate `windows-msi` entry
+- [OK] Now only `msi` entry exists
 
 ---
 
-## 📚 References
+## References
 
 - [Tailscale Setup](tailscale.md) — Tailscale network configuration
 - [Mac Mini README](mac-mini/README.md) — Server setup

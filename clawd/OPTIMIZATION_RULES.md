@@ -63,6 +63,6 @@
 - Don't dump entire files - extract only relevant sections
 - Use `--include` and `--exclude` patterns
 
-### Visual Building (@0xPaulius)  
+### Visual Building (@0xPaulius)
 - "no API tokens, no confusing cursor"
 - Build visually when possible to avoid token burn

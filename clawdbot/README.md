@@ -9,18 +9,18 @@ Clawdbot Gateway is a unified multi-agent orchestrator for Claude Code. It provi
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    CLAWDBOT GATEWAY                         │
-│                   (Main Orchestrator)                       │
-├─────────────────────────────────────────────────────────────┤
-│  Main Session (telegram:main)                               │
-│  └── Orchestrator Bot (monitors swarm)                      │
-│  └── Sub-Agents:                                            │
-│      ├── project-a (development)                            │
-│      ├── project-b (testing)                                │
-│      ├── research-agent (research tasks)                    │
-│      └── ... (spawn as needed)                              │
-└─────────────────────────────────────────────────────────────┘
+
+                    CLAWDBOT GATEWAY
+                   (Main Orchestrator)
+
+  Main Session (telegram:main)
+   Orchestrator Bot (monitors swarm)
+   Sub-Agents:
+       project-a (development)
+       project-b (testing)
+       research-agent (research tasks)
+       ... (spawn as needed)
+
 ```
 
 ### How It Works
@@ -37,29 +37,29 @@ Clawdbot Gateway is a unified multi-agent orchestrator for Claude Code. It provi
 ### Directory Structure
 
 ```
-~/clawd/                          # Main workspace
-├── BOOTSTRAP.md                  # First-run setup (delete after)
-├── AGENTS.md                     # Bot rules & guidelines
-├── SOUL.md                       # Bot personality
-├── IDENTITY.md                   # Bot name, emoji, vibe
-├── USER.md                       # User info (name, timezone)
-├── TOOLS.md                      # Tool notes
-├── HEARTBEAT.md                  # Periodic check tasks
-├── MEMORY.md                     # Long-term memory
-├── memory/                       # Daily session notes
-│   └── YYYY-MM-DD.md
-└── docs/
-    └── ARCHITECTURE.md           # Architecture docs
+~/clawd/ # Main workspace
+ BOOTSTRAP.md # First-run setup (delete after)
+ AGENTS.md # Bot rules & guidelines
+ SOUL.md # Bot personality
+ IDENTITY.md # Bot name, emoji, vibe
+ USER.md # User info (name, timezone)
+ TOOLS.md # Tool notes
+ HEARTBEAT.md # Periodic check tasks
+ MEMORY.md # Long-term memory
+ memory/ # Daily session notes
+    YYYY-MM-DD.md
+ docs/
+     ARCHITECTURE.md # Architecture docs
 
-~/.clawdbot/                      # Clawdbot state
-├── clawdbot.json                 # Gateway config
-├── agents/
-│   └── main/
-│       ├── agent/
-│       │   └── auth-profiles.json
-│       └── sessions/             # Session transcripts
-└── logs/
-    └── gateway.log
+~/.clawdbot/ # Clawdbot state
+ clawdbot.json # Gateway config
+ agents/
+    main/
+        agent/
+           auth-profiles.json
+        sessions/ # Session transcripts
+ logs/
+     gateway.log
 ```
 
 ### Workspace Files
@@ -220,7 +220,7 @@ Configuration file: `~/.clawdbot/clawdbot.json`
 | `agents.list[].identity.name` | Bot display name | String |
 | `agents.list[].identity.emoji` | Bot emoji | Emoji |
 | `agents.list[].identity.theme` | Bot description | String |
-| `messages.ackReaction` | Processing indicator emoji | Emoji (e.g., `👀`) |
+| `messages.ackReaction` | Processing indicator emoji | Emoji (e.g., ``) |
 | `messages.ackReactionScope` | When to show ack | `dm`, `group`, `all`, `group-mentions` |
 | `channels.telegram.enabled` | Enable Telegram channel | `true` / `false` |
 | `channels.telegram.botToken` | Bot token from BotFather | String |
@@ -271,7 +271,7 @@ Show an emoji while bot is processing your message:
 ```json
 {
   "messages": {
-    "ackReaction": "👀",
+    "ackReaction": "",
     "ackReactionScope": "all"
   }
 }
@@ -294,7 +294,7 @@ Set bot name and emoji (defined per-agent in `agents.list`):
         "id": "main",
         "identity": {
           "name": "Clawdbot Master",
-          "emoji": "🖥️",
+          "emoji": "",
           "theme": "Windows automation assistant"
         }
       }
@@ -404,7 +404,7 @@ Add commands to Telegram's menu:
         "id": "main",
         "identity": {
           "name": "Clawdbot Master",
-          "emoji": "🖥️",
+          "emoji": "",
           "theme": "Your automation assistant"
         }
       }
@@ -422,7 +422,7 @@ Add commands to Telegram's menu:
     }
   },
   "messages": {
-    "ackReaction": "👀",
+    "ackReaction": "",
     "ackReactionScope": "all"
   },
   "channels": {
@@ -1021,9 +1021,9 @@ ls -lh ~/.clawdbot/agents/main/sessions/*.jsonl | grep -v deleted
 
 # If you see large files (>5MB), clean them up
 cd ~/.clawdbot/agents/main/sessions
-rm -f *.jsonl.deleted.* *.jsonl.lock  # Remove deleted backups
-find . -name "*.jsonl" -not -name "agent:main:main.jsonl" -size +5M -delete  # Remove large orphaned files
-echo "{}" > sessions.json  # Clear sessions index
+rm -f *.jsonl.deleted.* *.jsonl.lock # Remove deleted backups
+find . -name "*.jsonl" -not -name "agent:main:main.jsonl" -size +5M -delete # Remove large orphaned files
+echo "{}" > sessions.json # Clear sessions index
 ```
 
 **Why this happens:**
@@ -1295,10 +1295,10 @@ cron action=add job={
 ### Managing Cron Jobs
 
 ```
-cron action=list              # List all jobs
-cron action=update jobId=ID patch={...}  # Update a job
-cron action=remove jobId=ID   # Delete a job
-cron action=run jobId=ID       # Run immediately
+cron action=list # List all jobs
+cron action=update jobId=ID patch={...} # Update a job
+cron action=remove jobId=ID # Delete a job
+cron action=run jobId=ID # Run immediately
 ```
 
 ### Recommended Cron Setup
@@ -1371,8 +1371,8 @@ print(f'auth token: {\"SET\" if gw.get(\"auth\", {}).get(\"token\") else \"MISSI
 **Required settings:**
 | Setting | Safe Value | Dangerous Value |
 |---------|-----------|-----------------|
-| `gateway.bind` | `loopback` or `lan` | `all` ⚠️ |
-| `gateway.auth.token` | Any string | Missing/empty ⚠️ |
+| `gateway.bind` | `loopback` or `lan` | `all` WARNING: |
+| `gateway.auth.token` | Any string | Missing/empty WARNING: |
 
 **Fix if exposed:**
 ```json

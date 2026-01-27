@@ -6,34 +6,34 @@ Source: https://docs.clawd.bot/start/getting-started
 
 | Prerequisite | Minimum | Current (MacBook) | Current (Mac Mini) |
 |-------------|---------|-------------------|-------------------|
-| **Node.js** | ≥ 22 | v25.4.0 ✅ | v25.4.0 ✅ |
-| **pnpm** | Latest | 9.15.4 ✅ | 10.28.1 ✅ |
-| **Clawdbot** | Latest | 2026.1.24-3 ✅ | 2026.1.24-3 ✅ |
+| **Node.js** | ≥ 22 | v25.4.0 [OK] | v25.4.0 [OK] |
+| **pnpm** | Latest | 9.15.4 [OK] | 10.28.1 [OK] |
+| **Clawdbot** | Latest | 2026.1.24-3 [OK] | 2026.1.24-3 [OK] |
 
 ## Recommended
 
 | Tool | Purpose | MacBook | Mac Mini |
 |------|---------|---------|----------|
-| **Brave Search API** | Web search for agents | ✅ Configured | ✅ Configured |
-| **Docker** | Containerized setup (optional) | ✅ Installed | ❌ Not installed |
-| **Xcode / CLT** | iOS builds, macOS app | ✅ Installed | ✅ Xcode 26.2 |
+| **Brave Search API** | Web search for agents | [OK] Configured | [OK] Configured |
+| **Docker** | Containerized setup (optional) | [OK] Installed | [NO] Not installed |
+| **Xcode / CLT** | iOS builds, macOS app | [OK] Installed | [OK] Xcode 26.2 |
 
 ## Automation Tools (Installed)
 
-| Tool | Purpose | MacBook | Mac Mini | 
+| Tool | Purpose | MacBook | Mac Mini |
 |------|---------|---------|----------|
-| **Hammerspoon** | macOS automation & window management | ✅ Installed | ✅ Installed |
-| **cliclick** | Command-line mouse/keyboard automation | ✅ Installed | ✅ Installed |
-| **tmux** | Terminal multiplexer for persistent sessions | ✅ Installed | ✅ Installed |
-| **ffmpeg** | Video/audio processing | ✅ Installed | ✅ Installed |
-| **jq** | JSON processing | ✅ Installed | ✅ Installed |
-| **tree** | Directory structure visualization | ✅ Installed | ✅ Installed |
+| **Hammerspoon** | macOS automation & window management | [OK] Installed | [OK] Installed |
+| **cliclick** | Command-line mouse/keyboard automation | [OK] Installed | [OK] Installed |
+| **tmux** | Terminal multiplexer for persistent sessions | [OK] Installed | [OK] Installed |
+| **ffmpeg** | Video/audio processing | [OK] Installed | [OK] Installed |
+| **jq** | JSON processing | [OK] Installed | [OK] Installed |
+| **tree** | Directory structure visualization | [OK] Installed | [OK] Installed |
 
-## ✅ Configured: Brave Search API Key
+## [OK] Configured: Brave Search API Key
 
 Brave Search API key is configured and functional for web search tools.
 
-**Current Status**: ✅ Active (`BSAqL_T5epoaUSzN4HHBOOZb9UdWq8D`)
+**Current Status**: [OK] Active (`BSAqL_T5epoaUSzN4HHBOOZb9UdWq8D`)
 
 The web search tool is available via:
 ```json

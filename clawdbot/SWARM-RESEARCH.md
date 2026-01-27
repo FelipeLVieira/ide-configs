@@ -7,12 +7,12 @@
 
 ## Claude-Exclusive Swarm Frameworks
 
-### 1. Claude-Flow ⭐ (Most Mature)
+### 1. Claude-Flow (Most Mature)
 - **GitHub:** https://github.com/ruvnet/claude-flow
 - **Install:** `npx claude-flow`
 - **What it does:** 60+ specialized agents in coordinated swarms
 - **Features:** Self-learning, fault-tolerant consensus, RAG integration, MCP protocol
-- **Architecture:** Router → Swarm → Agents → Memory → Learning Loop
+- **Architecture:** Router -> Swarm -> Agents -> Memory -> Learning Loop
 - **Agent types:** Coder, Tester, Reviewer, Architect, Security, DevOps...
 - **Topology:** Mesh, hierarchical, ring, star patterns
 - **Best for:** Large-scale multi-agent orchestration
