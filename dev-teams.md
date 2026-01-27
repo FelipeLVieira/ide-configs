@@ -22,7 +22,15 @@ Multi-bot architecture with specialized roles per project.
 ### Current Focus
 - Combat enhancement system (TypeScript TS7053 fixes)
 - pm2 server management (prod: 2567, dev: 2568)
+- **Aphos crash loop fixed** — EADDRINUSE on port 2567 resolved (stale process cleaned up)
 - See [aphos-servers.md](aphos-servers.md) for details
+
+### Project Status (Verified 2026-01-27)
+All projects confirmed working:
+- ✅ Aphos — pm2 servers stable, crash loop fixed
+- ✅ iOS apps (3) — BMI Calculator, Bills Tracker, Screen Translator
+- ✅ ez-crm — Next.js + Supabase
+- ✅ LinkLounge — Next.js + Supabase
 
 ---
 
@@ -213,6 +221,12 @@ Monitors **all 3 iOS apps** on App Store Connect:
 | **MacBook Pro** | Orchestrator (main), sub-agent spawner | 48GB RAM, primary compute, devstral-24b |
 | **Mac Mini** | Aphos, clawd-monitor, iOS bots, trading bot (Python) | Always-on, persistent sessions, game servers, **16GB RAM** |
 | **Windows MSI** | Windows-specific tasks only | No persistent bots, on-demand only |
+
+### Mac Mini Cron Jobs Fixed (2026-01-27)
+All Mac Mini cron jobs updated from deprecated `qwen2.5-coder` to `qwen3:8b`:
+- ✅ Shitcoin Brain (10 min)
+- ✅ Shitcoin Quant (15 min)
+- ✅ System Health Monitor (30 min)
 
 WARNING: **Mac Mini RAM constraints**: Only qwen3:8b (5GB) is safe for auto-loading. gpt-oss:20b exists on disk but is NEVER in auto-fallback chains.
 

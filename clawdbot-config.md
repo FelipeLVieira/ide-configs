@@ -9,8 +9,10 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 ### Architecture Philosophy: Reasoning-First, Swap-Safe, Cost-Second
 
 **ALL machines use thinking/reasoning by default:**
-- `thinkingDefault: "low"` — Extended reasoning on all models that support it
+- `thinkingDefault: "medium"` — Extended reasoning on all models that support it (changed from "low" to fix Opus 4.5 400 errors)
+- **Valid thinking levels**: off, minimal, low, medium, high, xhigh
 - Reasoning = better decisions, fewer mistakes, less wasted work
+- **Native reasoning support**: Only qwen3:8b and phi4:14b have reasoning=true among local models
 
 **Mac Mini swap protection is NON-NEGOTIABLE:**
 - Mac Mini has 16GB RAM — gpt-oss:20b (14GB) causes swap death
@@ -32,6 +34,7 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | Model | Params | Disk | RAM | Reasoning | Machines |
 |-------|--------|------|-----|-----------|----------|
 | **qwen3:8b** | 8B | 5.2 GB | ~6 GB | [OK] true | Both Macs |
+| **phi4:14b** | 14B | 9.1 GB | ~10 GB | [OK] true | Mac Mini (NEW) |
 | **devstral-small-2:24b** | 24B | 15 GB | ~18 GB | [NO] | MacBook ONLY (48GB) |
 | **gpt-oss:20b** | 20B (DeepSeek-V3) | 13 GB | ~14 GB | [NO] | MacBook (safe), Mac Mini (on-demand ONLY) |
 
@@ -48,19 +51,19 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | **Fallbacks** | Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b | All safe on 48GB |
 | **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
 | **Sub-agents** | `ollama/qwen3:8b` -> macbook qwen3 -> macbook devstral -> gpt-oss -> Sonnet -> Opus | Local-first cascade |
-| **Thinking** | `thinkingDefault: "low"` | Always |
+| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (was causing 400 errors with Opus 4.5) |
 
 ### Mac Mini (16GB RAM) — Always-On Server
 
 | Setting | Model | Notes |
 |---------|-------|-------|
 | **Main** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Fallbacks** | MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | WARNING: NO local gpt-oss! |
+| **Fallbacks** | phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Full local-to-cloud cascade |
 | **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Cross-machine fallback |
-| **Thinking** | `thinkingDefault: "low"` | Always |
+| **Sub-agents** | `ollama/qwen3:8b` -> phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Cross-machine fallback |
+| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (Opus 4.5 fix) |
 
-> WARNING: **gpt-oss:20b is NOT in any Mac Mini auto-fallback chain.** If local qwen3:8b fails, it goes to MacBook, not to a bigger local model.
+> **phi4:14b now available** — Microsoft Phi-4 (14B params, 9.1GB, reasoning=true, contextWindow=16384). Safe for Mac Mini 16GB RAM.
 
 ### Windows MSI (No local Ollama)
 
@@ -70,7 +73,7 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 | **Fallbacks** | Sonnet -> MacBook devstral -> MacBook gpt-oss -> MacBook qwen3 -> Mac Mini qwen3 | Dual-provider |
 | **Heartbeat** | `ollama-macmini/qwen3:8b` | FREE, via Tailscale |
 | **Sub-agents** | Mac Mini qwen3 -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus | Mac Mini first (always-on) |
-| **Thinking** | `thinkingDefault: "low"` | Always |
+| **Thinking** | `thinkingDefault: "medium"` | Changed from "low" (Opus 4.5 fix) |
 
 ## Ollama Providers
 
@@ -80,6 +83,7 @@ baseUrl: http://127.0.0.1:11434 # local on Mac Mini
 tailscaleUrl: http://100.115.10.14:11434 # remote access
 models:
   - qwen3:8b # PRIMARY (5GB, reasoning=true, SAFE for 16GB)
+  - phi4:14b # NEW: Microsoft Phi-4 (9.1GB, reasoning=true, contextWindow=16384)
 note: gpt-oss:20b exists on disk but is NOT registered as auto-fallback
 ```
 
@@ -192,12 +196,21 @@ Rate limiting and backoff for API authentication failures and billing issues.
 
 ## Cron Jobs
 
+### MacBook Pro (5 jobs)
 | Job | Schedule | Model | Session | Purpose |
 |-----|----------|-------|---------|---------|
-| **Cleaner Bot** | Hourly | Sonnet 4.5 | isolated | Deep cleanup (both machines) |
+| **Cleaner Bot** | Hourly | Sonnet 4.5 | isolated | Deep cleanup |
 | **Healer Bot v3** | Hourly | Sonnet 4.5 | isolated | Self-healing + swap monitoring |
 | **App Store Manager** | 3x/day (9/3/9 EST) | Sonnet 4.5 | isolated | iOS app monitoring |
+| **R&D AI Research** | Every 6 hours | Sonnet 4.5 | isolated | Monitors X/Twitter, Reddit, Google for AI improvements |
 | **Clear Sessions** | Weekly (Sun midnight) | — | — | Stale session cleanup |
+
+### Mac Mini (3 jobs)
+| Job | Schedule | Model | Session | Purpose |
+|-----|----------|-------|---------|---------|
+| **Shitcoin Brain** | Every 10 min | qwen3:8b | isolated | Trading research |
+| **Shitcoin Quant** | Every 15 min | qwen3:8b | isolated | Technical analysis |
+| **System Health Monitor** | Every 30 min | qwen3:8b | isolated | Resource monitoring |
 
 **Why Sonnet for cron?** Self-healing requires reasoning, diagnostics, web research. ~$0.05-0.15 per run.
 

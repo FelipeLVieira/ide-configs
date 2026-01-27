@@ -178,7 +178,8 @@ Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** — only safe model for auto-fallback (reasoning=true) | [OK] Always loaded |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — safe model for auto-fallback (reasoning=true) | [OK] Always loaded |
+| **phi4:14b** | 9.1 GB | **NEW: Microsoft Phi-4** — reasoning=true, contextWindow=16384, safe for 16GB RAM | [OK] Available |
 | gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | WARNING: NOT in auto-fallback |
 
 **Removed:**
@@ -216,6 +217,8 @@ ollama pull gpt-oss:20b # On-demand only (14GB, dangerous)
 | **qwen3:8b** | 5.2 GB | **PRIMARY** for sub-agents/heartbeats (reasoning=true) |
 | devstral-small-2:24b | 15 GB | Heavy coding tasks (48GB RAM safe) |
 | gpt-oss:20b | 13 GB | General tasks fallback |
+
+**Reasoning support**: qwen3:8b only among MacBook models
 
 **Pull models:**
 ```bash
@@ -260,9 +263,11 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 
 | Machine | Models | Total Size | Status |
 |---------|--------|-----------|--------|
-| **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | [OK] All loaded |
-| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**), gpt-oss:20b (13GB, on-demand ONLY) | ~18 GB | WARNING: Only qwen3:8b kept loaded |
-| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB | [OK] Via Tailscale |
+| **MacBook Pro** | qwen3:8b (5.2GB, **PRIMARY**, reasoning=true), devstral-small-2:24b (15GB), gpt-oss:20b (13GB) | ~33 GB | [OK] All loaded |
+| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**, reasoning=true), phi4:14b (9.1GB, reasoning=true), gpt-oss:20b (13GB, on-demand ONLY) | ~27 GB | WARNING: Only qwen3:8b + phi4:14b safe for auto-load |
+| **Windows MSI** | NONE (routes through Mac Mini + MacBook) | 0 GB | [OK] Via Tailscale |
+
+**Reasoning support summary**: Only qwen3:8b and phi4:14b have reasoning=true among local models
 
 ---
 
@@ -271,12 +276,21 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 **Reasoning-first architecture** — sub-agents cascade with thinking enabled:
 
 ```
+Mac Mini full fallback chain:
 1. qwen3:8b (local, reasoning=true) <- PRIMARY (FREE, smart)
-2. qwen3:8b (cross-machine via Tailscale) <- If local Ollama fails
-3. devstral-small-2:24b (MacBook 48GB) <- Heavy coding
-4. gpt-oss:20b (MacBook 48GB ONLY) <- General fallback (NOT on Mac Mini!)
-5. Claude Sonnet 4.5 (API) <- If all local fail
-6. Claude Opus 4.5 (API) <- Critical tasks only
+2. phi4:14b (local, reasoning=true) <- Larger reasoning model
+3. MacBook qwen3:8b (Tailscale) <- Cross-machine failover
+4. MacBook devstral-small-2:24b <- Heavy coding
+5. MacBook gpt-oss:20b <- General fallback
+6. Claude Sonnet 4.5 (API) <- If all local fail
+7. Claude Opus 4.5 (API) <- Critical tasks only
+
+MacBook fallback chain:
+1. Claude Opus 4.5 (API) <- PRIMARY for main session
+2. Claude Sonnet 4.5 (API) <- Fallback
+3. devstral-small-2:24b (local) <- Heavy local
+4. gpt-oss:20b (local) <- General local
+5. qwen3:8b (local, reasoning=true) <- Lightweight local
 ```
 
 ### Heartbeat Model

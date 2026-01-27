@@ -24,7 +24,9 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 | **Fallbacks** | Sonnet -> devstral-24b -> gpt-oss:20b -> qwen3:8b |
 | **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
 | **Sub-agents** | `ollama/qwen3:8b` -> `ollama-macbook/qwen3:8b` -> `ollama-macbook/devstral-small-2:24b` -> `ollama/gpt-oss:20b` -> Sonnet -> Opus |
-| **Thinking** | `thinkingDefault: "low"` (always) |
+| **Thinking** | `thinkingDefault: "medium"` (changed from "low" to fix Opus 4.5 400 errors) |
+
+**Load balancing confirmed working via Tailscale**: MacBook (100.125.165.107) ↔ Mac Mini (100.115.10.14)
 
 ### Ollama Providers
 | Provider | URL | Models |
@@ -55,7 +57,8 @@ WARNING: **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
 
 | Model | Size | Purpose | Status |
 |-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** — only model safe for auto-fallback (reasoning=true) | [OK] Always loaded |
+| **qwen3:8b** | 5.2 GB | **PRIMARY** — safe for auto-fallback (reasoning=true) | [OK] Always loaded |
+| **phi4:14b** | 9.1 GB | **NEW** — Microsoft Phi-4 (reasoning=true, contextWindow=16384) | [OK] Available |
 | gpt-oss:20b | 13 GB | On-demand ONLY — causes swap death if kept loaded (14GB active) | WARNING: NOT in auto-fallback |
 
 **Swap Protection Rules:**
@@ -72,17 +75,17 @@ WARNING: **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
 | Setting | Value |
 |---------|-------|
 | **Main model** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
-| **Fallbacks** | MacBook qwen3:8b -> MacBook devstral-24b -> MacBook gpt-oss:20b -> Sonnet -> Opus |
+| **Fallbacks** | phi4:14b -> MacBook qwen3:8b -> MacBook devstral-24b -> MacBook gpt-oss:20b -> Sonnet -> Opus |
 | **Heartbeat** | `ollama/qwen3:8b` (local, reasoning=true, **FREE**) |
-| **Sub-agents** | `ollama/qwen3:8b` -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
-| **Thinking** | `thinkingDefault: "low"` |
+| **Sub-agents** | `ollama/qwen3:8b` -> phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
+| **Thinking** | `thinkingDefault: "medium"` (changed from "low" to fix Opus 4.5 400 errors) |
 
-> WARNING: **No gpt-oss:20b in any auto-fallback chain.** If Mac Mini local fails, it goes to MacBook, NOT to a bigger local model.
+**Full Mac Mini fallback chain**: qwen3:8b → phi4:14b → MacBook qwen3:8b → devstral-24b → gpt-oss:20b → Sonnet → Opus
 
 ### Ollama Providers
 | Provider | URL | Models |
 |----------|-----|--------|
-| `ollama` | `http://127.0.0.1:11434` | qwen3:8b |
+| `ollama` | `http://127.0.0.1:11434` | qwen3:8b, phi4:14b |
 | `ollama-macbook` | `http://100.125.165.107:11434` (Tailscale IP) | qwen3:8b, devstral-24b, gpt-oss:20b |
 
 ### Services
@@ -127,14 +130,16 @@ WARNING: **CRITICAL: Mac Mini has only 16GB RAM — swap protection enforced!**
 | **Main model** | `anthropic/claude-opus-4-5` |
 | **Fallbacks** | Sonnet -> MacBook devstral-24b -> MacBook gpt-oss:20b -> MacBook qwen3:8b -> Mac Mini qwen3:8b |
 | **Heartbeat** | `ollama-macmini/qwen3:8b` (via Tailscale, reasoning=true, **FREE**) |
-| **Sub-agents** | Mac Mini qwen3:8b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
-| **Thinking** | `thinkingDefault: "low"` |
+| **Sub-agents** | Mac Mini qwen3:8b -> Mac Mini phi4:14b -> MacBook qwen3 -> MacBook devstral -> MacBook gpt-oss -> Sonnet -> Opus |
+| **Thinking** | `thinkingDefault: "medium"` (changed from "low" to fix Opus 4.5 400 errors) |
+
+**MacBook fallback chain**: Opus → Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b
 
 ### Ollama Providers (TWO remote providers)
 | Provider | URL | Models |
 |----------|-----|--------|
 | `ollama-macbookpro` | `http://100.125.165.107:11434` | devstral-24b, gpt-oss:20b, qwen3:8b |
-| `ollama-macmini` | `http://100.115.10.14:11434` | qwen3:8b ONLY |
+| `ollama-macmini` | `http://100.115.10.14:11434` | qwen3:8b, phi4:14b |
 
 > Windows has access to both Macs' Ollama — MacBook for heavy models, Mac Mini for always-on qwen3:8b.
 
