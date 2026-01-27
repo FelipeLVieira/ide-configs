@@ -136,12 +136,44 @@ ollama pull qwen3:8b
 ```
 
 ### Removed Models
-- ❌ **qwen2.5-coder:7b** — Deleted from both machines (2025-07-27). Was causing credit leaks when configs referenced it after removal. Replaced by qwen3:8b (better reasoning) and gpt-oss:20b (better quality).
+- ❌ **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b (better reasoning) and gpt-oss:20b (better quality).
 
-### Windows MSI — NO Ollama
-- ❌ **No Ollama installed** on Windows MSI
-- All tasks run 100% on Claude API (credit leak risk)
-- **Future**: Install Ollama or route through Mac Mini (`http://100.115.10.14:11434`)
+### Windows MSI — Remote Ollama via Mac Mini
+- ❌ **No local Ollama** on Windows MSI
+- ✅ **Routes through Mac Mini** via Tailscale (`http://100.115.10.14:11434`)
+- Provider name: `ollama-macmini`
+- Available models: gpt-oss:20b, qwen3:8b (served by Mac Mini)
+
+### Future Models
+- **qwen2.5vl:32b** — Planned for Asset Forge (design vision model, Grok recommended)
+
+## 🌐 Mac Mini as Central Ollama Hub
+
+The Mac Mini serves as the **central Ollama inference hub** for all machines in the ecosystem.
+
+### Clients Served
+
+| Client | Access Method | URL |
+|--------|--------------|-----|
+| **Mac Mini Clawdbot** | Local (direct) | `http://localhost:11434` |
+| **Windows MSI** | Remote via Tailscale | `http://100.115.10.14:11434` |
+| **MacBook Pro** | Local network | `http://felipes-mac-mini.local:11434` |
+
+### Why Mac Mini is the Hub
+- **Always-on** (24/7, never sleeps)
+- **Serves heartbeats** for all 3 machines (FREE)
+- **Windows has no local Ollama** — 100% dependent on Mac Mini
+- **MacBook uses Mac Mini** for heartbeats (saves MacBook GPU for coding models)
+
+### Models Available on Each Machine
+
+| Machine | Models | Total Size |
+|---------|--------|-----------|
+| **MacBook Pro** | devstral-small-2:24b (15GB), gpt-oss:20b (13GB), qwen3:8b (5.2GB) | ~33 GB |
+| **Mac Mini** | gpt-oss:20b (13GB), qwen3:8b (5.2GB), qwen3-fast:8b (5.2GB) | ~23 GB |
+| **Windows MSI** | NONE (routes through Mac Mini) | 0 GB |
+
+---
 
 ## 🎯 Sub-Agent Priority Chain
 
@@ -239,7 +271,7 @@ ollama pull gpt-oss:20b
 
 ### Remove Models
 ```bash
-ollama rm qwen2.5-coder:7b  # Removed legacy model
+ollama rm <model-name>  # Remove unused models to free disk space
 ```
 
 ### Check Running Models

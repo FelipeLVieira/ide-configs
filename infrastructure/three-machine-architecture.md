@@ -2,7 +2,7 @@
 
 Complete infrastructure documentation across all 3 machines in the Clawdbot ecosystem.
 
-> **Last updated**: July 2025 — Full audit, credit leak fix, hybrid healing v2
+> **Last updated**: July 2025 — Windows routing through Mac Mini Ollama, architecture update
 
 ---
 
@@ -22,7 +22,7 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 |---------|-------|
 | **Main model** | `anthropic/claude-opus-4-5` |
 | **Fallbacks** | Sonnet → devstral-24b → gpt-oss:20b → qwen3:8b |
-| **Heartbeat** | `ollama/gpt-oss:20b` (on Mac Mini, **FREE**) |
+| **Heartbeat** | `ollama/gpt-oss:20b` (via Mac Mini, **FREE**) |
 | **Sub-agents** | `ollama-macbook/devstral-small-2:24b` → `ollama/gpt-oss:20b` → `ollama-macbook/gpt-oss:20b` → `ollama/qwen3:8b` → Sonnet → Opus |
 
 ### Services
@@ -46,7 +46,7 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 
 ## 🖥️ Machine 2: Mac Mini (16GB RAM) — Always-On Server
 
-**Role**: Always-on services, heartbeats, lightweight tasks, game servers
+**Role**: **CENTRAL BRAIN** — Always-on services, heartbeats, Ollama hub for all machines, game servers
 
 ### Ollama Models
 | Model | Size | Purpose |
@@ -97,21 +97,29 @@ Complete infrastructure documentation across all 3 machines in the Clawdbot ecos
 **Role**: Windows-specific automation tasks  
 **Identity**: "Clawdbot Master Windows" 🖥️
 
+### Ollama Models
+- ❌ **No local Ollama** — Routes ALL inference through Mac Mini via Tailscale
+
 ### Clawdbot Config
 | Setting | Value |
 |---------|-------|
-| **Main model** | `anthropic/claude-opus-4-5` (NO local models) |
-| **Fallback** | `anthropic/claude-sonnet-4-5` only |
-| **Heartbeat** | None |
-| **Ollama** | ❌ Not installed |
+| **Main model** | `ollama-macmini/gpt-oss:20b` (via Mac Mini Tailscale) |
+| **Fallbacks** | `ollama-macmini/qwen3:8b` → `anthropic/claude-sonnet-4-5` → `anthropic/claude-opus-4-5` |
+| **Heartbeat** | `ollama-macmini/gpt-oss:20b` (via Mac Mini, **FREE**) |
+| **Ollama provider** | `ollama-macmini` → `http://100.115.10.14:11434` |
+| **Auto-start** | Windows Scheduled Task "ClawdbotGateway" (runs on login) |
 
-### ⚠️ Credit Leak Warning
-This machine is **100% Claude-powered** with no local fallback. Every heartbeat, sub-agent, and task burns API credits. This is the most expensive machine to run.
+### Architecture Flow
+```
+Windows MSI → Mac Mini Ollama (100.115.10.14:11434)
+                    ↓ (if needed)
+              MacBook Ollama (felipes-macbook-pro-2.local:11434)
+                    ↓ (last resort)
+              Claude API (Sonnet → Opus)
+```
 
-### Future Mitigation Options
-1. **Install Ollama on Windows** — Run gpt-oss:20b or qwen3:8b locally
-2. **Route through Mac Mini** — Use Mac Mini's Ollama as remote provider via Tailscale
-3. **Add heartbeat model** — Use `ollama/gpt-oss:20b` via Mac Mini's Tailscale IP
+### ✅ Credit Leak FIXED
+Previously 100% Claude-powered. Now routes through Mac Mini's Ollama via Tailscale — **FREE local inference** for most tasks.
 
 ### Network
 - **Tailscale IP**: `100.67.241.32`
@@ -124,11 +132,16 @@ This machine is **100% Claude-powered** with no local fallback. Every heartbeat,
 ## 🌐 Network Topology
 
 ```
-MacBook Pro (48GB) ←──local network──→ Mac Mini (16GB)
+MacBook Pro (48GB) ←──local network──→ Mac Mini (16GB) ← CENTRAL BRAIN
        ↕                                    ↕
     Tailscale                           Tailscale
        ↕                                    ↕
-Windows MSI ←──────Tailscale SSH──────→ (both Macs)
+Windows MSI ───Ollama via Tailscale───→ Mac Mini (100.115.10.14:11434)
+
+Heartbeat routing:
+  MacBook  → Mac Mini Ollama (gpt-oss:20b)
+  Mac Mini → Local Ollama (gpt-oss:20b)
+  Windows  → Mac Mini Ollama via Tailscale (gpt-oss:20b)
 ```
 
 ### Tailscale IPs
@@ -171,9 +184,9 @@ curl http://100.125.165.107:11434/api/tags  # Tailscale
 |---------|-------------|-----------|-----------------|
 | MacBook Pro | ✅ 3 models (FREE compute) | Opus for main session | $50-100 |
 | Mac Mini | ✅ 3 models (FREE compute) | Minimal API (fallback only) | $5-15 |
-| Windows MSI | ❌ None | 100% Claude API | $30-80 ⚠️ |
+| Windows MSI | ✅ Via Mac Mini Ollama (FREE) | Sonnet/Opus fallback only | $5-15 |
 
-**Total estimated**: $85-195/month (down from $300+ before local LLMs)
+**Total estimated**: $60-130/month (down from $300+ before local LLMs)
 
 ---
 

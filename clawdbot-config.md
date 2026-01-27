@@ -10,7 +10,7 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 - **qwen3:8b** (Qwen3.1) — Fast model for quick tasks, reasoning mode enabled
 
 ### Legacy Models (Removed)
-- ❌ qwen2.5-coder:7b — Replaced by qwen3:8b (better reasoning)
+- ❌ Legacy 7B coder model — Replaced by qwen3:8b (better reasoning) and gpt-oss:20b
 
 ## 🧠 Model Assignment by Task
 
@@ -123,6 +123,16 @@ OLLAMA_KV_CACHE_TYPE=q8_0         # 8-bit quantized KV cache
 | gpt-oss:20b | 13 GB | 16 GB | Mac Mini (primary), MacBook | Heartbeats, general |
 | qwen3:8b | 5.2 GB | Both | Both | Fast reasoning |
 
+## 🗺️ Model Routing Table (All 3 Machines)
+
+| Machine | Main Model | Heartbeat | Sub-agents | Fallbacks |
+|---------|-----------|-----------|------------|-----------|
+| **MacBook** | `anthropic/claude-opus-4-5` | `ollama/gpt-oss:20b` (via Mac Mini) | `ollama-macbook/devstral-small-2:24b` | Sonnet → Opus |
+| **Mac Mini** | `ollama/gpt-oss:20b` | `ollama/gpt-oss:20b` (local) | `ollama/gpt-oss:20b` | `qwen3:8b` → Sonnet → Opus |
+| **Windows** | `ollama-macmini/gpt-oss:20b` | `ollama-macmini/gpt-oss:20b` (via Tailscale) | `ollama-macmini/gpt-oss:20b` | `qwen3:8b` → Sonnet → Opus |
+
+> **Mac Mini is the CENTRAL BRAIN** — all 3 machines route heartbeats through it.
+
 ## 🔄 Load Balancing
 
 - **MacBook** is primary for sub-agents (devstral-24b for coding)
@@ -206,42 +216,59 @@ brew services restart ollama
 
 ## 🖥️ Windows MSI Config
 
-The Windows MSI machine runs Clawdbot with **no local models** — 100% Claude API.
+The Windows MSI machine routes ALL inference through **Mac Mini's Ollama via Tailscale** — no local models needed.
+
+### Provider: `ollama-macmini`
+```yaml
+name: ollama-macmini
+baseUrl: http://100.115.10.14:11434
+models:
+  - gpt-oss:20b      # Primary (routed from Mac Mini)
+  - qwen3:8b         # Fast fallback (routed from Mac Mini)
+```
 
 ### Configuration
 ```yaml
-main: anthropic/claude-opus-4-5
-fallback: anthropic/claude-sonnet-4-5
-heartbeat: none
-ollama: not installed
+main: ollama-macmini/gpt-oss:20b
+fallbacks:
+  - ollama-macmini/qwen3:8b
+  - anthropic/claude-sonnet-4-5
+  - anthropic/claude-opus-4-5
+heartbeat: ollama-macmini/gpt-oss:20b
+ollama: remote only (via Mac Mini Tailscale 100.115.10.14:11434)
 ```
 
-### ⚠️ Credit Leak Warning
-Every task on Windows burns API credits. No local fallback exists.
+### Auto-Start
+- **Windows Scheduled Task**: "ClawdbotGateway" — runs on user login
+- Ensures Clawdbot gateway starts automatically on boot
 
-**Future fix options:**
-1. Install Ollama on Windows (gpt-oss:20b or qwen3:8b)
-2. Route through Mac Mini's Ollama via Tailscale (`http://100.115.10.14:11434`)
+### ✅ Credit Leak FIXED
+Previously 100% Claude API. Now routes through Mac Mini Ollama — most tasks are **FREE**.
 
 ---
 
 ## 🔧 Fix History
 
-### 2025-07-27: Credit Leak Fix (qwen2.5-coder removal)
+### 2025-07-27: Credit Leak Fix (legacy model removal)
 
-**Problem**: `qwen2.5-coder:7b` was deleted from both machines but still referenced in configs. Clawdbot would try to use it, fail, and fall back to expensive Claude API models — burning credits unnecessarily.
-
-**What was wrong:**
-- Mac Mini config referenced `qwen2.5-coder:7b` as primary model
-- MacBook config had it in fallback chains
-- Model had been removed via `ollama rm qwen2.5-coder:7b` but configs weren't updated
-- Every failed local model attempt = wasted time + API fallback = money burned
+**Problem**: A legacy 7B model was deleted from both machines but still referenced in configs. Clawdbot would try to use it, fail, and fall back to expensive Claude API models — burning credits unnecessarily.
 
 **What was changed:**
-- Mac Mini primary model: `qwen2.5-coder:7b` → `gpt-oss:20b` (20B params, better quality, FREE)
-- All fallback chains updated to remove qwen2.5-coder references
+- Mac Mini primary model → `gpt-oss:20b` (20B params, better quality, FREE)
+- All fallback chains updated to use current models only
 - MacBook sub-agent chain: Added `devstral-small-2:24b` as primary coding model
 - Verified all referenced models actually exist on their target machines
+
+### 2025-07-28: Windows MSI routing through Mac Mini
+
+**Problem**: Windows MSI was 100% Claude API — every task burned credits.
+
+**What was changed:**
+- Added `ollama-macmini` provider pointing to Mac Mini Tailscale IP (100.115.10.14:11434)
+- Windows primary model → `ollama-macmini/gpt-oss:20b` (FREE via Mac Mini)
+- Windows fallbacks → `qwen3:8b` → Sonnet → Opus
+- Added Windows Scheduled Task "ClawdbotGateway" for auto-start on login
+- Mac Mini is now the **CENTRAL BRAIN** — serves both MacBook and Windows heartbeats
 
 ---
 

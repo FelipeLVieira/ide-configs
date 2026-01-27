@@ -15,6 +15,23 @@ Dedicated always-on server for running all bots 24/7 with automatic failover fro
 | SSH | Key-based (passwordless) |
 | Sudo | Passwordless enabled |
 
+## Central Ollama Hub
+
+The Mac Mini serves as the **central Ollama inference hub** for the entire ecosystem:
+
+| Client | How it connects |
+|--------|----------------|
+| **Mac Mini** (local) | `http://localhost:11434` |
+| **MacBook Pro** | `http://felipes-mac-mini.local:11434` |
+| **Windows MSI** | `http://100.115.10.14:11434` (Tailscale) |
+
+All heartbeats across all 3 machines route through Mac Mini Ollama (gpt-oss:20b) — **FREE**.
+
+### Windows Auto-Start
+The Windows MSI has a **Scheduled Task "ClawdbotGateway"** that auto-starts the gateway on login, routing inference through Mac Mini.
+
+---
+
 ## Architecture
 
 ```
