@@ -25,9 +25,9 @@ Multi-bot architecture with specialized roles per project.
 
 ---
 
-## 🧠 Shitcoin Bot (Trading Research)
+## 🧠💰 Shitcoin Bot (Trading Research)
 
-**Bot Name**: 🧠 Degen Brain  
+**Bot Name**: 🧠💰 Degen Brain  
 **Repo**: `~/repos/shitcoin-bot`  
 **Tech Stack**: Python, LangChain, Web3
 
@@ -59,10 +59,46 @@ Multi-bot architecture with specialized roles per project.
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Product Designer** | UX/UI, landing pages | gpt-oss:20b |
+| **Designer/Frontend** | UX/UI, landing pages, components | gpt-oss:20b |
 | **Backend Dev** | Supabase schema, API routes | gpt-oss:20b |
 | **Growth Hacker** | SEO, analytics, virality | qwen3:8b |
 | **QA Engineer** | Testing, edge cases | qwen3:8b |
+
+---
+
+## 📇 EZ-CRM
+
+**Bot Name**: 📇 EZ-CRM Dev  
+**Repo**: `~/repos/ez-crm`  
+**Tech Stack**: Next.js, Supabase, TypeScript
+
+### Team Roles
+
+| Role | Responsibilities | Model |
+|------|-----------------|-------|
+| **Backend Dev** | API routes, Supabase schema, auth | devstral-small-2:24b |
+| **Frontend Dev** | React components, forms, dashboards | gpt-oss:20b |
+| **Product Designer** | UX flows, wireframes, design system | gpt-oss:20b |
+| **QA Engineer** | Testing, validation, edge cases | qwen3:8b |
+
+---
+
+## 🎨🔨 Game Asset Tool (Shared Design Studio)
+
+**Bot Name**: 🎨🔨 Asset Forge  
+**Repo**: `~/repos/game-asset-tool`  
+**Tech Stack**: Python, AI image generation  
+**Special**: Serves ALL projects — shared asset pipeline
+
+### Team Roles
+
+| Role | Responsibilities | Model |
+|------|-----------------|-------|
+| **Art Director** | Visual style guide, asset reviews | Claude Sonnet |
+| **Sprite Artist** | Character sprites, animations | gpt-oss:20b |
+| **Icon Designer** | UI icons, item icons, badges | gpt-oss:20b |
+| **UI Asset Creator** | Backgrounds, panels, frames | qwen3:8b |
+| **Pipeline Engineer** | Asset processing, format conversion | qwen3:8b |
 
 ---
 
@@ -78,43 +114,66 @@ Multi-bot architecture with specialized roles per project.
 |------|-----------------|-------|
 | **Dashboard Dev** | UI components, real-time updates | gpt-oss:20b |
 | **DevOps** | Deployment, monitoring setup | qwen3:8b |
-| **Data Analyst** | Metrics, visualizations | qwen3:8b |
+| **Analytics** | Metrics, visualizations, alerts | qwen3:8b |
 
 ---
 
 ## 📱 iOS Apps
 
-All iOS apps built with **React Native (Expo)**.
+All iOS apps built with **React Native (Expo)**. Builds on Mac Mini ONLY.
 
 ### ⚖️ BMI Calculator
 
-**Bot Name**: ⚖️ BMI Bot  
+**Bot Name**: ⚖️ BMI App Dev  
 **Repo**: `~/repos/bmi-calculator`
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Dev** | Expo app, BMI logic | gpt-oss:20b |
-| **UI Designer** | Health-focused design | qwen3:8b |
+| **Mobile Engineer** | Expo app, BMI logic, navigation | gpt-oss:20b |
+| **UI Designer** | Health-focused design, animations | qwen3:8b |
+| **QA Engineer** | Device testing, edge cases | qwen3:8b |
 
 ### 💳 Bills Tracker
 
-**Bot Name**: 💳 Bills Bot  
+**Bot Name**: 💳 Bills Tracker Dev  
 **Repo**: `~/repos/bills-tracker`
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Dev** | Expo app, bill reminders | gpt-oss:20b |
-| **Backend Dev** | Supabase integration | qwen3:8b |
+| **Mobile Dev** | Expo app, bill reminders, notifications | gpt-oss:20b |
+| **UI Designer** | Finance-focused design, charts | qwen3:8b |
+| **Product Designer** | Feature planning, user flows | gpt-oss:20b |
+| **QA Engineer** | Testing, data validation | qwen3:8b |
 
 ### 🌐 Screen Translator
 
-**Bot Name**: 🌐 Translator Bot  
+**Bot Name**: 🌐 Translator Dev  
 **Repo**: `~/repos/screen-translator`
 
 | Role | Responsibilities | Model |
 |------|-----------------|-------|
-| **Mobile Dev** | Expo app, OCR | gpt-oss:20b |
-| **ML Engineer** | Translation API, text detection | qwen3:8b |
+| **Mobile Dev** | Expo app, camera integration | gpt-oss:20b |
+| **ML/Vision Engineer** | OCR, translation API, text detection | devstral-small-2:24b |
+| **UI Designer** | Overlay UI, camera preview design | qwen3:8b |
+| **QA Engineer** | Multi-language testing, OCR accuracy | qwen3:8b |
+
+---
+
+## 📋 All Bots Summary
+
+| # | Project | Bot Name | Emoji | Roles | Special |
+|---|---------|----------|-------|-------|---------|
+| 1 | Aphos | Aphos Dev | 🎮 | 5 | Game studio |
+| 2 | Shitcoin Bot | Degen Brain | 🧠💰 | 4 | Trading intelligence |
+| 3 | LinkLounge | LinkLounge Dev | 🔗 | 4 | Web app team |
+| 4 | EZ-CRM | EZ-CRM Dev | 📇 | 4 | CRM team |
+| 5 | game-asset-tool | Asset Forge | 🎨🔨 | 5 | Shared design studio (serves ALL) |
+| 6 | clawd-monitor | Monitor Bot | 📊 | 3 | DevOps team |
+| 7 | BMI Calculator | BMI App Dev | ⚖️ | 3 | iOS mobile |
+| 8 | Bills Tracker | Bills Tracker Dev | 💳 | 4 | iOS mobile |
+| 9 | Screen Translator | Translator Dev | 🌐 | 4 | iOS mobile + ML |
+
+**Total**: 9 project bots, 36 specialized roles
 
 ---
 
@@ -126,7 +185,7 @@ All iOS apps built with **React Native (Expo)**.
 |------------|-------|-----------|
 | **Simple** | qwen3:8b | QA, testing, quick fixes, research |
 | **Medium** | gpt-oss:20b | Feature dev, refactoring, design |
-| **Heavy** | devstral-small-2:24b | Architecture, backend systems |
+| **Heavy** | devstral-small-2:24b | Architecture, backend systems, ML |
 | **Creative** | Claude Sonnet | Art direction, storytelling |
 | **Critical** | Claude Opus | Major refactors, security |
 
@@ -139,7 +198,7 @@ All iOS apps built with **React Native (Expo)**.
 | **QA** | qwen3:8b | gpt-oss:20b |
 | **Design** | Claude Sonnet | gpt-oss:20b |
 | **Research** | gpt-oss:20b | Grok (free!) |
-| **Data** | qwen3:8b | gpt-oss:20b |
+| **Data/ML** | devstral-small-2:24b | gpt-oss:20b |
 
 ---
 
@@ -156,11 +215,12 @@ Before using expensive models, check:
 ### Sub-Agent Cascade
 
 When spawning sub-agents:
-1. **gpt-oss:20b** (Mac Mini, always on)
-2. **devstral-small-2:24b** (MacBook, on-demand)
-3. **qwen3:8b** (fast fallback)
-4. **Claude Sonnet** (API, if local fails)
-5. **Claude Opus** (critical tasks only)
+1. **devstral-small-2:24b** (MacBook Ollama, primary for coding)
+2. **gpt-oss:20b** (Mac Mini Ollama, always on)
+3. **gpt-oss:20b** (MacBook Ollama, fallback)
+4. **qwen3:8b** (both machines, fast fallback)
+5. **Claude Sonnet** (API, if local fails)
+6. **Claude Opus** (critical tasks only)
 
 ### Parallel Work
 

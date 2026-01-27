@@ -8,13 +8,17 @@ Local LLM inference on Mac Mini and MacBook Pro via Ollama.
 - **RAM**: 16 GB
 - **OS**: macOS Sequoia
 - **Tailscale IP**: 100.115.10.14
-- **Role**: Primary inference server
+- **Hostname**: felipes-mac-mini.local
+- **Ollama URL**: http://felipes-mac-mini.local:11434
+- **Role**: Primary inference server (heartbeats, always-on)
 
 ### MacBook Pro (On-Demand)
 - **RAM**: 48 GB
 - **OS**: macOS Sequoia
 - **Tailscale IP**: 100.125.165.107
-- **Role**: Heavy task overflow
+- **Hostname**: felipes-macbook-pro-2.local
+- **Ollama URL**: http://felipes-macbook-pro-2.local:11434
+- **Role**: Primary for coding sub-agents (devstral-24b)
 
 ## 📦 Installation
 
@@ -107,7 +111,7 @@ brew services list  # Verify running
 
 | Model | Size | Purpose |
 |-------|------|---------|
-| gpt-oss:20b | 13 GB | Primary model (DeepSeek-V3) |
+| gpt-oss:20b | 13 GB | Primary model (DeepSeek-V3), heartbeats |
 | qwen3:8b | 5.2 GB | Fast reasoning tasks |
 
 **Pull models:**
@@ -120,8 +124,8 @@ ollama pull qwen3:8b
 
 | Model | Size | Purpose |
 |-------|------|---------|
-| devstral-small-2:24b | 15 GB | Heavy tasks (Mistral) |
-| gpt-oss:20b | 13 GB | Primary fallback |
+| devstral-small-2:24b | 15 GB | **PRIMARY for coding** (Mistral) |
+| gpt-oss:20b | 13 GB | General tasks fallback |
 | qwen3:8b | 5.2 GB | Fast reasoning |
 
 **Pull models:**
@@ -131,9 +135,46 @@ ollama pull gpt-oss:20b
 ollama pull qwen3:8b
 ```
 
+### Removed Models
+- ❌ **qwen2.5-coder:7b** — Outdated, replaced by qwen3:8b (better reasoning)
+
+## 🎯 Sub-Agent Priority Chain
+
+When spawning sub-agents for coding tasks, models cascade:
+
+```
+1. devstral-small-2:24b (MacBook)  ← PRIMARY for coding
+2. gpt-oss:20b (Mac Mini)          ← always-on fallback
+3. gpt-oss:20b (MacBook)           ← secondary fallback
+4. qwen3:8b (either machine)       ← fast/light tasks
+5. Claude Sonnet (API)             ← if all local fail
+6. Claude Opus (API)               ← critical tasks only
+```
+
+### Heartbeat Model
+- **gpt-oss:20b on Mac Mini** — Always-on, free, good enough for periodic checks
+
 ## 🌐 Network Access
 
-Both machines use **Tailscale** in userspace networking mode.
+Both machines reachable via **hostname** or **Tailscale IP**.
+
+### Hostname Access (Local Network)
+```bash
+# Mac Mini
+curl http://felipes-mac-mini.local:11434/api/tags
+
+# MacBook
+curl http://felipes-macbook-pro-2.local:11434/api/tags
+```
+
+### Tailscale Access (Remote/VPN)
+```bash
+# Mac Mini
+curl http://100.115.10.14:11434/api/tags
+
+# MacBook
+curl http://100.125.165.107:11434/api/tags
+```
 
 ### Tailscale CLI Fix
 
@@ -142,24 +183,6 @@ Tailscale userspace mode requires a socket flag for CLI:
 ```bash
 # Add to ~/.zshrc
 alias tailscale='tailscale --socket=~/.tailscale/tailscaled.sock'
-```
-
-### Accessing Ollama Remotely
-
-**From MacBook to Mac Mini:**
-```bash
-curl http://100.115.10.14:11434/api/generate -d '{
-  "model": "gpt-oss:20b",
-  "prompt": "Hello, world!"
-}'
-```
-
-**From Mac Mini to MacBook:**
-```bash
-curl http://100.125.165.107:11434/api/generate -d '{
-  "model": "devstral-small-2:24b",
-  "prompt": "Hello, world!"
-}'
 ```
 
 ## ⚡ Performance Tuning
@@ -276,6 +299,9 @@ echo $OLLAMA_HOST  # Should be 0.0.0.0
 
 # Test local
 curl http://localhost:11434/api/tags
+
+# Test via hostname
+curl http://felipes-mac-mini.local:11434/api/tags
 
 # Test Tailscale IP
 curl http://100.115.10.14:11434/api/tags

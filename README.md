@@ -20,10 +20,11 @@ cd ~/repos/ide-configs
 
 ```
 ide-configs/
-├── 🤖 clawdbot/              # Clawdbot Bot Factory (NEW!)
+├── 🤖 clawdbot/              # Clawdbot Bot Factory
 │   ├── PERSISTENT-BOTS.md    # 9-bot architecture & management
+│   ├── HYBRID-HEALING.md     # 3-layer self-healing system (NEW!)
 │   ├── CREDIT-OPTIMIZATION.md # API credit savings (90% reduction)
-│   ├── SCRIPTS-REFERENCE.md  # Mac Mini scripts docs
+│   ├── SCRIPTS-REFERENCE.md  # Scripts docs (event-watcher, cleanup)
 │   ├── MONITOR-INTEGRATION.md # Dashboard setup
 │   ├── PREREQUISITES.md      # System requirements
 │   └── README.md             # Clawdbot overview
@@ -65,20 +66,24 @@ ide-configs/
 
 The Mac Mini runs a cost-optimized bot factory with automated cleanup and monitoring.
 
-### Tier 1: Bash Scripts (FREE, every 15 min)
+### Tier 1: Event Watcher (FREE, 60s loop, launchd)
+Instant healing via bash — zero LLM tokens, 24/7.
+- event-watcher.sh → monitors Ollama, pm2, zombies, simulators; auto-heals instantly
+- Logs to `/tmp/clawdbot/events.jsonl`
+
+### Tier 2: Bash Cleanup Scripts (FREE, every 15 min)
 Mechanical cleanup via launchd — zero LLM tokens.
 - mac-mini-cleanup.sh → kills simulators, zombies, duplicates; checks health
 - macbook-cleanup.sh → same for MacBook (no simulators allowed!)
 
-### Tier 2: Sonnet Cron Jobs (cheap, isolated sessions)
+### Tier 3: AI Cron Jobs (local LLMs, hourly)
 | Job | Schedule | Purpose |
 |-----|----------|---------|
-| Shitcoin Brain | :15, :45 hourly | Research + bot monitoring |
-| Shitcoin Quant | :00, :30 hourly | Quant strategy research |
-| System Health Monitor | :05 every 2h | Reads bash output, checks all bots |
+| Cleaner Bot | Hourly | Deep cleanup (caches, temp files, disk) |
+| Healer Bot | Hourly | Read event logs, diagnose, smart healing |
 | Clear Sessions | Sunday midnight | Weekly session cleanup |
 
-### Tier 3: Always-On Services (launchd)
+### Tier 4: Always-On Services (launchd)
 | Service | Purpose |
 |---------|---------|
 | Clawdbot Gateway | AI orchestrator (port 18789) |
@@ -87,6 +92,10 @@ Mechanical cleanup via launchd — zero LLM tokens.
 
 ### Quick Commands
 ```bash
+# Check event watcher
+launchctl list | grep event-watcher
+tail -20 /tmp/clawdbot/events.jsonl | jq .
+
 # Check cron jobs
 clawdbot cron list
 
@@ -97,7 +106,8 @@ ps aux | grep -E "clawdbot-gateway|run_bots" | grep -v grep
 cat /tmp/clawdbot/system-health.json
 ```
 
-📖 See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for full docs.
+📖 See [clawdbot/HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) for the full 3-layer architecture.  
+📖 See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for bot docs.
 
 ## 💰 Credit Optimization
 
@@ -201,8 +211,9 @@ ssh mac-mini 'cd ~/repos/ide-configs && git pull'
 
 ### Clawdbot
 - [PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) - Bot architecture & management
+- [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) - 3-layer self-healing system
 - [CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md) - API savings strategies
-- [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) - Script documentation
+- [SCRIPTS-REFERENCE.md](clawdbot/SCRIPTS-REFERENCE.md) - Script documentation (event-watcher, cleanup)
 - [MONITOR-INTEGRATION.md](clawdbot/MONITOR-INTEGRATION.md) - Dashboard setup
 - [ARCHITECTURE.md](clawd/docs/ARCHITECTURE.md) - Multi-account failover
 

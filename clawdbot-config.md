@@ -5,9 +5,9 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 ## 🤖 Model Routing Strategy
 
 ### Primary Models
-- **gpt-oss:20b** (DeepSeek-V3) — Primary model for heartbeats and main tasks
+- **devstral-small-2:24b** (Mistral) — PRIMARY for coding sub-agents (MacBook only)
+- **gpt-oss:20b** (DeepSeek-V3) — Primary for heartbeats, general tasks (both machines)
 - **qwen3:8b** (Qwen3.1) — Fast model for quick tasks, reasoning mode enabled
-- **devstral-small-2:24b** (Mistral) — MacBook-only for heavy tasks
 
 ### Legacy Models (Removed)
 - ❌ qwen2.5-coder:7b — Replaced by qwen3:8b (better reasoning)
@@ -15,16 +15,17 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 ## 🧠 Model Assignment by Task
 
 ### Heartbeat (Periodic Checks)
-- **Model**: gpt-oss:20b
-- **Why**: Balance of speed and reasoning for proactive tasks
+- **Model**: gpt-oss:20b on Mac Mini
+- **Why**: Always-on, free, good enough for periodic checks
 
 ### Sub-Agent Cascade
-When spawning sub-agents, models cascade in order of availability:
-1. **gpt-oss:20b** (Mac Mini Ollama)
-2. **devstral-small-2:24b** (MacBook Ollama)
-3. **qwen3:8b** (both machines, fast fallback)
-4. **Claude Sonnet** (API, if local fails)
-5. **Claude Opus** (API, last resort)
+When spawning sub-agents, models cascade in order:
+1. **devstral-small-2:24b** (MacBook Ollama — primary for coding)
+2. **gpt-oss:20b** (Mac Mini Ollama — always-on fallback)
+3. **gpt-oss:20b** (MacBook Ollama — secondary fallback)
+4. **qwen3:8b** (either machine, fast fallback)
+5. **Claude Sonnet** (API, if local fails)
+6. **Claude Opus** (API, last resort)
 
 ### Reasoning Mode
 - **qwen3:8b**: `reasoning=true` (thinking mode, free tokens)
@@ -34,23 +35,65 @@ When spawning sub-agents, models cascade in order of availability:
 
 Two separate Ollama instances for multi-machine access:
 
-### Provider 1: `ollama` (Mac Mini)
+### Provider 1: `ollama` (Mac Mini — always-on)
 ```yaml
 name: ollama
-baseUrl: http://100.115.10.14:11434
+baseUrl: http://felipes-mac-mini.local:11434
+tailscaleUrl: http://100.115.10.14:11434
 models:
-  - gpt-oss:20b
-  - qwen3:8b
+  - gpt-oss:20b      # Primary for heartbeats
+  - qwen3:8b         # Fast reasoning
 ```
 
-### Provider 2: `ollama-macbook` (MacBook Pro)
+### Provider 2: `ollama-macbook` (MacBook Pro — primary for coding)
 ```yaml
 name: ollama-macbook
-baseUrl: http://100.125.165.107:11434
+baseUrl: http://felipes-macbook-pro-2.local:11434
+tailscaleUrl: http://100.125.165.107:11434
 models:
-  - devstral-small-2:24b
-  - gpt-oss:20b
-  - qwen3:8b
+  - devstral-small-2:24b  # PRIMARY for coding sub-agents
+  - gpt-oss:20b           # General fallback
+  - qwen3:8b              # Fast reasoning
+```
+
+## ⏰ Cron Jobs
+
+### Active Cron Jobs
+
+| Job | Schedule | Model | Purpose |
+|-----|----------|-------|---------|
+| **Cleaner Bot** | Hourly | gpt-oss:20b / qwen3:8b | Deep cleanup (caches, temp, disk) |
+| **Healer Bot** | Hourly | gpt-oss:20b → Sonnet | Read event logs, diagnose, heal |
+| **Clear Sessions** | Weekly (Sunday midnight) | — | Clean stale Clawdbot sessions |
+
+### Configuration Example
+```bash
+# List cron jobs
+clawdbot cron list
+
+# Add a cron job
+clawdbot cron add --name "cleaner-bot" --schedule "0 * * * *" --model "ollama/gpt-oss:20b"
+clawdbot cron add --name "healer-bot" --schedule "30 * * * *" --model "ollama/gpt-oss:20b"
+```
+
+## 🩺 Event Watcher (Launchd Service)
+
+The event watcher runs 24/7 via launchd — NOT a cron job.
+
+- **Service**: `com.clawdbot.event-watcher`
+- **Script**: `/Users/felipevieira/clawd/scripts/event-watcher.sh`
+- **Interval**: Every 60 seconds
+- **Cost**: FREE (pure bash)
+- **Logs**: `/tmp/clawdbot/events.jsonl`
+
+See [HYBRID-HEALING.md](clawdbot/HYBRID-HEALING.md) for full architecture.
+
+```bash
+# Check status
+launchctl list | grep event-watcher
+
+# View recent events
+tail -20 /tmp/clawdbot/events.jsonl | jq .
 ```
 
 ## ⚙️ Ollama Performance Tuning
@@ -76,16 +119,16 @@ OLLAMA_KV_CACHE_TYPE=q8_0         # 8-bit quantized KV cache
 
 | Model | Size | RAM | Location | Purpose |
 |-------|------|-----|----------|---------|
-| gpt-oss:20b | 13 GB | 16 GB | Mac Mini | Primary |
-| devstral-small-2:24b | 15 GB | 48 GB | MacBook | Heavy tasks |
+| devstral-small-2:24b | 15 GB | 48 GB | MacBook | **Primary for coding** |
+| gpt-oss:20b | 13 GB | 16 GB | Mac Mini (primary), MacBook | Heartbeats, general |
 | qwen3:8b | 5.2 GB | Both | Both | Fast reasoning |
 
 ## 🔄 Load Balancing
 
-- **Mac Mini** handles most traffic (always on, 24/7)
-- **MacBook** handles overflow and heavy tasks
-- Heartbeat polls primary (Mac Mini) first
-- Sub-agents cascade to MacBook if Mini is busy
+- **MacBook** is primary for sub-agents (devstral-24b for coding)
+- **Mac Mini** handles heartbeats (always-on, gpt-oss:20b)
+- Sub-agents cascade: MacBook devstral → Mac Mini gpt-oss → MacBook gpt-oss → qwen3
+- Both machines reachable via hostname or Tailscale IP
 
 ## 🎯 Usage Examples
 
@@ -104,11 +147,12 @@ clawd chat --model ollama/qwen3:8b --reasoning
 ### Config File (.clawdbotrc)
 ```json
 {
-  "defaultModel": "ollama/gpt-oss:20b",
+  "defaultModel": "ollama-macbook/devstral-small-2:24b",
   "heartbeatModel": "ollama/gpt-oss:20b",
   "subAgentModels": [
-    "ollama/gpt-oss:20b",
     "ollama-macbook/devstral-small-2:24b",
+    "ollama/gpt-oss:20b",
+    "ollama-macbook/gpt-oss:20b",
     "ollama/qwen3:8b",
     "anthropic/claude-sonnet-4-5",
     "anthropic/claude-opus-4-5"
@@ -120,10 +164,11 @@ clawd chat --model ollama/qwen3:8b --reasoning
 
 | Task Type | Old Model | New Model | Savings |
 |-----------|-----------|-----------|---------|
-| Heartbeats | Claude Sonnet | gpt-oss:20b | 100% |
-| Sub-agents | Claude Sonnet | gpt-oss:20b | 90-100% |
+| Heartbeats | Claude Sonnet | gpt-oss:20b (Mac Mini) | 100% |
+| Sub-agents (coding) | Claude Sonnet | devstral-small-2:24b (MacBook) | 100% |
+| Sub-agents (general) | Claude Sonnet | gpt-oss:20b | 100% |
 | Quick tasks | Claude Haiku | qwen3:8b | 100% |
-| Heavy tasks | Claude Opus | devstral-small-2:24b | 100% |
+| Self-healing | Claude Sonnet | Event watcher (bash) + local LLM | 95-100% |
 
 **Estimated monthly savings**: $200-300 USD
 
@@ -164,3 +209,4 @@ brew services restart ollama
 - [Ollama Setup](ollama-setup.md) — Installation & configuration
 - [Tailscale](tailscale.md) — Network configuration for multi-machine access
 - [Dev Teams](dev-teams.md) — Model assignment per project/bot
+- [Hybrid Healing](clawdbot/HYBRID-HEALING.md) — Self-healing architecture
