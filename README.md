@@ -61,53 +61,53 @@ ide-configs/
 └── 🔐 ssh/                   # SSH configs
 ```
 
-## 🤖 Clawdbot Bot Factory
+## 🤖 Clawdbot Bot Factory (3-Tier Architecture)
 
-The Mac Mini runs 9 persistent AI bots 24/7:
+The Mac Mini runs a cost-optimized bot factory with automated cleanup and monitoring.
 
-| Bot | Project | Purpose |
-|-----|---------|---------|
-| bot-ez-crm | EZ-CRM | Next.js/Supabase CRM |
-| bot-linklounge | LinkLounge | Linktree competitor |
-| bot-aphos | Aphos | MMORPG (Next.js + Three.js) |
-| bot-game-assets | Game Assets | Asset generation tool |
-| bot-ios-bmi | BMI Calculator | iOS app |
-| bot-ios-bills | Bills Tracker | iOS app |
-| bot-ios-translator | Screen Translator | iOS app |
-| bot-clawd-monitor | Dashboard | Bot monitoring UI |
-| bot-shitcoin-brain | Trading Research | Strategy analysis |
+### Tier 1: Bash Scripts (FREE, every 15 min)
+Mechanical cleanup via launchd — zero LLM tokens.
+- mac-mini-cleanup.sh → kills simulators, zombies, duplicates; checks health
+- macbook-cleanup.sh → same for MacBook (no simulators allowed!)
 
-### Key Features
-- **10-minute cycles** for dev bots (90% API savings)
-- **Multi-account failover** on rate limits
-- **Simulator coordination** for iOS bots
-- **Browser lock** to prevent conflicts
-- **Research-first** approach (Grok/X/Reddit before Claude)
+### Tier 2: Sonnet Cron Jobs (cheap, isolated sessions)
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| Shitcoin Brain | :15, :45 hourly | Research + bot monitoring |
+| Shitcoin Quant | :00, :30 hourly | Quant strategy research |
+| System Health Monitor | :05 every 2h | Reads bash output, checks all bots |
+| Clear Sessions | Sunday midnight | Weekly session cleanup |
+
+### Tier 3: Always-On Services (launchd)
+| Service | Purpose |
+|---------|---------|
+| Clawdbot Gateway | AI orchestrator (port 18789) |
+| Python Trading Bot | Polymarket trading (run_bots) |
+| Failover Watchdog | MacBook health monitor |
 
 ### Quick Commands
 ```bash
-# Check all bots
-~/clawd/scripts/manage-bots.sh status
+# Check cron jobs
+clawdbot cron list
 
-# Restart all
-~/clawd/scripts/manage-bots.sh restart
+# Check services
+ps aux | grep -E "clawdbot-gateway|run_bots" | grep -v grep
 
-# View bot logs
-tmux attach -t bot-<name>
+# Check cleanup health
+cat /tmp/clawdbot/system-health.json
 ```
 
 📖 See [clawdbot/PERSISTENT-BOTS.md](clawdbot/PERSISTENT-BOTS.md) for full docs.
 
 ## 💰 Credit Optimization
 
-Strategies that reduced API usage by ~90%:
+3-tier architecture reduced daily costs from ~$15 to ~$5:
 
-| Strategy | Savings |
-|----------|---------|
-| 10-min pause (was 60s) | ~90% |
-| Multi-account failover | No downtime on 429 |
-| Grok/X research first | Variable |
-| Browser task skipping | Avoids failures |
+| Tier | Tool | Cost | Purpose |
+|------|------|------|---------|
+| Bash scripts | launchd (15 min) | FREE | Cleanup, monitoring |
+| Sonnet cron | Clawdbot (30 min) | ~$0.05/run | Research, health |
+| Opus heartbeat | Clawdbot (60 min) | ~$0.10/run | Connectivity only |
 
 📖 See [clawdbot/CREDIT-OPTIMIZATION.md](clawdbot/CREDIT-OPTIMIZATION.md)
 

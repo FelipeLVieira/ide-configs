@@ -1,33 +1,52 @@
-# HEARTBEAT.md - System Monitoring
+# HEARTBEAT.md - Orchestrator Duties
 
-## 🔍 Quick Health Check (every heartbeat)
-- Check `sessions_list` for any active sub-agents — if they completed, note it
-- If any critical sub-agent died (0 tokens, never started), re-spawn it
-- Check cron jobs are running: `cron action=list`
+## Every Heartbeat: Quick Checks Only
 
-## 🎮 Aphos Game
-- Game servers on Mac Mini (ports 2567, 2568, 4000, 4001)
-- Dual environment: prod (2567/4000) and dev (2568/4001)
+Most cleanup is now automated via bash scripts + dedicated cron jobs.
+The heartbeat only needs to handle things that need main session context.
 
-## 💰 Shitcoin Bot
-- Running on both MacBook and Mac Mini
-- Research-only mode: check `data/research_opportunities.json` for new finds
-- If high-conviction opportunity found, review and consider approving
+### 1. Check for Cron Health Summary
+The System Health Monitor cron runs every 2 hours and posts a summary.
+If it reported issues recently, follow up on them.
 
-## 📱 iOS Apps (3 apps)
-- BMI Calculator, Bills Tracker, Screen Translator
-- Cron job monitors App Store Connect 3x/day (9am, 3pm, 9pm)
-- If build expired/rejected, fix and resubmit
+### 2. Quick Mac Mini Connectivity Check
+```bash
+ssh felipemacmini@felipes-mac-mini.local 'echo "online"' 2>/dev/null || echo "OFFLINE"
+```
+- If offline, REPORT to Felipe immediately
 
-## 🖥️ Clawd Monitor
-- Dev server on port 9000
-- React errors in console = fix immediately
+### 3. Check Context Usage
+- If above 50%, run /compact before next task
 
-## 🔗 LinkLounge & EZ-CRM
-- Supabase issues being fixed by sub-agents
-- Monitor for completion
+### 4. Report Only If Something Needs Attention
+- ❌ Mac Mini offline / unreachable
+- ❌ System Health Monitor reported critical issues
+- ✅ Significant milestone (app submitted, major bug fixed)
+- Otherwise: HEARTBEAT_OK
 
-## Schedule
-- Cron handles iOS monitoring (3x/day) and project health (3x/day)
-- Heartbeat handles quick sub-agent checks and ad-hoc tasks
-- Don't duplicate cron work in heartbeat
+## What's Automated (DON'T duplicate these checks)
+These are handled by bash scripts (every 15 min, zero tokens) + cron jobs:
+- ✅ Simulator cleanup on both MacBook and Mac Mini (launchd bash scripts)
+- ✅ Zombie process cleanup (launchd bash scripts)
+- ✅ Temp file cleanup (launchd bash scripts)
+- ✅ Duplicate process detection (launchd bash scripts)
+- ✅ Memory/disk monitoring (launchd bash scripts)
+- ✅ Bot health checks (System Health Monitor cron, every 2h, Sonnet)
+- ✅ Research agents (Shitcoin Brain + Quant crons, every 30min, Sonnet)
+- ✅ Session cleanup (clear-sessions cron, weekly)
+
+## Architecture Reference
+```
+Bash Scripts (FREE, every 15 min via launchd):
+├── MacBook: macbook-cleanup.sh → /tmp/clawdbot/macbook-health.json
+└── Mac Mini: mac-mini-cleanup.sh → /tmp/clawdbot/system-health.json
+
+Clawdbot Cron Jobs (Sonnet, isolated sessions):
+├── Shitcoin Brain    → :15, :45 every hour (research)
+├── Shitcoin Quant    → :00, :30 every hour (quant strategy)
+├── System Health     → :05 every 2 hours (reads bash output + checks bots)
+└── Clear Sessions    → Sunday midnight (weekly cleanup)
+
+Heartbeat (main session, Opus):
+└── Quick connectivity check + context management only
+```
