@@ -2,6 +2,8 @@
 
 Local LLM inference on Mac Mini and MacBook Pro via Ollama.
 
+> **⚠️ IMPORTANT (Jan 28, 2026):** ALL local Ollama models are for **MANUAL USE ONLY**. They have been REMOVED from all auto-routing fallback chains because ALL 7 tested models fail at tool-calling. See [model-routing.md](model-routing.md).
+
 ## Hardware Overview
 
 ### Mac Mini (24/7 Server)
@@ -10,6 +12,7 @@ Local LLM inference on Mac Mini and MacBook Pro via Ollama.
 - **Tailscale IP**: 100.115.10.14
 - **Hostname**: felipes-mac-mini.local
 - **Ollama URL**: http://felipes-mac-mini.local:11434
+- **Service**: `homebrew.mxcl.ollama` (brew services)
 - **Role**: Primary inference server (heartbeats, always-on)
 
 ### MacBook Pro (On-Demand)
@@ -96,70 +99,25 @@ launchctl start com.ollama.serve
 launchctl list | grep ollama
 ```
 
-### Mac Mini Service (Custom LaunchAgent)
+### Mac Mini Service (Homebrew)
 
-Mac Mini uses a **custom launchd plist** instead of Homebrew services. This is required because `brew services` does not reliably persist environment variables like `OLLAMA_HOST=0.0.0.0` -- after a reboot, Ollama reverts to binding `127.0.0.1` only, breaking cross-machine access.
+Mac Mini uses **Homebrew services** (`homebrew.mxcl.ollama`) for Ollama management. Environment variables are set in `~/.zshrc` and the Homebrew service config picks them up.
 
-**File**: `~/Library/LaunchAgents/com.user.ollama.plist`
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.user.ollama</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/opt/homebrew/opt/ollama/bin/ollama</string>
-        <string>serve</string>
-    </array>
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>OLLAMA_HOST</key>
-        <string>0.0.0.0</string>
-        <key>OLLAMA_FLASH_ATTENTION</key>
-        <string>1</string>
-        <key>OLLAMA_KV_CACHE_TYPE</key>
-        <string>q8_0</string>
-    </dict>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-    <key>StandardErrorPath</key>
-    <string>/tmp/ollama.err.log</string>
-    <key>StandardOutPath</key>
-    <string>/tmp/ollama.out.log</string>
-</dict>
-</plist>
-```
-
-**Migration from Homebrew services:**
-```bash
-# 1. Stop Homebrew service first (avoids port conflict)
-brew services stop ollama
-
-# 2. Load the custom plist
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
-
-# 3. Verify it's running and bound to 0.0.0.0
-curl http://localhost:11434/api/tags
-curl http://felipes-mac-mini.local:11434/api/tags # from another machine
-```
-
-**Why not Homebrew services?** Homebrew's `brew services` creates an ephemeral launchd config that does not include custom environment variables. Setting `OLLAMA_HOST` in `~/.zshrc` only works for interactive shells, not launchd-spawned processes. The custom plist embeds environment variables directly, guaranteeing they persist across reboots. This was discovered after the Healer Bot detected 5 consecutive cross-machine failures (see [HYBRID-HEALING.md incident log](clawdbot/HYBRID-HEALING.md)).
+> **Note**: A previous custom `com.user.ollama.plist` was removed — it was causing dual Ollama processes (two instances fighting for port 11434). Homebrew services is now the single source of truth.
 
 **Management:**
 ```bash
-# Check status
-launchctl list | grep com.user.ollama
+# Start
+brew services start ollama
 
 # Stop
-launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
+brew services stop ollama
 
-# Start
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.ollama.plist
+# Restart
+brew services restart ollama
+
+# Check status
+brew services info ollama
 
 # View logs
 tail -f /tmp/ollama.out.log
@@ -174,18 +132,17 @@ WARNING: **CRITICAL: Swap Protection**
 
 Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 - Heavy models (14GB+) were causing **15.6GB swap** — system grinding to a halt
-- **Solution**: Primary changed to qwen3:8b (5GB), only phi4:14b (9GB) as secondary
+- **Solution**: Primary changed to phi4-mini (2.5GB), only phi4:14b (9GB) as secondary
 
-| Model | Size | Purpose | Status |
-|-------|------|---------|--------|
-| **qwen3:8b** | 5.2 GB | **PRIMARY** — safe model for auto-fallback (reasoning=true) | [OK] Always loaded |
-| **phi4:14b** | 9.1 GB | **Microsoft Phi-4** — reasoning=true, contextWindow=16384, safe for 16GB RAM | [OK] Available |
+| Model | Params | Size | Speed | Purpose | Status |
+|-------|--------|------|-------|---------|--------|
+| **phi4-mini** | 3.8B | 2.5 GB | ~37-41 t/s | **PRIMARY** — cron/heartbeats, ultra-lightweight | [OK] Always loaded |
+| **phi4:14b** | 14.7B | 9.1 GB | — | **Secondary** — reasoning tasks, contextWindow=16384 | [OK] Available |
 
 **Removed:**
+- [NO] qwen3:8b — Removed (too slow, deep /think by default, 60s+ per prompt)
+- [NO] qwen2.5-coder:7b — Removed (legacy)
 - [NO] qwen3-fast:8b — Deleted (duplicate of qwen3:8b, freed 5.2GB disk)
-
-**Future upgrade candidate:**
-- **qwen3:14b** (Q3_K_M) — ~9GB VRAM, fits 16GB with 7GB headroom. Nearly doubles reasoning quality. Not yet pulled.
 
 **Resource Limits (desired-state.json):**
 ```json
@@ -205,7 +162,7 @@ Mac Mini has ONLY 16GB RAM. Heavy models cause swap death:
 
 **Pull models:**
 ```bash
-ollama pull qwen3:8b # Keep loaded (5GB, safe)
+ollama pull phi4-mini # PRIMARY (2.5GB, ultra-fast ~37-41 t/s)
 ollama pull phi4:14b # Secondary (9GB, safe for 16GB)
 ```
 
@@ -213,12 +170,10 @@ ollama pull phi4:14b # Secondary (9GB, safe for 16GB)
 
 | Model | Params | Size | Context | MaxTokens | Purpose |
 |-------|--------|------|---------|-----------|---------|
-| **qwen3-coder:30b** | 30B | ~19 GB | 40960 | 40960 | **PRIMARY** for sub-agents/heartbeats (NEW) |
+| **qwen3-coder:30b** | 30B | ~19 GB | 40960 | 40960 | **PRIMARY** for sub-agents (NEW) |
 | devstral-small-2:24b | 24B | 15 GB | 32768 | 8192 | Heavy coding tasks (48GB RAM safe) |
-| **gemma3:12b** | 12B | ~8 GB | 32768 | 8192 | **NEW** Vision-capable (image input!) |
-| qwen3:8b | 8B | 5.2 GB | 40960 | 40960 | Lightweight fallback (reasoning=true) |
+| **gemma3:12b** | 12B | ~8 GB | 32768 | 8192 | Vision-capable (image input!) |
 
-**Reasoning support**: qwen3:8b only among MacBook models
 **Image input support**: gemma3:12b (can analyze images!)
 
 **Pull models:**
@@ -226,22 +181,21 @@ ollama pull phi4:14b # Secondary (9GB, safe for 16GB)
 ollama pull qwen3-coder:30b # PRIMARY (30B coding model)
 ollama pull devstral-small-2:24b # Heavy coding
 ollama pull gemma3:12b # Vision model (image input!)
-ollama pull qwen3:8b # Lightweight fallback
 ```
 
 ### Removed Models
-- [NO] **gpt-oss:20b** — Deleted from MacBook (2026-01-27). Replaced by qwen3-coder:30b (better coding, larger context).
-- [NO] **Legacy 7B coder model** — Deleted from both machines (2025-07-27). Replaced by qwen3:8b.
+- [NO] **qwen3:8b** — Removed from Mac Mini (too slow, deep /think by default, 60s+ per prompt). Replaced by phi4-mini.
+- [NO] **qwen2.5-coder:7b** — Removed (legacy). Replaced by phi4-mini.
+- [NO] **gpt-oss:20b** — Deleted from MacBook (2026-01-27). Replaced by qwen3-coder:30b.
 - [NO] **qwen3-fast:8b** — Deleted from Mac Mini (2026-01-27). Duplicate of qwen3:8b, freed 5.2GB disk.
 
 ### Windows MSI — Remote Ollama via MacBook + Mac Mini
 - [NO] **No local Ollama** on Windows MSI
 - [OK] **Routes through both Macs** via Tailscale:
-  - `ollama-macbookpro` -> `http://100.125.165.107:11434` (qwen3-coder:30b, devstral-24b, gemma3:12b, qwen3:8b)
-  - `ollama-macmini` -> `http://100.115.10.14:11434` (qwen3:8b ONLY)
+  - `ollama-macbookpro` -> `http://100.125.165.107:11434` (qwen3-coder:30b, devstral-24b, gemma3:12b)
+  - `ollama-macmini` -> `http://100.115.10.14:11434` (phi4-mini, phi4:14b)
 
 ### Future Models
-- **qwen3:14b** (Q3_K_M) — Best upgrade for Mac Mini: ~9GB, fits 16GB with headroom
 - **qwen2.5vl:32b** — Planned for Asset Forge (design vision model)
 
 ## Mac Mini as Central Ollama Hub
@@ -266,52 +220,38 @@ The Mac Mini serves as the **central Ollama inference hub** for all machines in 
 
 | Machine | Models | Total Size | Status |
 |---------|--------|-----------|--------|
-| **MacBook Pro** | qwen3-coder:30b (~19GB, **PRIMARY**), devstral-small-2:24b (15GB), gemma3:12b (~8GB, image input!), qwen3:8b (5.2GB, reasoning=true) | ~47 GB | [OK] All loaded |
-| **Mac Mini** | qwen3:8b (5.2GB, **PRIMARY**, reasoning=true), phi4:14b (9.1GB, reasoning=true) | ~14 GB | [OK] Safe for 16GB RAM |
+| **MacBook Pro** | qwen3-coder:30b (~19GB, **PRIMARY**), devstral-small-2:24b (15GB), gemma3:12b (~8GB, image input!) | ~42 GB | [OK] All loaded |
+| **Mac Mini** | phi4-mini (2.5GB, **PRIMARY**), phi4:14b (9.1GB, secondary) | ~12 GB | [OK] Safe for 16GB RAM |
 | **Windows MSI** | NONE (routes through Mac Mini + MacBook) | 0 GB | [OK] Via Tailscale |
-
-**Reasoning support summary**: Only qwen3:8b and phi4:14b have reasoning=true among local models
 
 ---
 
-## Sub-Agent Priority Chain
+## Model Routing (Updated Jan 28, 2026)
 
-**Reasoning-first architecture** — sub-agents cascade with thinking enabled:
+**Anthropic-only architecture** — ALL auto-routing uses Anthropic API. Local models are manual-only.
 
 ```
-Mac Mini full fallback chain:
-1. qwen3:8b (local, reasoning=true) <- PRIMARY (FREE, smart)
-2. phi4:14b (local, reasoning=true) <- Larger reasoning model
-3. MacBook qwen3-coder:30b (Tailscale) <- 30B coding model
-4. MacBook devstral-small-2:24b <- Heavy coding
-5. MacBook gemma3:12b <- Vision-capable fallback
-6. Claude Sonnet 4.5 (API) <- If all local fail
-7. Claude Opus 4.5 (API) <- Critical tasks only
+ALL routing (cron, sub-agents, heartbeat):
+  Sonnet 4.5 (API) → Opus 4.5 (API)
 
-MacBook fallback chain (main session):
-1. Claude Opus 4.5 (API) <- PRIMARY for main session
-2. Claude Sonnet 4.5 (API) <- Fallback
-3. devstral-small-2:24b (local) <- Heavy local coding
-4. gemma3:12b (local) <- Vision-capable local
+Main session:
+  Opus 4.5 (API) → Sonnet 4.5 (API)
 
-MacBook sub-agent chain:
-1. qwen3-coder:30b (local) <- PRIMARY for sub-agents (30B, FREE)
-2. qwen3:8b (local) <- Lightweight fallback
-3. qwen3:8b (Mac Mini) <- Cross-machine
-4. Claude Sonnet 4.5 (API) <- If all local fail
+Local models (manual use only):
+  MacBook: mistral-small3.2, gemma3:12b
+  Mac Mini: phi4-mini, phi4:14b
 ```
 
-### Heartbeat Model
-- **MacBook**: qwen3-coder:30b — 30B params, powerful coding model, FREE
-- **Mac Mini**: qwen3:8b (reasoning=true) — Always-on, FREE, safe for 16GB
-- **Windows**: qwen3:8b via Mac Mini Tailscale — FREE
+> ⚠️ **ALL local Ollama models FAIL at tool-calling.** They have been REMOVED from all fallback chains. See [model-routing.md](model-routing.md) for full details.
 
-### Why qwen3-coder:30b as MacBook Primary?
-- **30B parameters**: Significantly smarter than 8B for coding tasks
-- **contextWindow: 40960**: Large context for complex sub-agent work
-- **FREE**: No API costs (local Ollama)
-- **48GB RAM safe**: MacBook has headroom for concurrent models
-- **No rate limits**: Ollama queues requests — supports maxConcurrent=8, subagents=10
+### Why Not Local Models for Auto-Routing?
+All 7 tested models failed at multi-step tool-calling:
+- qwen3-coder:30b — Broken Jinja template (Ollama bug #11621)
+- devstral-small-2:24b — Hallucinates "Task completed" after 1 command
+- mistral-small3.2 — Ignores tools, returns text
+- phi4-mini/phi4:14b — Echoes prompt
+- gemma3:12b — No tool support
+- nemotron-3-nano — 1 call then stops
 
 ## Network Access
 
@@ -353,12 +293,12 @@ curl http://felipes-macbook-pro-2.local:11434/api/tags
 
 **Mac Mini fallback chain:**
 ```
-qwen3:8b (local) -> phi4:14b (local) -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus
+phi4-mini (local) -> phi4:14b (local) -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus
 ```
 
 **MacBook fallback chain:**
 ```
-Opus -> Sonnet -> devstral-24b -> gemma3:12b -> qwen3:8b (all local/safe on 48GB)
+Opus -> Sonnet -> devstral-24b -> gemma3:12b (all local/safe on 48GB)
 ```
 
 This means: **if one machine's Ollama fails, the other catches it automatically**. Zero downtime.
@@ -439,15 +379,15 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp /opt/homebrew/
 
 ### Service Not Starting
 ```bash
-# Check logs (launchd on MacBook)
+# Check logs
 tail -f /tmp/ollama.err.log
 
-# Check logs (Homebrew on Mac Mini)
+# Check status
 brew services info ollama
 
 # Restart
 launchctl stop com.ollama.serve && launchctl start com.ollama.serve # MacBook
-brew services restart ollama # Mac Mini
+brew services restart ollama # Mac Mini (uses homebrew.mxcl.ollama)
 ```
 
 ### Port Already in Use

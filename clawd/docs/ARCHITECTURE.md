@@ -1,6 +1,8 @@
 # Clawdbot Multi-Agent Architecture
 
-Documentation for migrating to new Mac Mini.
+Documentation for the multi-agent architecture and Mac Mini setup.
+
+> **Last updated**: 2026-01-28 — Anthropic-only routing, clawd-status on 9010, Crabwalk on 9009
 
 ## Overview
 
@@ -70,8 +72,9 @@ Documentation for migrating to new Mac Mini.
 | 8081 | Expo Web | bmi-calculator |
 | 8082 | Expo Web | bills-tracker |
 | 8083 | Expo Web | screen-translator |
-| 9000 | Dashboard | clawd-monitor |
-| 18789 | Internal | Clawdbot API |
+| 9009 | Bot Dashboard | Crabwalk |
+| 9010 | Status Dashboard | clawd-status |
+| 18789 | Internal | Clawdbot Gateway |
 
 ## Services to Run
 

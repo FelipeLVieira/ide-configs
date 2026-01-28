@@ -1,5 +1,7 @@
 # Local-First Bot Optimization
 
+> **⚠️ PARTIALLY OUTDATED (Jan 28, 2026):** The "local-first" approach for auto-routing has been abandoned. ALL local Ollama models fail at tool-calling. All cron/sub-agents/heartbeats now use Anthropic Sonnet 4.5 exclusively. Local models are available for MANUAL use only. See [model-routing.md](../model-routing.md). The general principles below (file-based memory, bash scripts, research-first) still apply.
+
 Maximize local compute, minimize API token usage.
 
 ## Core Principle

@@ -1,47 +1,55 @@
 # Clawdbot Configuration
 
-Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
+Multi-machine Clawdbot setup with Anthropic-first model routing.
 
-> **Last updated**: 2026-01-27 — qwen3-coder:30b primary, gemma3:12b added, gpt-oss:20b removed, concurrency bump
+> **Last updated**: 2026-01-28 (late night) — Anthropic-only routing for all bots/cron/subagents, local models REMOVED from fallback chains, cron delivery disabled (→ clawd-status API), auth cooldowns increased
 
 ## Model Routing Strategy
 
-### Architecture Philosophy: Reasoning-First, Swap-Safe, Cost-Second
+### Architecture Philosophy: Anthropic-Only for Agentic Work
+
+**⚠️ CRITICAL: Local Ollama models CANNOT do tool-calling (Jan 2026)**
+- ALL 7 tested local models failed at multi-step tool-calling — see [Tool-Calling Research](#tool-calling-research-jan-2026)
+- **ALL cron/sub-agents/heartbeats MUST use Anthropic models only**
+- **Local models REMOVED from ALL fallback chains** (as of Jan 28 late night)
+- Local models still installed for manual/interactive use but NOT in auto-routing
+- Estimated cost: ~$4-5/day for reliable tool-calling
+
+**Routing changes (Jan 28 late night):**
+- ❌ ALL local Ollama models REMOVED from fallback chains
+- ✅ Main session: `anthropic/claude-opus-4-5` → fallback `anthropic/claude-sonnet-4-5`
+- ✅ All bots/cron/subagents: `anthropic/claude-sonnet-4-5` → fallback `anthropic/claude-opus-4-5`
+- ✅ No more devstral, mistral-small3.2, phi4, gemma3, qwen3-coder in any auto-routing
 
 **MacBook thinking is OFF to maximize concurrency:**
-- `thinkingDefault: "off"` — Disabled to reduce token usage and allow higher parallelism with local models
-- **Valid thinking levels**: off, minimal, low, medium, high, xhigh
-- **Rationale**: Local Ollama models have NO rate limits — turning off thinking allows more concurrent requests
-- **Native reasoning support**: Only qwen3:8b and phi4:14b have reasoning=true among local models
+- `thinkingDefault: "off"` — Disabled to reduce token usage and allow higher parallelism
 
 **Mac Mini swap protection is NON-NEGOTIABLE:**
 - Mac Mini has 16GB RAM — heavy models cause swap death
-- Only qwen3:8b (5GB) and phi4:14b (9GB) are allowed in Mac Mini auto-fallback chains
+- Only phi4-mini (2.5GB) and phi4:14b (9GB) installed (for manual use only)
 
 ### Model Tiers
 
 | Tier | Models | Cost | Use Cases |
 |------|--------|------|-----------|
-| **1 — Frontier** | Claude Opus 4.5 | $$$ | Main chat, complex reasoning (MacBook + Windows) |
-| **2 — Smart API** | Claude Sonnet 4.5 | $$ | Cron jobs (isolated sessions), API fallback |
-| **3 — Free powerful** | qwen3-coder:30b | FREE | Sub-agents, heartbeats (MacBook primary, 30B params) |
-| **4 — Free coding** | devstral-24b | FREE | Heavy coding tasks (MacBook ONLY, 48GB) |
-| **5 — Free light** | qwen3:8b, gemma3:12b, phi4:14b | FREE | Quick tasks, vision (gemma3 has image input!), Mac Mini |
-| **6 — Free research** | Grok, Brave Search, web_fetch | FREE | Research before burning tokens |
+| **1 — Frontier** | Claude Opus 4.5 | $$$ | Main chat session (MacBook) |
+| **2 — Smart API** | Claude Sonnet 4.5 | $$ | ALL cron jobs, heartbeats, sub-agents, bots |
+| **3 — Free manual** | mistral-small3.2, gemma3:12b | FREE | Manual interactive use ONLY (NOT in auto-routing) |
+| **4 — Free research** | Grok, Brave Search, web_fetch | FREE | Research before burning tokens |
 
-### Available Models
+### Available Models (Installed but NOT in auto-routing)
 
-| Model | Params | Context | MaxTokens | Reasoning | Image | Machines |
-|-------|--------|---------|-----------|-----------|-------|----------|
-| **qwen3-coder:30b** | 30B | 40960 | 40960 | [NO] | [NO] | MacBook ONLY (48GB) — NEW PRIMARY |
-| **devstral-small-2:24b** | 24B | 32768 | 8192 | [NO] | [NO] | MacBook ONLY (48GB) |
-| **gemma3:12b** | 12B | 32768 | 8192 | [NO] | [OK] | MacBook ONLY (48GB) — NEW, has image input! |
-| **qwen3:8b** | 8B | 40960 | 40960 | [OK] true | [NO] | Both Macs |
-| **phi4:14b** | 14B | 16384 | — | [OK] true | [NO] | Mac Mini |
+| Model | Params | Context | Machine | Notes |
+|-------|--------|---------|---------|-------|
+| mistral-small3.2:24b | 24B | 32768 | MacBook | Manual use only |
+| gemma3:12b | 12B | 32768 | MacBook | Vision-capable (image input), manual use only |
+| phi4-mini | 3.8B | — | Mac Mini | Manual use only (~37-41 t/s) |
+| phi4:14b | 14.7B | 16384 | Mac Mini | Manual use only, reasoning capable |
 
-**Removed:**
-- [NO] gpt-oss:20b — Deleted from MacBook (replaced by qwen3-coder:30b)
-- [NO] qwen3-fast:8b — Deleted from Mac Mini (duplicate of qwen3:8b, freed 5.2GB disk)
+**Removed from all machines:**
+- ❌ qwen3-coder:30b — removed
+- ❌ devstral-small-2:24b — removed (hallucinates on agentic tasks)
+- ❌ nemotron-3-nano:30b — removed
 
 ## Model Routing Table (All 3 Machines)
 
@@ -49,113 +57,80 @@ Multi-machine Clawdbot setup with Ollama integration for local LLM inference.
 
 | Setting | Model | Notes |
 |---------|-------|-------|
-| **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet 4.5 -> devstral-24b -> gemma3:12b | All safe on 48GB |
-| **Heartbeat** | `ollama-macbook/qwen3-coder:30b` | FREE, 30B params |
-| **Sub-agents primary** | `ollama-macbook/qwen3-coder:30b` | FREE, 30B coding model |
-| **Sub-agent fallbacks** | qwen3:8b (macbook) -> qwen3:8b (mini) -> Sonnet 4.5 | Local-first cascade |
-| **Default fallbacks** | devstral-24b -> gemma3:12b -> qwen3:8b (mini) -> phi4:14b (mini) | Cross-machine |
+| **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning, Felipe's direct chat |
+| **Fallback** | `anthropic/claude-sonnet-4-5` | Anthropic only |
+| **Heartbeat** | `anthropic/claude-sonnet-4-5` | 60min interval, needs tools |
+| **Sub-agents** | `anthropic/claude-sonnet-4-5` → `anthropic/claude-opus-4-5` | Anthropic only |
+| **Cron jobs** | `anthropic/claude-sonnet-4-5` | All hourly, staggered |
 | **Thinking** | `thinkingDefault: "off"` | Off for higher concurrency |
-| **maxConcurrent** | 8 (was 4) | Local models have no rate limits |
-| **subagents.maxConcurrent** | 10 (was 5) | Ollama queues requests |
-| **cron.maxConcurrentRuns** | 6 | New setting |
+| **maxConcurrent** | 8 | |
+| **subagents.maxConcurrent** | 10 | |
+| **cron.maxConcurrentRuns** | 6 | |
 
 ### Mac Mini (16GB RAM) — Always-On Server
 
 | Setting | Model | Notes |
 |---------|-------|-------|
-| **Main** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Fallbacks** | phi4:14b -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Full local-to-cloud cascade |
-| **Heartbeat** | `ollama/qwen3:8b` (local) | FREE, reasoning=true |
-| **Sub-agents** | `ollama/qwen3:8b` -> phi4:14b -> MacBook qwen3-coder -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Cross-machine fallback |
-| **Thinking** | `thinkingDefault: "medium"` | Mac Mini unchanged |
+| **Main** | `anthropic/claude-sonnet-4-5` | Sonnet (no local model fallbacks) |
+| **Fallback** | `anthropic/claude-opus-4-5` | Anthropic only |
+| **Heartbeat** | N/A | Mac Mini is a NODE, not orchestrator |
+| **Sub-agents** | `anthropic/claude-sonnet-4-5` → `anthropic/claude-opus-4-5` | Anthropic only |
+| **Thinking** | `thinkingDefault: "medium"` | |
 
-> **phi4:14b now available** — Microsoft Phi-4 (14B params, 9.1GB, reasoning=true, contextWindow=16384). Safe for Mac Mini 16GB RAM.
+> **Mac Mini is a NODE connected to MacBook orchestrator.** It does NOT run cron jobs. All cron runs on MacBook.
 
 ### Windows MSI (No local Ollama)
 
 | Setting | Model | Notes |
 |---------|-------|-------|
-| **Main** | `anthropic/claude-opus-4-5` | Frontier reasoning |
-| **Fallbacks** | Sonnet -> MacBook devstral -> MacBook qwen3-coder -> MacBook gemma3:12b -> Mac Mini qwen3 | Dual-provider |
-| **Heartbeat** | `ollama-macmini/qwen3:8b` | FREE, via Tailscale |
-| **Sub-agents** | Mac Mini qwen3 -> MacBook qwen3-coder:30b -> MacBook devstral -> MacBook gemma3:12b -> Sonnet -> Opus | Mac Mini first (always-on) |
-| **Thinking** | `thinkingDefault: "medium"` | Windows unchanged |
+| **Main** | `anthropic/claude-sonnet-4-5` | Sonnet only (Telegram chat) |
+| **Fallback** | `anthropic/claude-opus-4-5` | Anthropic only |
+| **Heartbeat** | Disabled | Minimal config |
+| **Cron** | None | No cron jobs |
+| **Thinking** | `thinkingDefault: "medium"` | |
 
-## Ollama Providers
+> **Windows is Telegram-only.** Separate bot token (8506493579). No cron, no heartbeat, minimal config.
+
+## Ollama Providers (Manual Use Only)
 
 ### Provider: `ollama` (Mac Mini — always-on)
 ```yaml
-baseUrl: http://127.0.0.1:11434 # local on Mac Mini
-tailscaleUrl: http://100.115.10.14:11434 # remote access
+baseUrl: http://127.0.0.1:11434
+tailscaleUrl: http://100.115.10.14:11434
 models:
-  - qwen3:8b # PRIMARY (5GB, reasoning=true, SAFE for 16GB)
-  - phi4:14b # NEW: Microsoft Phi-4 (9.1GB, reasoning=true, contextWindow=16384)
-note: Only qwen3:8b and phi4:14b are registered for auto-fallback (swap protection)
+  - phi4-mini  # 2.5GB, ultra-fast ~37-41 t/s
+  - phi4:14b   # 9.1GB, reasoning=true
+note: ⚠️ NOT in auto-routing. Manual use only. ALL local models fail at tool-calling.
 ```
 
-### Provider: `ollama-macbook` (MacBook Pro — heavy compute)
+### Provider: `ollama-macbook` (MacBook Pro)
 ```yaml
-baseUrl: http://100.125.165.107:11434 # Tailscale IP (reliable)
-# Alternative: http://felipes-macbook-pro-2.local:11434
+baseUrl: http://100.125.165.107:11434  # Tailscale IP
+# From Mac Mini: http://10.144.238.116:11434/v1 (LAN IP — hostname doesn't resolve)
 models:
-  - qwen3-coder:30b # PRIMARY for sub-agents/heartbeats (30B, contextWindow=40960)
-  - devstral-small-2:24b # Heavy coding (48GB RAM safe)
-  - gemma3:12b # NEW: Vision-capable model (image input!, contextWindow=32768)
-  - qwen3:8b # Lightweight fallback (reasoning=true, contextWindow=40960)
+  - mistral-small3.2:24b  # General tasks
+  - gemma3:12b            # Vision-capable (image input)
+note: ⚠️ NOT in auto-routing. Manual use only.
 ```
 
-### Windows-specific providers
-```yaml
-ollama-macbookpro:
-  baseUrl: http://100.125.165.107:11434 # MacBook via Tailscale
-  models: [qwen3-coder:30b, devstral-24b, gemma3:12b, qwen3:8b]
+## Cross-Machine Access
 
-ollama-macmini:
-  baseUrl: http://100.115.10.14:11434 # Mac Mini via Tailscale
-  models: [qwen3:8b] # ONLY qwen3:8b (swap protection)
-```
+Mac Mini can access MacBook's Ollama for manual/resource-sharing purposes:
+- URL: `http://10.144.238.116:11434/v1` (LAN IP, not hostname)
+- Gateway bridge on port 18789 (both machines)
 
-## Cross-Machine Fallback
-
-Both Macs have **bidirectional Ollama fallback** — if one machine's Ollama fails, the other catches it automatically.
-
-### Mac Mini -> MacBook fallback
-```
-qwen3:8b (local) -> phi4:14b (local) -> MacBook qwen3-coder:30b ->
-MacBook devstral-24b -> MacBook gemma3:12b -> Sonnet -> Opus
-```
-
-### MacBook -> Mac Mini fallback
-```
-Opus -> Sonnet -> devstral-24b -> gemma3:12b -> qwen3:8b (local) ->
-Mac Mini qwen3:8b (remote)
-```
-
-### Windows -> Both Macs
-```
-Opus -> Sonnet -> MacBook qwen3-coder:30b -> MacBook devstral ->
-MacBook gemma3:12b -> MacBook qwen3 -> Mac Mini qwen3
-```
-
-**Why it matters:** Zero downtime. If Mac Mini Ollama crashes, MacBook picks up. If MacBook sleeps, Mac Mini keeps heartbeats alive.
+**⚠️ Cross-machine Ollama is for MANUAL USE ONLY. Auto-routing is Anthropic-only.**
 
 ## Memory Search (Semantic Recall)
-
-Clawdbot uses Gemini embeddings for semantic memory search across MEMORY.md and memory/*.md files.
 
 | Setting | Value |
 |---------|-------|
 | **Provider** | gemini |
 | **Model** | gemini-embedding-001 |
-| **Purpose** | Semantic recall -- finds relevant memories by meaning, not keyword match |
+| **Purpose** | Semantic recall — finds relevant memories by meaning |
 | **Indexed files** | MEMORY.md, memory/*.md |
 
-This enables the bot to recall past context even when the exact wording differs from the query. Powered by Google's Gemini embedding model (free tier).
-
 ## Context Pruning
-
-Manages context window size by trimming old messages when the conversation grows too long.
 
 | Setting | Value |
 |---------|-------|
@@ -164,15 +139,7 @@ Manages context window size by trimming old messages when the conversation grows
 | **softTrimRatio** | 0.5 |
 | **hardClearRatio** | 0.7 |
 
-**How it works:**
-- Keeps the last 3 assistant messages intact (never pruned)
-- At 50% context usage: soft trim -- removes oldest cached messages
-- At 70% context usage: hard clear -- aggressively prunes to free space
-- Mode `cache-ttl` means messages expire based on cache time-to-live rather than fixed counts
-
 ## Compaction
-
-Automatic conversation compaction to prevent context overflow.
 
 | Setting | Value |
 |---------|-------|
@@ -180,52 +147,49 @@ Automatic conversation compaction to prevent context overflow.
 | **memoryFlush** | enabled |
 | **softThresholdTokens** | 100,000 |
 
+## Auth & Account Rotation
+
+### Active Accounts
+- **Primary**: `wisedigital` (rotated from `felipe.lv.90` on Jan 28)
+- **Secondary**: `felipe.lv.90`
+
+### Cooldowns (Updated Jan 28)
+
+| Setting | Value | Previous |
+|---------|-------|----------|
+| **billingBackoffHours** | 2 | was 1 |
+| **billingMaxHours** | 8 | was 5 |
+| **failureWindowHours** | 2 | was 1 |
+
 **How it works:**
-- Mode `safeguard` triggers compaction only when approaching token limits (not proactively)
-- At 100k tokens: compaction kicks in, summarizing older context
-- `memoryFlush` writes important context to memory files before compacting, preventing information loss
-- Works alongside context pruning -- pruning trims individual messages, compaction summarizes entire sections
+- On billing/quota errors: backs off for 2 hours initially
+- Each subsequent billing failure doubles the backoff, capped at 8 hours max
+- Auth failures within a 2-hour window are grouped (prevents rapid retry loops)
 
-## Auth Cooldowns
+## Cron Jobs (ALL on MacBook Orchestrator)
 
-Rate limiting and backoff for API authentication failures and billing issues.
+See [cron-schedule.md](cron-schedule.md) for full cron documentation.
 
+### Summary (All hourly, staggered)
+
+| Time | Job | Model | Deliver |
+|------|-----|-------|---------|
+| `:00` | Cleaner Bot + Healer Team | Sonnet 4.5 | `false` → clawd-status API |
+| `:05` | EZ-CRM Dev Bot | Sonnet 4.5 | `false` → clawd-status API |
+| `:10` | LinkLounge Dev Bot | Sonnet 4.5 | `false` → clawd-status API |
+| `:15` | iOS App Dev Bot | Sonnet 4.5 | `false` → clawd-status API |
+| Every 6h | R&D Research | Sonnet 4.5 | `false` → clawd-status API |
+| 3x/day | App Store Manager | Sonnet 4.5 | `false` → clawd-status API |
+| Weekly Sun | Clear Sessions | — | — |
+
+**Key change (Jan 28):** ALL cron Telegram delivery DISABLED. Routine reports go to `clawd-status` API (`POST http://localhost:9010/api/log`). Only CRITICAL alerts go to Telegram.
+
+### Heartbeat
 | Setting | Value |
 |---------|-------|
-| **billingBackoffHours** | 1 |
-| **billingMaxHours** | 5 |
-| **failureWindowHours** | 1 |
-
-**How it works:**
-- On billing/quota errors: backs off for 1 hour initially
-- Each subsequent billing failure doubles the backoff, capped at 5 hours max
-- Auth failures within a 1-hour window are grouped (prevents rapid retry loops)
-- After the backoff period, the provider is retried automatically
-
-## Cron Jobs
-
-### MacBook Pro (5 jobs + cron.maxConcurrentRuns=6)
-| Job | Schedule | Model | Session | Purpose |
-|-----|----------|-------|---------|---------|
-| **Cleaner Bot** | Hourly | Sonnet 4.5 | isolated | Deep cleanup |
-| **Healer Bot v3** | Hourly | Sonnet 4.5 | isolated | Self-healing + swap monitoring |
-| **App Store Manager** | 3x/day (9/3/9 EST) | Sonnet 4.5 | isolated | iOS app monitoring |
-| **R&D AI Research** | Every 6 hours | Sonnet 4.5 | isolated | Monitors X/Twitter, Reddit, Google for AI improvements. See [rd-research-team.md](rd-research-team.md) |
-| **Clear Sessions** | Weekly (Sun midnight) | — | — | Stale session cleanup |
-
-### Mac Mini (3 jobs)
-| Job | Schedule | Model | Session | Purpose |
-|-----|----------|-------|---------|---------|
-| **Shitcoin Brain** | Every 10 min | qwen3:8b | isolated | Trading research |
-| **Shitcoin Quant** | Every 15 min | qwen3:8b | isolated | Technical analysis |
-| **System Health Monitor** | Every 30 min | qwen3:8b | isolated | Resource monitoring |
-
-**Why Sonnet for cron?** Self-healing requires reasoning, diagnostics, web research. ~$0.05-0.15 per run.
-
-**Cleaned up (removed):**
-- [NO] iOS App Store Monitor (old) — Replaced by App Store Manager
-- [NO] Project Health Monitor — Replaced by Healer Bot v3
-- [NO] EZ-CRM / LinkLounge / Aphos Continuous — Disabled
+| **Model** | `anthropic/claude-sonnet-4-5` |
+| **Interval** | 60 min |
+| **Reports to** | clawd-status API (routine), Telegram (critical only) |
 
 ## Event Watcher (Launchd)
 
@@ -242,99 +206,122 @@ Rate limiting and backoff for API authentication failures and billing issues.
 Both machines run with optimized settings:
 
 ```bash
-OLLAMA_HOST=0.0.0.0 # Listen on all interfaces
-OLLAMA_FLASH_ATTENTION=1 # 2-3x faster, 40% less memory
-OLLAMA_KV_CACHE_TYPE=q8_0 # 4x memory reduction vs f16
+OLLAMA_HOST=0.0.0.0         # Listen on all interfaces
+OLLAMA_FLASH_ATTENTION=1     # 2-3x faster, 40% less memory
+OLLAMA_KV_CACHE_TYPE=q8_0    # 4x memory reduction vs f16
 ```
 
-## Cost Savings
+## Cost Analysis (Updated Jan 28)
 
-| Task | Before | After | Savings |
-|------|--------|-------|---------|
-| Heartbeats | Claude Sonnet ($) | qwen3-coder:30b (FREE) | 100% |
-| Sub-agents (coding) | Claude Sonnet ($) | qwen3-coder:30b / devstral-24b (FREE) | 100% |
-| Sub-agents (general) | Claude Sonnet ($) | qwen3-coder:30b (FREE) | 100% |
-| Sub-agents (vision) | Claude Sonnet ($) | gemma3:12b (FREE, image input!) | 100% |
-| Self-healing | Claude Sonnet ($) | event-watcher bash (FREE) + Sonnet cron | 95% |
-| Windows tasks | Claude API only ($$$) | MacBook + Mac Mini Ollama (FREE) | 90% |
+| Task | Model | Cost/run | Runs/day | Daily Cost |
+|------|-------|----------|----------|------------|
+| Cron: Cleaner | Sonnet 4.5 | ~$0.03 | 24 | ~$0.72 |
+| Cron: Healer Team | Sonnet 4.5 | ~$0.05 | 24 | ~$1.20 |
+| Cron: EZ-CRM | Sonnet 4.5 | ~$0.05 | 24 | ~$1.20 |
+| Cron: LinkLounge | Sonnet 4.5 | ~$0.05 | 24 | ~$1.20 |
+| Cron: iOS Dev | Sonnet 4.5 | ~$0.05 | 24 | ~$1.20 |
+| Cron: R&D | Sonnet 4.5 | ~$0.10 | 4 | ~$0.40 |
+| Cron: App Store | Sonnet 4.5 | ~$0.10 | 3 | ~$0.30 |
+| Heartbeat | Sonnet 4.5 | ~$0.02 | 24 | ~$0.48 |
+| Sub-agents | Sonnet 4.5 | ~$0.05 | ~10 | ~$0.50 |
+| Main session | Opus 4.5 | ~$0.20 | ~10 | ~$2.00 |
+| **TOTAL** | | | | **~$9.20/day** |
 
-**Estimated monthly savings**: $150-200 USD
+**Monthly estimate**: ~$275/month (all Anthropic, no local model fallbacks)
+
+**Local models are still FREE for manual use** but NOT in any auto-routing chain.
 
 ## Troubleshooting
 
-### Model Not Found
+### Model Not Found (Manual Ollama Use)
 ```bash
-ollama list # Check available models
-ollama pull qwen3:8b # Pull missing model
+ollama list                    # Check available models
+ollama pull mistral-small3.2   # Pull if needed
 ```
 
 ### Mac Mini Swap Issues
 ```bash
-sysctl vm.swapusage # Check swap usage
-ollama ps # Check loaded models
-# If swap > 8GB, unload heavy models:
-curl -X DELETE http://localhost:11434/api/generate -d '{"model":"gpt-oss:20b"}'
+sysctl vm.swapusage            # Check swap usage
+ollama ps                      # Check loaded models
+brew services restart ollama   # Restart to free memory
 ```
 
-### Connection Refused (Remote)
+### Connection Refused (Remote Ollama)
 ```bash
-echo $OLLAMA_HOST # Should be 0.0.0.0
-curl http://localhost:11434/api/tags # Local
-curl http://100.115.10.14:11434/api/tags # Tailscale (Mac Mini)
-curl http://100.125.165.107:11434/api/tags # Tailscale (MacBook)
+echo $OLLAMA_HOST              # Should be 0.0.0.0
+curl http://localhost:11434/api/tags           # Local
+curl http://100.115.10.14:11434/api/tags       # Mac Mini via Tailscale
+curl http://100.125.165.107:11434/api/tags     # MacBook via Tailscale
 ```
+
+### Sub-agent Using Wrong Model
+- **Root cause (Jan 28)**: Sub-agents had local Ollama in fallback chains. When Sonnet rate-limited, they fell to devstral which hallucinates.
+- **Fix**: ALL local models removed from fallback chains. Sub-agents now: Sonnet 4.5 → Opus 4.5 (Anthropic only).
 
 ## Fix History
 
-### 2026-01-27: qwen3-coder:30b, gemma3:12b, Concurrency Bump
-**Changes:**
-- **New MacBook models**: qwen3-coder:30b (30B, primary for sub-agents/heartbeats), gemma3:12b (12B, image input!)
-- **Removed**: gpt-oss:20b — replaced by qwen3-coder:30b (better coding, larger context)
-- **Heartbeat model**: Changed from `ollama/qwen3:8b` to `ollama-macbook/qwen3-coder:30b`
-- **Sub-agent primary**: Changed to `ollama-macbook/qwen3-coder:30b`
-- **thinkingDefault**: Changed from "medium" to "off" (reduces token usage, enables higher concurrency)
-- **Concurrency bump**: maxConcurrent 4→8, subagents.maxConcurrent 5→10, cron.maxConcurrentRuns=6
-- **Why higher concurrency**: Local Ollama models have NO rate limits (unlike Anthropic API which returns 429s). Ollama simply queues requests, so more concurrent agents = faster throughput without errors.
-- **R&D Research cron**: Added every-6-hour cron for AI research (see rd-research-team.md)
+### 2026-01-28 (Late Night): Anthropic-Only Routing
+**Problem**: Sub-agents falling back to devstral/local models which can't do tool-calling. Two iOS submission pipelines failed because they routed to devstral.
 
-### 2026-01-27: Config Audit & Swap Protection Enforcement
-**Problem**: gpt-oss:20b (14GB) in Mac Mini auto-fallback chains was causing 15.6GB swap death. Windows only had Mac Mini as Ollama provider. qwen3-fast:8b was a dead reference.
+**Root cause**: Fallback chains included local Ollama models. When Sonnet was rate-limited, system fell to devstral which hallucinates tool calls.
 
 **Fixed:**
-- Removed gpt-oss:20b from ALL Mac Mini auto-fallback chains (all 3 machines' configs)
-- Windows MSI: Added MacBook Pro as second Ollama provider (ollama-macbookpro)
-- Mac Mini: Changed MacBook URL from .local hostname -> Tailscale IP (100.125.165.107)
-- Mac Mini: Added qwen3:8b to local ollama models array (was empty)
-- Deleted qwen3-fast:8b model (freed 5.2GB disk)
-- Deleted unnecessary files: CONTEXT_BUFFER.md, OPTIMIZATION_RULES.md, model-recovery.ps1
-- Killed 5 stale tmux bot sessions on Mac Mini
+- **ALL local Ollama models REMOVED from ALL fallback chains** (all 3 machines)
+- Main session: Opus 4.5 → Sonnet 4.5 (Anthropic only)
+- All bots/cron/subagents: Sonnet 4.5 → Opus 4.5 (Anthropic only)
+- Auth cooldowns increased: billingBackoff 1→2h, billingMax 5→8h, failureWindow 1→2h
+- Account rotation: felipe.lv.90 → wisedigital
+- Cron delivery disabled: all reports → clawd-status API, critical only → Telegram
+- New cron jobs added: EZ-CRM Dev, LinkLounge Dev, iOS App Dev (all hourly)
+- Cron schedule standardized: all hourly, staggered by 5 min
 
-### 2026-01-27: Windows MSI Dual-Provider
-**Problem**: Windows only routed through Mac Mini — limited to qwen3:8b.
+### 2026-01-28: All Cron/Heartbeats → Sonnet 4.5
+- All 7 local Ollama models confirmed failing at tool-calling
+- R&D cron switched from qwen3-coder:30b to Sonnet 4.5
+- Mac Mini → MacBook Ollama URL fixed to LAN IP
+- clawd-status dashboard added at port 9010
 
-**Fixed:**
-- Added `ollama-macbookpro` provider pointing to MacBook Tailscale IP
-- Windows fallbacks now include MacBook's devstral-24b and gpt-oss:20b
-- Sub-agents prefer Mac Mini qwen3:8b (always-on) then MacBook models
+### 2026-01-27: Config Audit & Swap Protection
+- gpt-oss:20b removed from Mac Mini auto-fallbacks
+- Windows MSI: added MacBook as second Ollama provider
+- Deleted qwen3-fast:8b (freed 5.2GB)
 
-### 2025-07-28: Windows MSI routing through Mac Mini
-**Problem**: Windows was 100% Claude API — every task burned credits.
+---
 
-**Fixed:**
-- Added `ollama-macmini` provider pointing to Mac Mini Tailscale IP
-- Windows primary heartbeats -> Mac Mini qwen3:8b (FREE)
+## Tool-Calling Research (Jan 2026)
 
-### 2025-07-27: Credit Leak Fix (legacy model removal)
-**Problem**: Legacy 7B model deleted but still referenced in configs -> fallback to expensive Claude API.
+**Summary:** ALL local Ollama models fail at multi-step agentic tool-calling.
 
-**Fixed:**
-- Removed all dead model references
-- Mac Mini primary -> gpt-oss:20b (later changed to qwen3:8b for swap safety)
+### Models Tested (All Failed)
+
+| Model | Failure Mode | Details |
+|-------|-------------|---------|
+| qwen3-coder:30b | Broken template | Ollama bug #11621 — omits `<tool_call>` tags |
+| devstral-small-2:24b | Hallucinates text | Describes tools instead of calling them |
+| mistral-small3.2:24b | Returns text | Ignores tools, responds with text |
+| nemotron-3-nano:30b | 1 call then stops | Can do 1 call but multi-step fails |
+| phi4-mini:3.8b | Echoes prompt | Never attempts tool calls |
+| phi4:14b | Echoes prompt | Same as phi4-mini |
+| gemma3:12b | No tool support | Model lacks tool capability entirely |
+
+### Root Cause
+Ollama's OpenAI-compatible endpoint translates between OpenAI's tool-calling format and each model's native format. This translation layer has bugs:
+1. **Template bugs** (qwen3-coder): Jinja template incorrectly formats tool definitions
+2. **Quantization artifacts**: Q4_K_M loses fine-tuned tool-calling behavior
+3. **Multi-step weakness**: Even 1-call models fail on tool-result → next-tool-call chain
+4. **Format confusion**: Models output native tags instead of OpenAI JSON
+
+### Decision (Jan 28 final)
+- **ALL auto-routing → Anthropic only** (Sonnet 4.5 / Opus 4.5)
+- **Local models → manual interactive use ONLY** (not in any fallback chain)
+- **Monitor**: Ollama releases for improvements (especially bug #11621)
 
 ---
 
 ## References
 
+- [Model Routing](model-routing.md) — Detailed routing documentation
+- [Cron Schedule](cron-schedule.md) — Full cron job documentation
 - [Three-Machine Architecture](infrastructure/three-machine-architecture.md) — Full infrastructure overview
 - [Ollama Setup](ollama-setup.md) — Installation & configuration
 - [Tailscale](tailscale.md) — Network configuration

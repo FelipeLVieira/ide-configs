@@ -18,8 +18,9 @@ All assigned ports across all machines. **Check this before using any port.**
 | 8081 | BMI Calculator Expo | MacBook | BMI Calculator | Expo web dev server |
 | 8082 | Bills Tracker Expo | MacBook | Bills Tracker | Expo web dev server |
 | 8083 | Screen Translator Expo | MacBook | Screen Translator | Expo web dev server |
-| 9009 | clawd-monitor | Mac Mini | clawd-monitor | Dashboard web UI |
-| 9000-9099 | Monitor Reserved | Mac Mini | clawd-monitor | WebSocket, API, etc. |
+| 9009 | clawd-monitor (Crabwalk) | Mac Mini | clawd-monitor | Dashboard web UI |
+| 9010 | clawd-status | MacBook | clawd-status | Status dashboard + health checks (github.com/FelipeLVieira/clawd-status, private) |
+| 9000-9099 | Monitor Reserved | Mac Mini + MacBook | clawd-monitor / clawd-status | WebSocket, API, etc. |
 | 11434 | Ollama | Both Macs | Infrastructure | LLM inference server |
 | 18789 | Clawdbot Gateway | Both Macs | Infrastructure | AI orchestrator |
 | 18791 | Clawdbot Browser Control | Both Macs | Infrastructure | Browser automation |
@@ -35,7 +36,7 @@ All assigned ports across all machines. **Check this before using any port.**
 | 6000-6099 | Documentation/tool servers | Available for docs examples |
 | 7000-7099 | ide-configs examples/tests | Available for examples |
 | 8081-8083 | Expo apps (fixed) | MacBook |
-| 9000-9099 | clawd-monitor | Mac Mini |
+| 9000-9099 | clawd-monitor / clawd-status | Mac Mini + MacBook |
 | 11434 | Ollama (standard) | Both Macs |
 | 18789-18799 | Clawdbot infrastructure | Both Macs |
 
